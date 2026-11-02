@@ -1543,37 +1543,7 @@ function waterNormals(seed){
   const t=new THREE.CanvasTexture(c); t.wrapS=t.wrapT=THREE.RepeatWrapping; return t;
 }
 let water=null;
-const CAUST={ uCaustT:{value:0}, uCaust:{value:0} };
-{ const base=M.floor.onBeforeCompile;
-  M.floor.onBeforeCompile=sh=>{ base(sh); sh.uniforms.uCaustT=CAUST.uCaustT; sh.uniforms.uCaust=CAUST.uCaust;
-    sh.fragmentShader=sh.fragmentShader.replace("void main() {", `uniform float uCaustT; uniform float uCaust;
-/* the light net on the bed: the edges between drifting cells, two layers, wobbled */
-vec2 cH(vec2 c){ return fract(sin(vec2(dot(c,vec2(127.1,311.7)), dot(c,vec2(269.5,183.3))))*43758.5453); }
-float cEdge(vec2 p, float t){
-  vec2 c=floor(p), f=fract(p); float F1=9.0, F2=9.0;
-  for(int j=-1;j<=1;j++) for(int i=-1;i<=1;i++){
-    vec2 g=vec2(float(i),float(j)), h=cH(c+g);
-    vec2 o=0.5+0.42*sin(vec2(t, t*1.13)+6.2832*h);
-    float d=length(g+o-f);
-    if(d<F1){ F2=F1; F1=d; } else if(d<F2) F2=d;
-  }
-  return F2-F1;
-}
-float caustic(vec2 p, float t){
-  p += 0.25*sin(p.yx*vec2(1.7,1.5) + vec2(t, -t*0.8));
-  float a = 1.0-clamp(cEdge(p, t)/0.14, 0.0, 1.0);
-  float b = 1.0-clamp(cEdge(p*1.37+vec2(3.1,-1.7), t*1.2)/0.14, 0.0, 1.0);
-  return pow(a, 2.2)*0.7 + pow(b, 2.2)*0.5;
-}
-void main() {`).replace("#include <emissivemap_fragment>", `#include <emissivemap_fragment>
-      if(uCaust>0.0){
-        vec2 wp = vUv/26.0*400.0;
-        float cs = caustic(wp/1.4, uCaustT*0.6);
-        totalEmissiveRadiance += uCaust * clamp(cs, 0.0, 1.0) * vec3(1.0, 0.80, 0.58) * 0.38;
-      }`);
-  };
-  M.floor.needsUpdate=true;
-}
+const WT={ value:0 };
 if(THREE.Water && THREE.Reflector && THREE.Refractor){ try{
   const RT=Math.min(1024, renderer.capabilities.maxTextureSize);
   water=new THREE.Water(new THREE.PlaneGeometry(400,400), {
@@ -1581,11 +1551,28 @@ if(THREE.Water && THREE.Reflector && THREE.Refractor){ try{
     textureWidth:RT, textureHeight:RT, normalMap0:waterNormals(7), normalMap1:waterNormals(4211) });
   water.rotation.x=-Math.PI/2; water.position.y=.55;   /* the hall stands in a hand's depth of water */ water.visible=false; scene.add(water);
   /* the reflection and refraction are drawn already toned and encoded: read them back as linear, tone once */
-  const wm=water.material; wm.toneMapped=false;
+  const wm=water.material; wm.toneMapped=false; wm.uniforms.uWT=WT;
   wm.fragmentShader=wm.fragmentShader
+    .replace("uniform vec4 config;", `uniform vec4 config; uniform float uWT;
+vec2 wGrad(vec2 p, float t){
+  /* crossing swells: each a sine travelling its own way; where they meet the water heaps and sinks */
+  vec2 g = vec2(0.0);
+  const int NW = 7;
+  vec3 W[NW];
+  W[0]=vec3( 0.94, 0.34, 2.9); W[1]=vec3(-0.62, 0.78, 2.3); W[2]=vec3( 0.17,-0.98, 1.9);
+  W[3]=vec3(-0.91,-0.41, 1.5); W[4]=vec3( 0.55, 0.83, 1.15); W[5]=vec3(-0.25, 0.97, 0.85); W[6]=vec3( 0.80,-0.60, 0.7);
+  for(int n=0;n<NW;n++){
+    vec2 d = W[n].xy; float L = W[n].z, k = 6.2832/L, w = sqrt(9.8*k)*0.32, a = 0.026*L;
+    float ph = k*dot(d,p) - w*t + float(n)*1.7;
+    g += d*(a*k*cos(ph));
+  }
+  return g;
+}`)
+    .replace("vec3 normal = normalize( vec3( normalColor.r * 2.0 - 1.0, normalColor.b,  normalColor.g * 2.0 - 1.0 ) );",
+             "vec3 nTex = vec3( normalColor.r * 2.0 - 1.0, normalColor.b,  normalColor.g * 2.0 - 1.0 ); vec2 sg = wGrad(vUv*400.0, uWT); vec3 normal = normalize( vec3( nTex.x*0.35 - sg.x, nTex.y, nTex.z*0.35 - sg.y ) );")
     .replace("vec4 reflectColor = texture2D( tReflectionMap, vec2( 1.0 - uv.x, uv.y ) );","vec4 reflectColor = sRGBToLinear( texture2D( tReflectionMap, vec2( 1.0 - uv.x, uv.y ) ) );")
     .replace("vec4 refractColor = texture2D( tRefractionMap, uv );","vec4 refractColor = sRGBToLinear( texture2D( tRefractionMap, uv ) ); refractColor.rgb *= vec3(0.86, 0.97, 0.95);")
-    .replace("vec2 uv = coord.xy + coord.z * normal.xz * 0.05;","vec2 uv = coord.xy + coord.z * normal.xz * 0.014;")
+    .replace("vec2 uv = coord.xy + coord.z * normal.xz * 0.05;","vec2 uv = coord.xy + coord.z * normal.xz * 0.022;")
     /* clearer: the mirror only takes over far down the hall */
     .replace("float reflectance = reflectivity + ( 1.0 - reflectivity ) * pow( ( 1.0 - theta ), 5.0 );","float reflectance = reflectivity + ( 1.0 - reflectivity ) * pow( ( 1.0 - theta ), 7.0 ) * 0.85;");
 }catch(e){ water=null; } }
@@ -1803,7 +1790,7 @@ function applyMood(name){
   if(bloom){ bloom.strength=m.bloom[0]; bloom.radius=m.bloom[1]; bloom.threshold=m.bloom[2]; }
   if(frost) frost.uniforms.uGrain.value=m.grain;
   forecourt.visible = name!=='light';
-  { const wet=!!water && name!=='light'; if(water) water.visible=wet; CAUST.uCaust.value=wet?1:0; mirror.visible=!wet; if(wet){ skyBelow.visible=false; M.floor.opacity=1; } }
+  { const wet=!!water && name!=='light'; if(water) water.visible=wet; mirror.visible=!wet; if(wet){ skyBelow.visible=false; M.floor.opacity=1; } }
   canopy.visible = name==='light'; placeCanopy();
   buildShafts(m.shaft[0], m.shaft[1], col);
   if(accentHex!==null) setAccent(accentHex);
@@ -1836,7 +1823,7 @@ function frame(){
   const dx=tx-mx, dy=ty-my, moving=Math.abs(dx)>1e-4 || Math.abs(dy)>1e-4;
   mx+=dx*k; my+=dy*k;
   const focusing = focusStart>=0; if(focusing){ const q=Math.min(1,(clock.getElapsedTime()-focusStart)/FOCUS_DUR), e=1-Math.pow(1-q,3); focusC=focusF+(focusT-focusF)*e; applyFocus(); if(q>=1) focusStart=-1; }
-  const flowing = !still && !!water && water.visible; if(flowing) CAUST.uCaustT.value=clock.getElapsedTime();
+  const flowing = !still && !!water && water.visible; if(flowing) WT.value=clock.getElapsedTime();
   const swaying = !still && canopy.visible; if(swaying) LEAF.uLeafT.value=clock.getElapsedTime();
   const rolling = rollStart>=0; if(rolling){ const q=Math.min(1,(clock.getElapsedTime()-rollStart)/ROLL_DUR), e=q<.5?4*q*q*q:1-Math.pow(-2*q+2,3)/2; rollC=rollF+(rollT-rollF)*e; if(q>=1) rollStart=-1; }
   const travelling = tripStart>=0 || focusing || flowing || swaying || rolling;
@@ -1857,7 +1844,7 @@ addEventListener("resize", resize); resize();
 window.HALL={ accent:setAccent, travel(){ if(!still){ tripStart=clock.getElapsedTime(); } }, roll(on){ const tgt=on?Math.PI:0; if(Math.abs(tgt-rollT)<1e-6) return; rollT=tgt; if(still){ rollC=rollT; dirty=true; frame(); } else { rollF=rollC; rollStart=clock.getElapsedTime(); } }, force(n){ if(forcedMood===n) return; forcedMood=n; applyMood(n||current()); dirty=true; if(still) frame(); }, focus(){ focusT=window.hallFocus?hallFocus():.4; if(still){ focusC=focusT; applyFocus(); dirty=true; frame(); } else { focusF=focusC; focusStart=clock.getElapsedTime(); } } };
 if(typeof PEOPLE!=="undefined") setAccent(PEOPLE[cur].accent);
 /* draw one frame at a given moment of the water and the leaves (used for stills) */
-HALL.at=t=>{ CAUST.uCaustT.value=t; if(water){ const c=water.material.uniforms.config.value; c.x=(t*.055)%c.z; c.y=c.x+c.z; } LEAF.uLeafT.value=t; dirty=true; frame(); };
+HALL.at=t=>{ WT.value=t; if(water){ const c=water.material.uniforms.config.value; c.x=(t*.055)%c.z; c.y=c.x+c.z; } LEAF.uLeafT.value=t; dirty=true; frame(); };
 frame();
 })();
 </script>
