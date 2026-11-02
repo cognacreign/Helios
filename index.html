@@ -214,7 +214,13 @@
     --s:1; --rot:-8deg; filter:drop-shadow(0 0.375rem 0.625rem rgba(30,20,12,.28));
     transform:rotate(var(--rot)) scale(var(--s)); transition:transform .2s ease }
   .sticker[hidden]{ display:none }
-  #deer{ width:3.6rem }
+  #deer, #deer2{ width:3.6rem }
+  /* a line said beside a sticker or the thing in hand */
+  .say{ position:fixed; z-index:6; transform:translate(-50%, calc(-100% + .3rem)); text-align:center; white-space:nowrap; pointer-events:none;
+    font-family:var(--serif); font-size:.8rem; line-height:1.6; color:var(--ink); text-shadow:0 0 .5rem var(--bg), 0 0 .2rem var(--bg);
+    opacity:0; transition:opacity .35s ease, transform .35s ease }
+  .say small{ display:block; font-family:var(--mono); font-size:.58rem; letter-spacing:.14em; color:var(--dim) }
+  .say.show{ opacity:1; transform:translate(-50%, -100%) }
   .sticker.away{ opacity:0; visibility:hidden; pointer-events:none; transition:opacity .4s ease, visibility 0s .4s }
   .sticker{ transition:transform .2s ease, opacity .4s ease }
   .sticker.drag, .sticker.turn{ transition:none }
@@ -399,6 +405,8 @@
 </main>
 
 <button class="sticker" id="apple" type="button" aria-label="苹果贴纸：打开物品。可拖动；拖角上的圆点或滚轮缩放旋转；键盘 + − 缩放，[ ] 旋转" hidden><img alt=""><span class="lit amb" aria-hidden="true"></span><span class="lit key" aria-hidden="true"></span><span class="handle" aria-hidden="true"></span></button>
+<button class="sticker" id="deer2" type="button" aria-label="Aurelia 的小鹿玩偶贴纸。可拖动，也可以拖回背包；拖角上的圆点或滚轮缩放旋转；键盘 + − 缩放，[ ] 旋转" hidden><img alt=""><span class="lit amb" aria-hidden="true"></span><span class="lit key" aria-hidden="true"></span><span class="handle" aria-hidden="true"></span></button>
+<div class="say" id="say" aria-live="polite"></div>
 <button class="sticker" id="deer" type="button" aria-label="小鹿玩偶贴纸。可拖动，也可以拖回背包；拖角上的圆点或滚轮缩放旋转；键盘 + − 缩放，[ ] 旋转" hidden><img alt=""><span class="lit amb" aria-hidden="true"></span><span class="lit key" aria-hidden="true"></span><span class="handle" aria-hidden="true"></span></button>
 
 <script>
@@ -784,8 +792,20 @@ const S_MIN=.6, S_MAX=2.4;      /* a sticker stays between about 28px and 110px 
 const clampS=s=>Math.max(S_MIN, Math.min(S_MAX, s));
 const STK={
   apple:{ el:$("#apple"), src:APPLE_SRC, owner:"iris", s:1, r:-8, bagKey:"helios-apple-in-bag", posKey:"helios-sticker-apple", untilFound:"helios-sticker-apple-found" },
-  deer: { el:$("#deer"),  src:DEER_SRC,  owner:"iris", s:1, r:6,  bagKey:"helios-deer-in-bag",  posKey:"helios-sticker-deer", startInBag:true }
+  deer: { el:$("#deer"),  src:DEER_SRC,  owner:"iris", s:1, r:6,  bagKey:"helios-deer-in-bag",  posKey:"helios-sticker-deer", startInBag:true },
+  /* Aurelia has one too. she knows where it came from */
+  deer_aurelia:{ el:$("#deer2"), src:DEER_SRC, owner:"aurelia", s:1, r:-6, bagKey:"helios-deer-aurelia-in-bag", posKey:"helios-sticker-deer-aurelia", startInBag:true }
 };
+/* a line from the owner, said beside the thing in hand */
+const sayEl=$("#say");
+function speak(id, kind, x, y){
+  const t=ITEMS[id] && ITEMS[id].says && ITEMS[id].says[kind]; if(!t) return;
+  if(x===undefined){ const el=STK[id] && STK[id].el; if(!el) return; x=el.offsetLeft+el.offsetWidth/2; y=el.offsetTop-4; }
+  const who=PEOPLE.find(p=>p.id===ITEMS[id].owner).name.toUpperCase();
+  sayEl.innerHTML=`${t}<small>—— ${who}</small>`;
+  sayEl.style.left=Math.max(90, Math.min(innerWidth-90, x))+"px"; sayEl.style.top=Math.max(56, y)+"px";
+  sayEl.classList.add("show"); clearTimeout(sayEl._t); sayEl._t=setTimeout(()=>sayEl.classList.remove("show"), 2200);
+}
 const inBag=id=>{ const v=store.get(STK[id].bagKey); return v===null ? !!STK[id].startInBag : !!v; };
 function applySt(id){ const k=STK[id]; k.el.style.setProperty("--s", k.s); k.el.style.setProperty("--rot", k.r+"deg"); }
 function saveSt(id){ const k=STK[id]; store.set(k.posKey,[k.el.offsetLeft, k.el.offsetTop, k.s, k.r]); }
@@ -823,16 +843,16 @@ function bindSticker(id){
   handle.addEventListener("click",e=>{ e.stopPropagation(); e.preventDefault(); moved=false; });
   el.addEventListener("pointerdown",e=>{ if(turning) return; down=true; moved=false; sx=e.clientX; sy=e.clientY; ox=el.offsetLeft; oy=el.offsetTop; el.setPointerCapture(e.pointerId); });
   el.addEventListener("pointermove",e=>{ if(!down) return; const dx=e.clientX-sx, dy=e.clientY-sy;
-    if(!moved && Math.hypot(dx,dy)>4){ moved=true; el.classList.add("drag"); document.body.classList.add("dragging"); }
+    if(!moved && Math.hypot(dx,dy)>4){ moved=true; el.classList.add("drag"); document.body.classList.add("dragging"); speak(id,"move"); }
     if(moved){ el.style.left=Math.max(-10,Math.min(innerWidth-40, ox+dx))+"px"; el.style.top=Math.max(-10,Math.min(innerHeight-40, oy+dy))+"px";
       markOver(e.clientX,e.clientY,id); } });
   el.addEventListener("pointerup",e=>{ if(!down) return; down=false; el.classList.remove("drag");
     if(moved){ const t=dropAt(e.clientX,e.clientY); clearOver(); document.body.classList.remove("dragging");
-      if(t){ place(id, t); return; }
-      saveSt(id); } });
+      if(t && place(id, t)) return;
+      saveSt(id); speak(id,"stick"); } });
   el.addEventListener("click",e=>{ if(moved){ e.preventDefault(); e.stopImmediatePropagation(); moved=false; return; }
     if(ITEMS[id].entry) openEntry(ITEMS[id].entry);
-    else { el.classList.remove("boop"); void el.offsetWidth; el.classList.add("boop"); } });
+    else { el.classList.remove("boop"); void el.offsetWidth; el.classList.add("boop"); speak(id,"move"); } });
   /* the wheel resizes; with Shift held it turns */
   el.addEventListener("wheel",e=>{ e.preventDefault();
     if(e.shiftKey) k.r+=e.deltaY>0?6:-6; else k.s=clampS(k.s*(e.deltaY>0?.92:1.08));
@@ -854,6 +874,7 @@ const ITEMS = {
   drape:{ owner:"iris", name:"古希腊白布", icon:CLOTH_ICON, wear:"bottom", skin:{ art:"images/iris-drape.webp", mood:"dark", turn:true } },
   apple:{ owner:"iris", name:"苹果", icon:APPLE_SRC, entry:"apple", sticker:true },
   deer:{ owner:"iris", name:"小鹿玩偶", icon:DEER_SRC, sticker:true },
+  deer_aurelia:{ owner:"aurelia", name:"小鹿玩偶", icon:DEER_SRC, sticker:true, says:{ move:"Iris 的新宠物？", stick:"我知道是谁送的。" } },
   /* outfits swap the standing portrait itself: same scale, same frame */
   uniform_iris:{ owner:"iris", name:"北方学院制服", icon:UNIFORM_ICON, wear:"top", fig:"images/iris-academy.webp", size:[886,1616] },
   uniform_aurelia:{ owner:"aurelia", name:"北方学院制服", icon:UNIFORM_ICON, wear:"top", fig:"images/aurelia-academy.webp", size:[814,1616] }
@@ -931,24 +952,30 @@ function toBoard(id, x, y){
   takeOut(id); store.set(k.bagKey, false); k.el.hidden=false;
   const w=k.el.offsetWidth||46; k.el.style.left=(x-w/2)+"px"; k.el.style.top=(y-w/2)+"px"; applySt(id); saveSt(id);
   syncStickers(); renderSkins();
-  if(!k.el.classList.contains("away")){ k.el.classList.remove("pop"); void k.el.offsetWidth; k.el.classList.add("pop"); }
+  if(!k.el.classList.contains("away")){ k.el.classList.remove("pop"); void k.el.offsetWidth; k.el.classList.add("pop"); speak(id,"stick"); }
 }
 /* a drop onto a slot: the bag takes anything; a wrong slot gets a line from its owner */
 function place(id, t){
-  if(t.dataset.drop==="bag") putInBag(id, +t.dataset.i);
-  else if(t.dataset.drop==="worn"){ if(!wear(id, t.dataset.slot) && JOKES[id]) joke(id, t.dataset.slot); }
+  if(t.dataset.drop==="bag"){ putInBag(id, +t.dataset.i); return true; }
+  if(t.dataset.drop==="worn"){
+    if(wear(id, t.dataset.slot)) return true;
+    if(hasJoke(id, t.dataset.slot)){ joke(id, t.dataset.slot); return true; } }
+  return false;
 }
 
 /* the wrong slot: she catches it, says something, and it goes back in the bag.
    each list runs in order and then stays on its last line */
 const JOKES={
   apple:{ top:["苹果不能作为上衣，但……"], bottom:["……不。","Aurelia，把手拿开。"] },
-  deer: { top:["……这是 Kris 送的。"], bottom:["玩偶不是这么用的。","Kris，你的心思不要放到我这里。"] }
+  deer: { top:["……这是 Kris 送的。"], bottom:["玩偶不是这么用的。","Kris，你的心思不要放到我这里。"] },
+  deer_aurelia:{ top:["挂在墙上比较好看。"] }     /* and it won't go in as a bottom at all */
 };
+const hasJoke=(id, slot)=>!!(JOKES[id] && JOKES[id][slot]);
 let joking=false; const turns={};
 function joke(id, where){
   if(joking) return; joking=true;
   where=where||"top";
+  sayEl.classList.remove("show"); clearTimeout(sayEl._t);
   const s=me(), box=equip.querySelector(`.eq.${where}`), quip=box.querySelector(".quip");
   const taken = !!s.worn[where];
   const L=JOKES[id][where], n=turns[id+where]||0;
@@ -966,8 +993,10 @@ function joke(id, where){
 function dropAt(x,y){ for(const el of document.elementsFromPoint(x,y)){ const d=el.closest("[data-drop]"); if(d) return d; } return null; }
 function clearOver(){ document.querySelectorAll(".slot.over").forEach(el=>el.classList.remove("over")); }
 function markOver(x,y,id){ clearOver(); const t=dropAt(x,y); if(!t) return;
-  if(t.dataset.drop==="bag" || (t.dataset.drop==="worn" && (canWear(id, t.dataset.slot) || JOKES[id]))) t.classList.add("over"); }
-let drag=null;
+  if(t.dataset.drop==="bag" || (t.dataset.drop==="worn" && (canWear(id, t.dataset.slot) || hasJoke(id, t.dataset.slot)))) t.classList.add("over"); }
+let drag=null, swallow=false;
+/* the click that ends a drag is not a click on the hall: it must not fold the panel away */
+addEventListener("click",e=>{ if(swallow){ swallow=false; e.stopImmediatePropagation(); e.preventDefault(); } }, true);
 document.addEventListener("pointerdown",e=>{
   const sl=e.target.closest(".slot.full"); if(!sl || !e.isPrimary) return;
   e.stopPropagation(); e.preventDefault();
@@ -977,13 +1006,15 @@ document.addEventListener("pointermove",e=>{
   if(!drag) return;
   if(!drag.moved && Math.hypot(e.clientX-drag.x, e.clientY-drag.y)>5){
     drag.moved=true; document.body.classList.add("dragging"); drag.from.classList.add("lifted");
+    speak(drag.id,"move", e.clientX, e.clientY-28); sayEl._follow=true;
     const g=document.createElement("div"); g.className="ghost"; g.innerHTML=`<img src="${ITEMS[drag.id].icon}" alt="">`; document.body.appendChild(g); drag.ghost=g;
   }
-  if(drag.moved){ drag.ghost.style.left=e.clientX+"px"; drag.ghost.style.top=e.clientY+"px"; markOver(e.clientX,e.clientY,drag.id); }
+  if(drag.moved){ drag.ghost.style.left=e.clientX+"px"; drag.ghost.style.top=e.clientY+"px"; markOver(e.clientX,e.clientY,drag.id);
+    if(sayEl._follow){ sayEl.style.left=Math.max(90, Math.min(innerWidth-90, e.clientX))+"px"; sayEl.style.top=Math.max(56, e.clientY-28)+"px"; } }
 });
 document.addEventListener("pointerup",e=>{
   if(!drag) return;
-  const d=drag; drag=null;
+  const d=drag; drag=null; sayEl._follow=false;
   if(d.ghost) d.ghost.remove(); d.from.classList.remove("lifted"); document.body.classList.remove("dragging"); clearOver();
   e.stopPropagation();
   if(!d.moved){
@@ -991,7 +1022,7 @@ document.addEventListener("pointerup",e=>{
     else if(coarse.matches && !(held && held.id===d.id)) hold(d.id, d.from);
     else { release(); activate(d.id, d.from); }
     return; }
-  release();
+  release(); swallow=true; setTimeout(()=>{ swallow=false; }, 0);
   const t=dropAt(e.clientX,e.clientY);
   if(t) place(d.id, t);
   else if(ITEMS[d.id].sticker) toBoard(d.id, e.clientX, e.clientY);
@@ -1014,8 +1045,9 @@ function hold(id, el){
   el.classList.add("held"); document.body.classList.add("holding");
   document.querySelectorAll("[data-drop]").forEach(t=>{
     if(t===el) return;
-    if(t.dataset.drop==="bag" || canWear(id, t.dataset.slot) || JOKES[id]) t.classList.add("can"); });
+    if(t.dataset.drop==="bag" || canWear(id, t.dataset.slot) || hasJoke(id, t.dataset.slot)) t.classList.add("can"); });
   bagname.textContent=`拿着 · ${ITEMS[id].name}`; bagname.classList.add("named");
+  const r=el.getBoundingClientRect(); speak(id,"move", r.left+r.width/2, r.top-4);
 }
 function release(){
   if(!held) return; held=null;
