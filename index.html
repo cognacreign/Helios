@@ -184,6 +184,8 @@
   /* 秘闻 that go on: a quiet link after the note */
   .more{ all:unset; cursor:pointer; margin-left:.35em; font-family:var(--mono); font-size:.58rem; letter-spacing:.14em; color:var(--dim); white-space:nowrap; border-bottom:1px dotted var(--dim) }
   .more::after{ content:" →" }
+  .more{ transition:opacity .4s ease .15s }
+  dd.sealed .more{ opacity:0; pointer-events:none; visibility:hidden }
   .more:hover{ color:var(--ink); border-bottom-color:var(--ink) }
   .more:focus-visible{ outline:1px solid var(--ink); outline-offset:.15rem }
   .spoil:hover, .spoil:focus-visible, .spoil.open{ background:var(--faint); color:var(--ink) }
@@ -607,6 +609,11 @@ SHEET.iris_drape={
   likesLabel:"遗物", likes:["笔记本，留给 Kris","遗书，只写给 Liora"]
 };
 const sheetOver={};
+/* a secret's "read more" only surfaces once its hidden part has been looked at */
+const seenMore=new Set();
+function unseal(e){ const s=e.target.closest && e.target.closest(".spoil"); if(!s) return;
+  const dd=s.closest("dd.sealed"); if(!dd) return; seenMore.add(dd.dataset.more); dd.classList.remove("sealed"); }
+document.addEventListener("mouseover", unseal); document.addEventListener("focusin", unseal); document.addEventListener("click", unseal);
 /* a tap (or Enter) opens a hidden span for good; hover and focus only peek */
 document.addEventListener("click",e=>{ const s=e.target.closest(".spoil"); if(s) s.classList.toggle("open"); });
 document.addEventListener("keydown",e=>{ const s=e.target.closest && e.target.closest(".spoil"); if(s && (e.key==="Enter"||e.key===" ")){ e.preventDefault(); s.classList.toggle("open"); } });    /* person id -> the sheet an outfit swaps in */
@@ -673,7 +680,7 @@ function storyHTML(p){
     ${s.rel ? `<h3>人物关系</h3>
     <dl class="rel">${s.rel.map(([n,t,go])=>`<dt>${go?`<button class="go" data-go="${go}">${n}</button>`:n}</dt><dd>${spoil(t)}</dd>`).join("")}</dl>` : ""}
     ${s.secrets ? `<h3>秘闻</h3>
-    <dl class="secrets">${s.secrets.map(([h,t,more])=>`<dt>${h}</dt><dd>${spoil(t)}${more?` <button class="more" type="button" data-term="${more}">阅读更多</button>`:""}</dd>`).join("")}</dl>`
+    <dl class="secrets">${s.secrets.map(([h,t,more])=>`<dt>${h}</dt><dd${more && /【/.test(t) && !seenMore.has(more) ? ` class="sealed" data-more="${more}"` : ""}>${spoil(t)}${more?` <button class="more" type="button" data-term="${more}">阅读更多</button>`:""}</dd>`).join("")}</dl>`
     : `<h3>事件</h3>
     <ul class="tl">${s.events.map(([a,t])=>`<li><b>${a.replace(" 岁","")}</b>${t}</li>`).join("")}</ul>`}
   </div>`;
