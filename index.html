@@ -214,7 +214,7 @@
     --s:1; --rot:-8deg; filter:drop-shadow(0 0.375rem 0.625rem rgba(30,20,12,.28));
     transform:rotate(var(--rot)) scale(var(--s)); transition:transform .2s ease }
   .sticker[hidden]{ display:none }
-  .readout .in.swap .sheet{ animation:swapIn .5s ease }
+  .readout .in.swap .sheet, .readout .in.swap .tale{ animation:swapIn .5s ease }
   @keyframes swapIn{ from{ opacity:0; transform:translateY(.3rem) } }
   #deer, #deer2{ width:3.6rem }
   /* a line said beside a sticker or the thing in hand */
@@ -565,6 +565,13 @@ const SHEET = {
     look:["白色长发随手一扎，侧刘海遮住左眼；大而浅的灰色眼睛","制服马甲是二手的，灰色针织洗得发白；整个冬天只有这一身"],
     events:["19 岁发表了一篇论文，被学院老头们一顿批评。成了学院名人","和 Helios 的公主住同一间宿舍，公主身边的‘朋友’???"],
     likes:["泡图书馆取暖","便宜的酒","用牌技打工"]
+  },
+  aurelia_academy:{
+    role:["北方学院学生","Helios王女"], place:"首都",
+    stats:[["168cm","线条美型"],["ENTP","中立邪恶"]],
+    look:["金橙色头发，金色眼睛；Helios 家族标准的锋利容貌","虽然穿着学院统一制服但领结从来不按校规系，菱格袜也不是学院发的"],
+    events:["16 岁被送来北方上学，是王室中的个例。理由众说纷纭...","和一个白色头发的穷学生住进了同一间宿舍"],
+    likes:["广交朋友","flirt","骑马","讨厌黄色的裙子"]
   }
 };
 const sheetOver={};    /* person id -> the sheet an outfit swaps in */
@@ -598,15 +605,35 @@ const STORY = {
          ["Gauvin","第二个哥哥，教她骑马。当上国王后还会去找他下棋。"],
          ["Owen","从小互相看不顺眼，后来与她公开订婚。"]],
     events:[["14 岁","嚷着不嫁人、只嫁哥哥，拉上 Lucian 和 Gav 一场场搅黄 Julian 的约会。"],
-            ["16 岁","Julian 婚礼前夜去找他，先吻了他。随后被送往北方学院。"],
+            ["16 岁","因为生日宴那件事，Solonne 家提议、Julian 同意，她被送往北方学院。"],
             ["18 岁","观察 Iris 一年后，在图书馆制造了一场偶遇，两人成为室友。"],
             ["24 岁","北方内战，Julian 死在北方。"],
             ["27 岁","加冕，以北方灾荒为由搁置与 Owen 的婚礼。清算 Cordelia。"],
             ["38 岁","在大教堂下令剥夺 Iris 的魔法，最终下令当场处死。"]]
   }
 };
+/* the North Academy years only, for when the uniform is on */
+STORY.iris_academy={
+  rel:[["Aurelia","室友。在图书馆“偶遇”她的公主。","aurelia"],
+       ["Liora","教会学校时的朋友，Iris 的口音是学着她褪掉的。"]],
+  events:[["14 岁","离家出走到 Enore 城，进了教会学校，从一本东方诗集里给自己取名 Lyren。"],
+          ["16 岁","冬天差点冻死在酒馆门口，被一个女孩带回家，过了一夜。"],
+          ["18 岁","北方学院二年级。图书馆里，公主“偶遇”了她，两人成了室友。"],
+          ["19 岁","发表论文上卷。一个算命师和她擦肩而过。"],
+          ["22 岁","跟着 Aurelia 去了首都。"]]
+};
+STORY.aurelia_academy={
+  rel:[["Julian","哥哥。点头同意把她送去北方的人。"],
+       ["Cordelia","准嫂子，生日宴上被她嫁祸的人。"],
+       ["Iris","观察了一整年的穷学生，后来的室友。","iris"]],
+  events:[["14 岁","Julian 的生日宴上，她故意摔倒、把咖啡泼在自己身上，嫁祸 Cordelia。"],
+          ["16 岁","因为生日宴那件事，Solonne 家提议、Julian 同意，她被送往北方学院。"],
+          ["17 岁","开始注意图书馆里一个白头发的穷学生。"],
+          ["18 岁","在图书馆制造了一场偶遇，两人成了室友。"],
+          ["22 岁","带着 Iris 回到首都。"]]
+};
 function storyHTML(p){
-  const s=STORY[p.id];
+  const s=STORY[sheetOver[p.id] || p.id];
   return `<div class="tale">
     <h3>人物关系</h3>
     <dl class="rel">${s.rel.map(([n,t,go])=>`<dt>${go?`<button class="go" data-go="${go}">${n}</button>`:n}</dt><dd>${t}</dd>`).join("")}</dl>
@@ -888,7 +915,7 @@ const ITEMS = {
   deer_aurelia:{ owner:"aurelia", name:"小鹿玩偶", icon:DEER_SRC, sticker:true, says:{ move:"Iris 的新宠物？", stick:"我知道是谁送的。" } },
   /* outfits swap the standing portrait itself: same scale, same frame */
   uniform_iris:{ owner:"iris", name:"北方学院制服", icon:UNIFORM_ICON, wear:"top", fig:"images/iris-academy.webp", size:[886,1616], sheet:"iris_academy" },
-  uniform_aurelia:{ owner:"aurelia", name:"北方学院制服", icon:UNIFORM_ICON, wear:"top", fig:"images/aurelia-academy.webp", size:[814,1616] }
+  uniform_aurelia:{ owner:"aurelia", name:"北方学院制服", icon:UNIFORM_ICON, wear:"top", fig:"images/aurelia-academy.webp", size:[814,1616], sheet:"aurelia_academy" }
 };
 const BAG_N=4;
 const INV={ iris:{ bag:["drape","uniform_iris",null,null], worn:{top:null,bottom:null} }, aurelia:{ bag:["uniform_aurelia",null,null,null], worn:{top:null,bottom:null} } };
@@ -934,7 +961,7 @@ function applySkin(){
   const sz=outfit ? outfit.size : PEOPLE[cur].fig;
   /* some outfits bring their own profile */
   const sh=Object.values(s.worn).map(id=>id && ITEMS[id].sheet).find(Boolean) || null, pid=PEOPLE[cur].id;
-  if((sheetOver[pid]||null)!==sh){ sheetOver[pid]=sh; if(tab===0 && !view){ renderReadout(); readin.classList.remove("swap"); void readin.offsetWidth; readin.classList.add("swap"); } }
+  if((sheetOver[pid]||null)!==sh){ sheetOver[pid]=sh; if(!view){ renderReadout(); readin.classList.remove("swap"); void readin.offsetWidth; readin.classList.add("swap"); } }
   figure.style.setProperty('--ar', `${sz[0]}/${sz[1]}`); figure.style.setProperty('--hs', sz[1]/1616);
   if(art.getAttribute("src")!==src){ art.src=src; art.alt=`${PEOPLE[cur].full}，${outfit?outfit.name:"作者绘"}`;
     figure.querySelectorAll('.lit').forEach(el=>{ el.style.webkitMaskImage=el.style.maskImage=`url(${src})`; }); }
