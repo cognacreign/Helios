@@ -230,25 +230,33 @@
   .sticker .key{ background:var(--fig-key); mix-blend-mode:soft-light }
   @media (prefers-reduced-motion: reduce){ .readout .in.entry, .sticker.pop{ animation:none } .sticker, .readout{ transition:none } }
 
-  /* ---------- skins ---------- */
-  .skins{ position:absolute; left:calc(100% + .9rem); top:0; display:flex; flex-direction:column; gap:.5rem; z-index:3 }
-  .skins[hidden]{ display:none }
-  .skins button{ all:unset; cursor:pointer; position:relative; width:2.75rem; height:2.75rem; border-radius:.55rem; overflow:hidden;
-    border:1px solid var(--faint); background:var(--panel); transition:border-color .3s }
-  .skins button img{ width:100%; height:100%; object-fit:cover; display:block }
-  .skins button[aria-pressed="true"]{ border-color:var(--ink) }
-  .skins button:focus-visible{ outline:1px solid var(--ink); outline-offset:3px }
+  /* ---------- the inventory: bottom right, it shows itself when the pointer comes near ---------- */
+  .inv{ position:fixed; z-index:2; right:4vw; bottom:var(--bot); width:clamp(22.5rem, 33vw, 25rem); height:11.5rem }
+  .inv[hidden]{ display:none }
+  .inv-grid{ position:absolute; right:0; bottom:0; display:grid; grid-template-columns:repeat(4, 4.4rem); gap:1.1rem .7rem;
+    opacity:0; transform:translateY(.6rem); transition:opacity .35s ease, transform .45s cubic-bezier(.2,.7,.2,1); pointer-events:none }
+  .inv:hover .inv-grid, .inv:focus-within .inv-grid{ opacity:1; transform:none; pointer-events:auto }
+  body.bare .inv{ display:none }
+  .slot{ all:unset; position:relative; box-sizing:border-box; width:4.4rem; height:4.4rem; border:1px solid var(--faint); border-radius:.6rem;
+    background:var(--panel); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); display:grid; place-items:center; color:var(--dim) }
+  .slot.empty::before{ content:"+"; font-weight:200; font-size:1.1rem; opacity:.55 }
+  .slot.item{ cursor:pointer; transition:border-color .25s }
+  .slot.item:hover{ border-color:var(--line) }
+  .slot.item img{ width:84%; height:84%; object-fit:contain; filter:drop-shadow(0 .2rem .35rem rgba(30,20,12,.3)); transition:transform .25s }
+  .slot.item:hover img{ transform:rotate(-4deg) scale(1.06) }
+  .slot[aria-pressed="true"]{ border-color:var(--ink) }
+  .slot[aria-pressed="true"]::after{ content:""; position:absolute; right:.35rem; top:.35rem; width:.36rem; height:.36rem; border-radius:50%; background:var(--glow, var(--ink)) }
+  .slot .cap{ position:absolute; top:calc(100% + .3rem); left:-.4rem; right:-.4rem; text-align:center; font-family:var(--mono); font-size:.58rem; letter-spacing:.08em; color:var(--dim); white-space:nowrap }
+  .slot:focus-visible{ outline:1px solid var(--ink); outline-offset:3px }
   .skinart{ position:absolute; inset:.55rem; width:calc(100% - 1.1rem); height:calc(100% - 1.1rem); object-fit:cover; border-radius:calc(var(--r) - .55rem);
     opacity:0; transition:opacity .7s ease .25s; pointer-events:none }
 
   /* the drape: night, the hall turned upside down, one warm light */
   body.skin-drape{
-    --bg:#0c0a09; --ink:#efe5d5; --dim:#a8977f; --line:rgba(239,229,213,.45); --faint:rgba(239,229,213,.15);
-    --panel:rgba(14,12,11,.62); --chip:rgba(20,16,13,.5); --frame:rgba(239,229,213,.55); --glow:#e9a35f;
-    --fig-amb:none; --fig-key:none; --sat:1; --veil:radial-gradient(70% 70% at 50% 50%, rgba(0,0,0,0) 40%, rgba(0,0,0,.55) 100%); --veil-blend:multiply;
+    --bg:#5f5348; --ink:#efe5d5; --dim:#b3a48f; --line:rgba(239,229,213,.5); --faint:rgba(239,229,213,.17);
+    --panel:rgba(30,25,21,.58); --chip:rgba(30,24,20,.45); --frame:rgba(239,229,213,.55); --glow:#e58753;
+    --fig-amb:none; --fig-key:none; --sat:1; --veil:radial-gradient(90% 80% at 50% 46%, rgba(95,83,72,0) 45%, rgba(55,51,36,.35) 100%); --veil-blend:multiply;
   }
-  #c{ transition:transform 1.4s cubic-bezier(.6,0,.2,1) }
-  body.skin-drape #c{ transform:perspective(1600px) rotateX(180deg) }
   body.skin-drape .skinart{ opacity:1 }
   body.skin-drape .figure{ opacity:0 !important }
   /* the readout keeps its words but turns its marks around */
@@ -256,10 +264,9 @@
     border-top-left-radius:0; border-top-right-radius:calc(var(--r) + .375rem) }
   body.skin-drape .readout::after{ right:auto; left:-.375rem; border-right:0; border-left:1px solid var(--glow); border-bottom-color:var(--glow);
     border-bottom-right-radius:0; border-bottom-left-radius:calc(var(--r) + .375rem) }
-  body.skin-drape .tabs button[aria-selected="true"]{ color:var(--glow); border-bottom-color:var(--glow); text-shadow:0 0 .6rem rgba(233,163,95,.55) }
+  body.skin-drape .tabs button[aria-selected="true"]{ color:var(--glow); border-bottom-color:var(--glow) }
   body.skin-drape .sheet h3, body.skin-drape .tale h3, body.skin-drape .entry .tag{ color:var(--glow) }
   body.skin-drape .sheet ol b, body.skin-drape .tale .tl b{ color:var(--glow) }
-  @media (prefers-reduced-motion: reduce){ #c{ transition:none } }
 
   @media (max-width: 1000px){
     body{ overflow:auto }
@@ -269,6 +276,8 @@
     .frame{ order:2; align-self:center; margin-top:0; width:min(84vw, 25rem); height:calc((min(84vw, 25rem) - 2 * var(--pad)) / var(--A) + 2 * var(--pad)) }
     .plate{ order:3; margin-top:1.5rem; bottom:auto; width:auto } .nav{ margin-top:1.375rem }
     .readout{ order:4; margin-top:3rem; max-height:none }
+    .inv{ position:relative; inset:auto; width:auto; height:auto; order:5; margin-top:28px }
+    .inv-grid{ position:static; opacity:1; transform:none; pointer-events:auto; grid-template-columns:repeat(4, 4.4rem); justify-content:start; padding-bottom:1.6rem }
     .body, .page{ overflow:visible }
   }
   @media (prefers-reduced-motion: reduce){
@@ -310,7 +319,6 @@
       <path id="framePath" filter="url(#dry)"/>
     </svg>
     <img class="skinart" id="skinart" alt="">
-    <div class="skins" id="skins" aria-label="皮肤" hidden></div>
     <div class="figure" id="figure"><img id="art" alt=""><div class="lit amb" aria-hidden="true"></div><div class="lit key" aria-hidden="true"></div></div>
   </section>
 
@@ -322,6 +330,8 @@
       <button id="next" aria-label="下一位"><svg viewBox="0 0 34 18" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M3 9h26M24 3l6 6-6 6"/></svg></button>
     </nav>
   </div>
+
+  <aside class="inv" id="inv" aria-label="物品栏" hidden><div class="inv-grid" id="invGrid"></div></aside>
 
   <section class="readout" id="readout">
     <div class="in" id="readin" aria-live="polite"></div>
@@ -617,7 +627,7 @@ addEventListener("resize", ()=>{ fitName(); fitRole(); });
 if(document.fonts) document.fonts.ready.then(()=>{ fitName(); fitRole(); });
 
 /* the hall's door stands behind the painting */
-window.hallFocus = ()=>{ if(document.body.classList.contains("bare")) return .5; const st=$("#stage"); return (st.offsetLeft+st.offsetWidth/2)/innerWidth; };
+window.hallFocus = ()=>{ if(document.body.classList.contains("bare")) return .5; const st=$("#stage"), f=(st.offsetLeft+st.offsetWidth/2)/innerWidth; return (typeof turned!=="undefined" && turned) ? 1-f : f; };
 
 /* the frame: a rounded rectangle, the same radius as the readout */
 function drawFrame(){
@@ -700,7 +710,7 @@ document.addEventListener("click",e=>{
   const t=e.target.closest("[data-term]"); if(t){ e.stopPropagation(); openEntry(t.dataset.term); return; }
   if(e.target.closest("[data-close]")){ e.stopPropagation(); closeEntry(); return; }
   if(e.target.closest("#stage")){ showPanel(); return; }
-  if(!e.target.closest("#readout, .plate, .topbar, .sticker, button, a")) hidePanel();
+  if(!e.target.closest("#readout, .plate, .topbar, .sticker, .inv, button, a")) hidePanel();
 }, true);
 $("#stage").addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); showPanel(); } });
 document.addEventListener("keydown",e=>{ if(e.key==="Escape"){ if(view) closeEntry(); else hidePanel(); } });
@@ -762,36 +772,57 @@ syncStickers();
 
 
 /* ============================================================
-   皮肤：每个人一组，换上后整页跟着变
+   物品栏与皮肤：衣装是物品，穿上它，整页跟着变
    ============================================================ */
-const SKINS = {
-  iris:[
-    { id:"base",  name:"常服", thumb:"images/iris-default-thumb.webp" },
-    { id:"drape", name:"古希腊白布", thumb:"images/iris-drape-thumb.webp", art:"images/iris-drape.webp", night:true }
-  ]
+const CLOTH_ICON="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><g fill="#faf7f0" stroke="#faf7f0" stroke-width="8" stroke-linejoin="round"><path d="M14 20 Q50 10 86 20 L88 66 Q84 76 76 70 L72 84 Q63 92 56 82 L50 92 Q41 86 39 78 L29 88 Q19 80 22 68 Z"/></g><path d="M14 20 Q50 10 86 20 L88 66 Q84 76 76 70 L72 84 Q63 92 56 82 L50 92 Q41 86 39 78 L29 88 Q19 80 22 68 Z" fill="#ece4d4"/><path d="M50 15 Q53 50 48 88 L56 82 Q60 50 60 17 Z" fill="#d5cab6"/><path d="M30 19 Q26 46 29 84 L35 80 Q34 48 36 18 Z" fill="#ddd3c1"/><path d="M70 18 Q74 46 72 82 L78 70 Q80 44 78 20 Z" fill="#d2c6b1"/><g fill="none" stroke="#a89b85" stroke-width="1.8" stroke-linecap="round"><path d="M34 22 Q30 50 32 82"/><path d="M50 16 Q53 50 48 88"/><path d="M66 20 Q71 48 68 80"/></g><path d="M14 20 Q50 10 86 20" fill="none" stroke="#c9b89c" stroke-width="2.4"/><path d="M60 30 l6 2 M24 40 l5 -1" stroke="#e8c7a6" stroke-width="2" stroke-linecap="round"/></svg>`);
+const ITEMS = {
+  iris:[ { id:"drape", name:"古希腊白布", icon:CLOTH_ICON, skin:{ art:"images/iris-drape.webp", mood:"dark", turn:true } } ]
 };
-const skinOf={};
-const skinsEl=$("#skins"), skinart=$("#skinart");
+const SLOTS=8, worn={};
+const inv=$("#inv"), invGrid=$("#invGrid"), skinart=$("#skinart");
+let turned=false;
+function turnHall(on){
+  if(on===turned) return; turned=on;
+  const c=$("#c"), s=Math.max(innerWidth/innerHeight, innerHeight/innerWidth)*1.02;
+  const from=on?0:-180, to=on?-180:-360;
+  if(reduce || !c.animate){ c.style.transform=on?"rotate(-180deg)":""; }
+  else{
+    c.style.transform="";
+    const an=c.animate([{transform:`rotate(${from}deg) scale(1)`},{transform:`rotate(${from-90}deg) scale(${s})`},{transform:`rotate(${to}deg) scale(1)`}],
+      {duration:1500, easing:"cubic-bezier(.65,0,.35,1)", fill:"forwards"});
+    an.onfinish=()=>{ c.style.transform=on?"rotate(-180deg)":""; an.cancel(); };
+  }
+  if(window.HALL) HALL.focus();
+}
 function applySkin(){
-  const list=SKINS[PEOPLE[cur].id], s=list && list.find(x=>x.id===(skinOf[PEOPLE[cur].id]||"base"));
-  const special = s && s.art ? s : null;
-  document.body.classList.toggle("skin-drape", !!special);
-  if(special){ skinart.src=special.art; skinart.alt=`${PEOPLE[cur].full}，${special.name}`; }
-  if(window.HALL && HALL.force) HALL.force(special && special.night ? "night" : null);
+  const id=PEOPLE[cur].id, it=(ITEMS[id]||[]).find(x=>x.id===worn[id]);
+  const sk=it && it.skin;
+  document.body.classList.toggle("skin-drape", !!sk);
+  if(sk){ skinart.src=sk.art; skinart.alt=`${PEOPLE[cur].full}，${it.name}`; }
+  if(window.HALL && HALL.force) HALL.force(sk ? sk.mood : null);
+  turnHall(!!(sk && sk.turn));
 }
 window.renderSkins=()=>{
-  const list=SKINS[PEOPLE[cur].id];
-  skinsEl.hidden=!list || list.length<2;
-  if(list) skinsEl.innerHTML=list.map(s=>`<button type="button" data-skin="${s.id}" aria-pressed="${(skinOf[PEOPLE[cur].id]||"base")===s.id}" title="${s.name}" aria-label="皮肤：${s.name}"><img src="${s.thumb}" alt=""></button>`).join("");
+  const id=PEOPLE[cur].id, list=ITEMS[id]||[];
+  inv.hidden=!list.length;
+  let html="";
+  for(let i=0;i<SLOTS;i++){
+    const it=list[i];
+    html+= it ? `<button type="button" class="slot item" data-item="${it.id}" aria-pressed="${worn[id]===it.id}" aria-label="${it.name}，${worn[id]===it.id?"已穿戴，点击脱下":"点击穿上"}"><img src="${it.icon}" alt=""><span class="cap">${it.name}</span></button>`
+              : `<span class="slot empty" aria-hidden="true"></span>`;
+  }
+  invGrid.innerHTML=html;
   applySkin();
 };
-skinsEl.addEventListener("click",e=>{
-  const b=e.target.closest("[data-skin]"); if(!b) return;
+invGrid.addEventListener("click",e=>{
+  const b=e.target.closest("[data-item]"); if(!b) return;
   e.stopPropagation();
-  skinOf[PEOPLE[cur].id]=b.dataset.skin; renderSkins();
-  skinsEl.querySelector(`[data-skin="${b.dataset.skin}"]`).focus({focusVisible:false});
+  const id=PEOPLE[cur].id; worn[id] = worn[id]===b.dataset.item ? null : b.dataset.item;
+  renderSkins();
+  /* a mouse click lets the inventory fold away; a keyboard press keeps focus on the slot */
+  if(e.detail===0){ const nb=invGrid.querySelector(`[data-item="${b.dataset.item}"]`); if(nb) nb.focus(); }
 });
-(SKINS[PEOPLE[cur].id]||[]).forEach(s=>{ if(s.art){ const im=new Image(); im.src=s.art; } });
+Object.values(ITEMS).flat().forEach(it=>{ if(it.skin){ const im=new Image(); im.src=it.skin.art; } });
 renderSkins();
 </script>
 
@@ -979,6 +1010,25 @@ const M = {
 };
 MAPS.floor={ day:[M.floor.map,null], dusk:[tex(strokeFloor,26,26),null] };
 Object.keys(M).forEach(k=>paintify(M[k], k!=="floor", k!=="rib" && k!=="floor"));
+const WATER={ uTime:{value:0}, uWater:{value:0} };
+{ const base=M.floor.onBeforeCompile;
+  M.floor.onBeforeCompile=sh=>{ base(sh); sh.uniforms.uTime=WATER.uTime; sh.uniforms.uWater=WATER.uWater;
+    sh.fragmentShader="uniform float uTime;\nuniform float uWater;\n"+sh.fragmentShader
+      .replace("#include <map_fragment>", `#include <map_fragment>
+        vec2 wp = vUv / 26.0 * 400.0;
+        float wt = uTime;
+        float w1 = sin(wp.y*1.9 + wt*1.25 + sin(wp.x*0.33 + wt*0.45)*1.7);
+        float w2 = sin(wp.y*3.3 - wt*0.85 + sin(wp.x*0.58 - wt*0.6)*1.3 + wp.x*0.12);
+        float w3 = sin((wp.x*0.7 + wp.y*1.05)*1.2 + wt*0.55);
+        float wave = w1*0.5 + w2*0.33 + w3*0.17;
+        diffuseColor.a *= mix(1.0, 0.8 + 0.3*wave, uWater);
+        float glint = smoothstep(0.5, 0.95, wave);`)
+      .replace("#include <normal_fragment_maps>", `#include <normal_fragment_maps>
+        normal = normalize(normal + uWater*vec3(w2*0.05, w1*0.07, 0.0));`)
+      .replace("#include <emissivemap_fragment>", `#include <emissivemap_fragment>
+        totalEmissiveRadiance += uWater * glint * vec3(0.5, 0.25, 0.12) * 0.22;`);
+  };
+}
 
 /* ============================================================
    Architecture
@@ -1229,6 +1279,7 @@ let accentHex=null, curMood=null;
 function setAccent(h){ accentHex=h; if(!curMood||!curMood.door[1]) return; const c=new THREE.Color(h).lerp(new THREE.Color(curMood.door[0]),.35); doorLight.color.copy(c); glow.material.color.copy(c); dirty=true; }
 function applyMood(name){
   if(forcedMood) name=forcedMood;
+  WATER.uWater.value = name==='dark' ? 1 : 0;
   const m=MOODS[name]; curMood=m; const col=(c,hex)=> m.raw ? c.setHex(hex) : lin(c,hex);
   /* fog and clear color land after the shader's own encoding; through the bloom chain that space is linear */
   const air=c=> composer ? lin(new THREE.Color(),c) : new THREE.Color(c);
@@ -1291,7 +1342,8 @@ function frame(){
   const dx=tx-mx, dy=ty-my, moving=Math.abs(dx)>1e-4 || Math.abs(dy)>1e-4;
   mx+=dx*k; my+=dy*k;
   const focusing = focusStart>=0; if(focusing){ const q=Math.min(1,(clock.getElapsedTime()-focusStart)/FOCUS_DUR), e=1-Math.pow(1-q,3); focusC=focusF+(focusT-focusF)*e; applyFocus(); if(q>=1) focusStart=-1; }
-  const travelling = tripStart>=0 || focusing;
+  const flowing = !still && WATER.uWater.value>0; if(flowing) WATER.uTime.value=clock.getElapsedTime();
+  const travelling = tripStart>=0 || focusing || flowing;
   if(tripStart>=0){ const p=Math.min(1,(clock.getElapsedTime()-tripStart)/TRIP); push=(1-Math.cos(Math.PI*Math.min(p,.62)/.62))/2*9; if(p>=1){ push=0; tripStart=-1; } }
   if(moving || dirty || travelling){
     camera.position.set(mx*2.4, 3.4-my*1.6, 16-push);
