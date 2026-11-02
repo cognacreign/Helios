@@ -265,6 +265,12 @@
   .sticker .handle{ position:absolute; right:-0.375rem; bottom:-0.375rem; width:calc(0.6875rem / var(--s)); height:calc(0.6875rem / var(--s));
     border-radius:50%; background:var(--bg); border:calc(1px / var(--s)) solid var(--ink); cursor:nwse-resize; opacity:0; transition:opacity .2s }
   .sticker:hover .handle, .sticker:focus-visible .handle, .sticker.turn .handle{ opacity:1 }
+  /* the colour dot: top corner, same size as the handle, only on hover (or on the last-touched sticker on touch screens) */
+  .sticker .hue{ position:absolute; right:-0.375rem; top:-0.375rem; width:calc(0.6875rem / var(--s)); height:calc(0.6875rem / var(--s)); border-radius:50%;
+    background:conic-gradient(#c7584a,#c9a54a,#7fa65a,#4aa69c,#4a74c2,#8a5ac2,#c24a8f,#c7584a); border:calc(1px / var(--s)) solid var(--ink);
+    cursor:pointer; opacity:0; transition:opacity .2s }
+  .sticker:hover .hue, .sticker:focus-visible .hue{ opacity:1 }
+  @media (pointer: coarse){ .sticker.active .handle, .sticker.active .hue{ opacity:1 } }
   .sticker img{ display:block; width:100%; height:auto; pointer-events:none; filter:hue-rotate(var(--hue, 0deg)) }
   .sticker .lit{ position:absolute; inset:0; pointer-events:none; -webkit-mask-size:100% 100%; mask-size:100% 100%; -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat }
   .sticker .amb{ background:var(--fig-amb); mix-blend-mode:multiply }
@@ -824,7 +830,8 @@ function saveSt(id){ const k=STK[id]; store.set(k.posKey,[k.el.offsetLeft, k.el.
 let stackOrder=(store.get("helios-sticker-order")||[]).filter(id=>STK[id]);
 function stackStickers(){ Object.keys(STK).forEach(id=>{ if(!stackOrder.includes(id)) stackOrder.unshift(id); });
   stackOrder.forEach((id,i)=>{ STK[id].el.style.zIndex=5+i; }); }
-function raise(id){ stackOrder=stackOrder.filter(x=>x!==id); stackOrder.push(id); stackStickers(); store.set("helios-sticker-order", stackOrder); }
+function raise(id){ Object.values(STK).forEach(k=>k.el.classList.toggle("active", k===STK[id]));
+  stackOrder=stackOrder.filter(x=>x!==id); stackOrder.push(id); stackStickers(); store.set("helios-sticker-order", stackOrder); }
 /* a hue slider shows under the sticker you last picked up */
 const tools=$("#stkTools"), hueIn=tools.querySelector("input");
 let toolFor=null;
@@ -863,6 +870,10 @@ window.syncStickers=()=>{ Object.entries(STK).forEach(([id,k])=>{
   if(may && k.el.hidden){ k.el.hidden=false; placeSt(id); } }); };
 function bindSticker(id){
   const k=STK[id], el=k.el, handle=el.querySelector(".handle");
+  /* a small colour dot in the other corner: only shows on hover, opens the hue slider */
+  const dot=document.createElement("span"); dot.className="hue"; dot.setAttribute("aria-hidden","true"); el.appendChild(dot);
+  dot.addEventListener("pointerdown",e=>{ e.stopPropagation(); e.preventDefault(); });
+  dot.addEventListener("click",e=>{ e.stopPropagation(); e.preventDefault(); raise(id); toolFor===id ? hideTools() : showTools(id); });
   let sx,sy,ox,oy,moved=false,down=false, turning=false, a0,d0,s0,r0;
   const centre=()=>{ const r=el.getBoundingClientRect(); return [r.left+r.width/2, r.top+r.height/2]; };
   handle.addEventListener("pointerdown",e=>{ e.stopPropagation(); raise(id); hideTools(); turning=true; el.classList.add("turn");
@@ -870,9 +881,9 @@ function bindSticker(id){
     handle.setPointerCapture(e.pointerId); });
   handle.addEventListener("pointermove",e=>{ if(!turning) return; const [cx,cy]=centre();
     k.s=clampS(s0*Math.hypot(e.clientX-cx,e.clientY-cy)/d0); k.r=r0+(Math.atan2(e.clientY-cy,e.clientX-cx)-a0)*180/Math.PI; applySt(id); });
-  handle.addEventListener("pointerup",e=>{ if(!turning) return; turning=false; el.classList.remove("turn"); moved=true; saveSt(id); showTools(id); });
+  handle.addEventListener("pointerup",e=>{ if(!turning) return; turning=false; el.classList.remove("turn"); moved=true; saveSt(id); });
   handle.addEventListener("click",e=>{ e.stopPropagation(); e.preventDefault(); moved=false; });
-  el.addEventListener("pointerdown",e=>{ if(turning) return; raise(id); hideTools(); down=true; moved=false; sx=e.clientX; sy=e.clientY; ox=el.offsetLeft; oy=el.offsetTop; el.setPointerCapture(e.pointerId); });
+  el.addEventListener("pointerdown",e=>{ if(turning) return; raise(id); if(toolFor!==id) hideTools(); down=true; moved=false; sx=e.clientX; sy=e.clientY; ox=el.offsetLeft; oy=el.offsetTop; el.setPointerCapture(e.pointerId); });
   el.addEventListener("pointermove",e=>{ if(!down) return; const dx=e.clientX-sx, dy=e.clientY-sy;
     if(!moved && Math.hypot(dx,dy)>4){ moved=true; el.classList.add("drag"); document.body.classList.add("dragging"); speak(id,"move"); }
     if(moved){ el.style.left=Math.max(-10,Math.min(innerWidth-40, ox+dx))+"px"; el.style.top=Math.max(-10,Math.min(innerHeight-40, oy+dy))+"px";
@@ -882,8 +893,7 @@ function bindSticker(id){
       if(t && place(id, t)) return;
       if(t && t.dataset.drop==="worn"){ refuse(t); el.classList.add("home"); el.style.left=ox+"px"; el.style.top=oy+"px";
         setTimeout(()=>el.classList.remove("home"), 450); return; }
-      saveSt(id); speak(id,"stick"); }
-    if(!el.classList.contains("away") && !el.hidden) showTools(id); });
+      saveSt(id); speak(id,"stick"); } });
   el.addEventListener("click",e=>{ if(moved){ e.preventDefault(); e.stopImmediatePropagation(); moved=false; return; }
     if(ITEMS[id].entry) openEntry(ITEMS[id].entry);
     else { el.classList.remove("boop"); void el.offsetWidth; el.classList.add("boop"); speak(id,"move"); } });
