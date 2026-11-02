@@ -261,10 +261,13 @@
   body.bare .equip{ opacity:0; visibility:hidden; transition:opacity .45s ease, visibility 0s .45s }
   .eq{ position:absolute; left:0; width:4.6rem; pointer-events:auto }
   .eq .slot{ width:4.6rem }
-  .eq .fig{ display:block; text-align:right; margin-bottom:.35rem; font-family:var(--mono); font-size:.6rem; letter-spacing:.12em; color:var(--ink); white-space:nowrap }
+  .eq .fig{ display:flex; justify-content:flex-end; align-items:baseline; text-align:right; margin-bottom:.35rem; font-family:var(--mono); font-size:.6rem; letter-spacing:.12em; color:var(--ink); white-space:nowrap }
   .eq::before{ content:""; position:absolute; left:100%; top:calc(.95rem + 2.3rem); width:1.3rem; height:1px; background:var(--line) }
   .eq::after{ content:""; position:absolute; left:calc(100% + 1.3rem - .22rem); top:calc(.95rem + 2.3rem - .22rem); width:.44rem; height:.44rem; box-sizing:border-box;
     border:1px solid var(--line); border-radius:50%; background:var(--bg) }
+  .eq .fig em{ font-style:normal; font-family:var(--sans); letter-spacing:.04em; font-size:.68rem; color:var(--ink) }
+  .eq .fig em:not(:empty)::before{ content:"·"; margin:0 .45em; color:var(--dim) }
+  .inv .bagtag span.named{ font-family:var(--sans); letter-spacing:.06em; font-size:.72rem; color:var(--ink) }
   .eq.top{ top:25% } .eq.bottom{ top:50% }
 
   /* the apple tried on as a top: caught, refused, sent back */
@@ -363,8 +366,8 @@
     </svg>
     <img class="skinart" id="skinart" alt="">
     <div class="equip" id="equip" aria-label="穿戴">
-      <div class="eq top"><span class="fig">TOP</span><span class="slot empty" data-drop="worn" data-slot="top"></span><span class="quip" id="quip" aria-live="polite"></span></div>
-      <div class="eq bottom"><span class="fig">BOTTOM</span><span class="slot empty" data-drop="worn" data-slot="bottom"></span><span class="quip" aria-live="polite"></span></div>
+      <div class="eq top"><span class="fig">TOP<em></em></span><span class="slot empty" data-drop="worn" data-slot="top"></span><span class="quip" id="quip" aria-live="polite"></span></div>
+      <div class="eq bottom"><span class="fig">BOTTOM<em></em></span><span class="slot empty" data-drop="worn" data-slot="bottom"></span><span class="quip" aria-live="polite"></span></div>
     </div>
     <div class="figure" id="figure"><img id="art" alt=""><div class="lit amb" aria-hidden="true"></div><div class="lit key" aria-hidden="true"></div></div>
   </section>
@@ -379,7 +382,7 @@
   </div>
 
   <aside class="inv" id="inv" aria-label="背包">
-    <div class="bagtag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" aria-hidden="true"><path d="M5 9.5c0-2.2 1.8-4 4-4h6c2.2 0 4 1.8 4 4V19a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 5 19z"/><path d="M9 5.5V4.8a3 3 0 0 1 6 0v.7"/><path d="M8.5 12.5h7v3h-7z"/></svg><span>INVENTORY 背包</span></div>
+    <div class="bagtag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" aria-hidden="true"><path d="M5 9.5c0-2.2 1.8-4 4-4h6c2.2 0 4 1.8 4 4V19a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 5 19z"/><path d="M9 5.5V4.8a3 3 0 0 1 6 0v.7"/><path d="M8.5 12.5h7v3h-7z"/></svg><span id="bagname">INVENTORY 背包</span></div>
     <div class="inv-grid" id="invGrid"></div>
   </aside>
 
@@ -849,12 +852,21 @@ function slotHTML(id, attrs){
   return it ? `<span class="slot full" tabindex="0" role="button" ${attrs} data-item="${id}" aria-label="${it.name}"><img src="${it.icon}" alt="" draggable="false"></span>`
             : `<span class="slot empty" ${attrs} aria-hidden="true"></span>`;
 }
+/* the bag's title reads out whatever the pointer or focus rests on */
+const bagname=$("#bagname");
+function bagName(id){ const it=id && ITEMS[id]; bagname.textContent = it ? it.name : "INVENTORY 背包"; bagname.classList.toggle("named", !!it); }
+invGrid.addEventListener("pointerover", e=>{ const t=e.target.closest(".slot.full"); bagName(t && t.dataset.item); });
+invGrid.addEventListener("pointerleave", ()=>bagName(null));
+invGrid.addEventListener("focusin", e=>{ const t=e.target.closest(".slot.full"); bagName(t && t.dataset.item); });
+invGrid.addEventListener("focusout", ()=>bagName(null));
 window.renderSkins=()=>{
   const s=me();
   if(s.worn.top==="apple" && s.worn.bottom!=="drape"){ s.worn.top=null; const j=s.bag.indexOf(null); if(j>=0) s.bag[j]="apple"; }
   invGrid.innerHTML=s.bag.map((id,i)=>slotHTML(id, `data-drop="bag" data-i="${i}"`)).join("");
   ["top","bottom"].forEach(k=>{ const box=equip.querySelector(`.eq.${k}`);
-    box.querySelector(".slot").outerHTML=slotHTML(s.worn[k], `data-drop="worn" data-slot="${k}"`); });
+    box.querySelector(".slot").outerHTML=slotHTML(s.worn[k], `data-drop="worn" data-slot="${k}"`);
+    box.querySelector(".fig em").textContent = s.worn[k] ? ITEMS[s.worn[k]].name : ""; });
+  bagName(null);
   applySkin();
 };
 function applySkin(){
