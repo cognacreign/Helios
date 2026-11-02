@@ -296,7 +296,7 @@
   .slot.empty::before{ content:"+"; font-weight:200; font-size:1.05rem; opacity:.5 }
   .slot.full{ cursor:grab }
   .slot.full:hover{ border-color:var(--line) }
-  .slot img{ width:78%; height:78%; object-fit:contain; pointer-events:none; filter:drop-shadow(0 .2rem .35rem rgba(30,20,12,.3)); transition:transform .25s }
+  .slot img{ width:78%; height:78%; object-fit:contain; pointer-events:none; filter:hue-rotate(var(--hue, 0deg)) drop-shadow(0 .2rem .35rem rgba(30,20,12,.3)); transition:transform .25s }
   .slot.full:hover img{ transform:rotate(-4deg) scale(1.06) }
   .slot.over{ border-color:var(--ink); box-shadow:inset 0 0 0 1px var(--ink) }
   .slot.lifted img{ opacity:.25 }
@@ -344,7 +344,7 @@
   /* the thing in hand while dragging */
   .ghost{ position:fixed; z-index:40; width:3.6rem; height:3.6rem; pointer-events:none; transform:translate(-50%,-50%) rotate(-6deg);
     filter:drop-shadow(0 .5rem .8rem rgba(30,20,12,.35)) }
-  .ghost img{ width:100%; height:100%; object-fit:contain }
+  .ghost img{ width:100%; height:100%; object-fit:contain; filter:hue-rotate(var(--hue, 0deg)) }
   body.dragging, body.dragging *{ cursor:grabbing !important }
   .skinart{ position:absolute; inset:.55rem; width:calc(100% - 1.1rem); height:calc(100% - 1.1rem); object-fit:cover; border-radius:calc(var(--r) - .55rem);
     opacity:0; transition:opacity .7s ease .25s; pointer-events:none }
@@ -852,6 +852,8 @@ function placeSt(id){
   if(k.spot){ const [x,y]=k.spot(); k.el.style.left=x+"px"; k.el.style.top=y+"px"; applySt(id); return; }
   k.el.style.left=(r.right+18)+"px"; k.el.style.top=(r.bottom-90)+"px"; applySt(id);
 }
+/* colours are remembered even for stickers still in the bag */
+Object.values(STK).forEach(k=>{ const s=store.get(k.posKey); if(s && s[4]!==undefined) k.h=s[4]; });
 Object.values(STK).forEach(k=>{ k.el.querySelector("img").src=k.src;
   k.el.querySelectorAll(".lit").forEach(el=>{ el.style.webkitMaskImage=el.style.maskImage=`url("${k.src}")`; }); });
 /* some entries drop a sticker the first time they are read */
@@ -931,9 +933,11 @@ Object.keys(STK).forEach(id=>{ if(inBag(id)){ const b=INV[STK[id].owner].bag, i=
 const inv=$("#inv"), invGrid=$("#invGrid"), skinart=$("#skinart"), equip=$("#equip");
 const me=()=>INV[PEOPLE[cur].id];
 
+/* a sticker keeps the colour it was given, in the bag and in a slot too */
+const tint=id=>STK[id] && STK[id].h ? ` style="--hue:${STK[id].h}deg"` : "";
 function slotHTML(id, attrs){
   const it=id && ITEMS[id];
-  return it ? `<span class="slot full" tabindex="0" role="button" ${attrs} data-item="${id}" aria-label="${it.name}"><img src="${it.icon}" alt="" draggable="false"></span>`
+  return it ? `<span class="slot full" tabindex="0" role="button" ${attrs} data-item="${id}" aria-label="${it.name}"><img src="${it.icon}" alt="" draggable="false"${tint(id)}></span>`
             : `<span class="slot empty" ${attrs} aria-hidden="true"></span>`;
 }
 /* the bag's title reads out whatever the pointer or focus rests on */
@@ -1036,7 +1040,7 @@ function joke(id, where){
   const who=PEOPLE.find(p=>p.id===ITEMS[id].owner).name.toUpperCase();
   takeOut(id); renderSkins(); if(STK[id]) STK[id].el.classList.add("away");
   const slotNow=box.querySelector(".slot");
-  if(!taken){ slotNow.classList.remove("empty"); slotNow.classList.add("full","caught"); slotNow.innerHTML=`<img src="${ITEMS[id].icon}" alt="">`; }
+  if(!taken){ slotNow.classList.remove("empty"); slotNow.classList.add("full","caught"); slotNow.innerHTML=`<img src="${ITEMS[id].icon}" alt=""${tint(id)}>`; }
   quip.innerHTML=`${line}<small>—— ${who}</small>`; quip.classList.add("show");
   if(!taken) setTimeout(()=>{ slotNow.classList.remove("wobble"); void slotNow.offsetWidth; slotNow.classList.add("wobble"); }, 1500);
   setTimeout(()=>{ quip.classList.remove("show"); joking=false; putInBag(id, 0); }, taken ? 1900 : 2300);
@@ -1059,7 +1063,7 @@ document.addEventListener("pointermove",e=>{
   if(!drag.moved && Math.hypot(e.clientX-drag.x, e.clientY-drag.y)>5){
     drag.moved=true; document.body.classList.add("dragging"); drag.from.classList.add("lifted");
     speak(drag.id,"move");
-    const g=document.createElement("div"); g.className="ghost"; g.innerHTML=`<img src="${ITEMS[drag.id].icon}" alt="">`; document.body.appendChild(g); drag.ghost=g;
+    const g=document.createElement("div"); g.className="ghost"; g.innerHTML=`<img src="${ITEMS[drag.id].icon}" alt=""${tint(drag.id)}>`; document.body.appendChild(g); drag.ghost=g;
   }
   if(drag.moved){ drag.ghost.style.left=e.clientX+"px"; drag.ghost.style.top=e.clientY+"px"; markOver(e.clientX,e.clientY,drag.id); }
 });
