@@ -266,6 +266,16 @@
     border:1px solid var(--line); border-radius:50%; background:var(--bg) }
   .eq.top{ top:25% } .eq.bottom{ top:50% }
 
+  /* the apple tried on as a top: caught, refused, sent back */
+  .quip{ position:absolute; right:0; top:calc(100% + .55rem); width:11rem; text-align:right; font-family:var(--serif); font-size:.8rem; line-height:1.6;
+    color:var(--ink); opacity:0; transform:translateY(-.25rem); transition:opacity .35s ease, transform .35s ease; pointer-events:none }
+  .quip small{ display:block; font-family:var(--mono); font-size:.58rem; letter-spacing:.14em; color:var(--dim) }
+  .quip.show{ opacity:1; transform:none }
+  .slot.caught img{ animation:caught .45s cubic-bezier(.2,1.6,.4,1) }
+  .slot.caught.wobble img{ animation:wobble .6s ease-in-out }
+  @keyframes caught{ from{ transform:scale(.3) } }
+  @keyframes wobble{ 0%,100%{ transform:rotate(0) } 20%{ transform:rotate(-14deg) } 40%{ transform:rotate(11deg) } 60%{ transform:rotate(-7deg) } 80%{ transform:rotate(4deg) } }
+
   /* the thing in hand while dragging */
   .ghost{ position:fixed; z-index:20; width:3.6rem; height:3.6rem; pointer-events:none; transform:translate(-50%,-50%) rotate(-6deg);
     filter:drop-shadow(0 .5rem .8rem rgba(30,20,12,.35)) }
@@ -345,7 +355,7 @@
     </svg>
     <img class="skinart" id="skinart" alt="">
     <div class="equip" id="equip" aria-label="穿戴">
-      <div class="eq top"><span class="fig">TOP</span><span class="slot empty" data-drop="worn" data-slot="top"></span></div>
+      <div class="eq top"><span class="fig">TOP</span><span class="slot empty" data-drop="worn" data-slot="top"></span><span class="quip" id="quip" aria-live="polite"></span></div>
       <div class="eq bottom"><span class="fig">BOTTOM</span><span class="slot empty" data-drop="worn" data-slot="bottom"></span></div>
     </div>
     <div class="figure" id="figure"><img id="art" alt=""><div class="lit amb" aria-hidden="true"></div><div class="lit key" aria-hidden="true"></div></div>
@@ -793,6 +803,7 @@ syncStickers();
   apple.addEventListener("pointerup",e=>{ if(!down) return; down=false; apple.classList.remove("drag");
     if(moved){ const t=dropAt(e.clientX,e.clientY); clearOver(); document.body.classList.remove("dragging");
       if(t && t.dataset.drop==="bag"){ putInBag("apple", +t.dataset.i); return; }
+      if(t && t.dataset.drop==="worn" && t.dataset.slot==="top"){ appleJoke(); return; }
       saveApple(); } });
   apple.addEventListener("click",e=>{ if(moved){ e.preventDefault(); e.stopImmediatePropagation(); moved=false; return; } openEntry("apple"); });
   /* the wheel resizes; with Shift held it turns */
@@ -863,11 +874,22 @@ function toBoard(id, x, y){
   const w=apple.offsetWidth||46; apple.style.left=(x-w/2)+"px"; apple.style.top=(y-w/2)+"px"; saveApple(); syncStickers(); renderSkins();
 }
 
+/* the apple as a top: she catches it, says no, and it goes back in the bag */
+let joking=false;
+function appleJoke(){
+  if(joking) return; joking=true;
+  takeOut("apple"); renderSkins(); apple.classList.add("away");
+  const slot=equip.querySelector(".eq.top .slot"), quip=$("#quip");
+  slot.classList.remove("empty"); slot.classList.add("full","caught"); slot.innerHTML=`<img src="${APPLE_SRC}" alt="">`;
+  quip.innerHTML="苹果不能作为上衣。<small>—— IRIS</small>"; quip.classList.add("show");
+  setTimeout(()=>{ slot.classList.remove("wobble"); void slot.offsetWidth; slot.classList.add("wobble"); }, 1500);
+  setTimeout(()=>{ quip.classList.remove("show"); joking=false; putInBag("apple", 0); }, 2300);
+}
 /* drag and drop, by pointer: works with a mouse, a pen or a finger */
 function dropAt(x,y){ for(const el of document.elementsFromPoint(x,y)){ const d=el.closest("[data-drop]"); if(d) return d; } return null; }
 function clearOver(){ document.querySelectorAll(".slot.over").forEach(el=>el.classList.remove("over")); }
 function markOver(x,y,id){ clearOver(); const t=dropAt(x,y); if(!t) return;
-  if(t.dataset.drop==="bag" || (t.dataset.drop==="worn" && ITEMS[id].wear===t.dataset.slot)) t.classList.add("over"); }
+  if(t.dataset.drop==="bag" || (t.dataset.drop==="worn" && (ITEMS[id].wear===t.dataset.slot || (id==="apple" && t.dataset.slot==="top")))) t.classList.add("over"); }
 let drag=null;
 document.addEventListener("pointerdown",e=>{
   const sl=e.target.closest(".slot.full"); if(!sl || !e.isPrimary) return;
@@ -890,7 +912,7 @@ document.addEventListener("pointerup",e=>{
   if(!d.moved){ activate(d.id, d.from); return; }
   const t=dropAt(e.clientX,e.clientY);
   if(t && t.dataset.drop==="bag") putInBag(d.id, +t.dataset.i);
-  else if(t && t.dataset.drop==="worn") wear(d.id, t.dataset.slot);
+  else if(t && t.dataset.drop==="worn"){ if(!wear(d.id, t.dataset.slot) && d.id==="apple" && t.dataset.slot==="top") appleJoke(); }
   else if(ITEMS[d.id].sticker) toBoard(d.id, e.clientX, e.clientY);
 }, true);
 /* a tap, or Enter: wear it, take it off, or read it */
