@@ -209,6 +209,8 @@
   .entry .ebody .desc{ font-style:italic; color:var(--dim); margin-bottom:1.1em }
   .entry .ebody.scene p:not(.desc){ font-family:var(--serif); font-size:0.75rem; line-height:1.78; margin-bottom:.4em }
   .entry .ebody p:last-child{ margin-bottom:0 }
+  .entry .ebody blockquote{ margin:.2em 0 .9em; padding:.1em 0 .1em .9em; border-left:1px solid var(--line); font-family:var(--serif); font-size:0.75rem; line-height:1.78; font-style:italic }
+  .entry .ebody p.gap{ text-align:center; color:var(--dim); letter-spacing:.3em; margin:.6em 0 1em }
   .readout .in.entry{ animation:entryIn .35s cubic-bezier(.2,.7,.2,1) }
   @keyframes entryIn{ from{ opacity:0; transform:translateX(0.625rem) } to{ opacity:1; transform:none } }
 
@@ -227,11 +229,11 @@
   @keyframes swapIn{ from{ opacity:0; transform:translateY(.3rem) } }
   #deer, #deer2{ width:3.6rem }
   /* a line said beside a sticker or the thing in hand */
-  .say{ position:fixed; z-index:6; transform:translate(-50%, calc(-100% + .3rem)); text-align:center; white-space:nowrap; pointer-events:none;
+  .say{ position:fixed; z-index:6; transform:translate(-50%, calc(-100% - .4rem)); text-align:center; white-space:nowrap; pointer-events:none;
     font-family:var(--serif); font-size:.8rem; line-height:1.6; color:var(--ink); text-shadow:0 0 .5rem var(--bg), 0 0 .2rem var(--bg);
     opacity:0; transition:opacity .35s ease, transform .35s ease }
   .say small{ display:block; font-family:var(--mono); font-size:.58rem; letter-spacing:.14em; color:var(--dim) }
-  .say.show{ opacity:1; transform:translate(-50%, -100%) }
+  .say.show{ opacity:1; transform:translate(-50%, calc(-100% - .7rem)) }
   .sticker.away{ opacity:0; visibility:hidden; pointer-events:none; transition:opacity .4s ease, visibility 0s .4s }
   .sticker{ transition:transform .2s ease, opacity .4s ease }
   .sticker.drag, .sticker.turn{ transition:none }
@@ -564,7 +566,7 @@ const SHEET = {
     role:["王女","Helios 国王"], place:"首都",
     stats:[["168cm","54kg","线条美型"],["ENTP","中立邪恶"]],
     look:["金橙色头发，金色眼睛；Helios 家族标准的锋利容貌，笑起来明亮","偏爱中性的西裤、金色和繁复的装饰；收藏拜占庭式厚重织锦，私下穿丝绸衬衫和金丝纱外套"],
-    events:["<span class=\"sore\" data-sore>14 岁，在哥哥 Julian 的生日宴上嫁祸准王妃，制造当众闹剧</span>","24 岁，北方内战中与中央军一同率军支援前线，3 个月内平定内乱"],
+    events:["14 岁，在哥哥 Julian 的<button class=\"term\" data-term=\"birthday\" data-sore>生日宴</button>上嫁祸准王妃，制造当众闹剧","24 岁，北方内战中与中央军一同率军支援前线，3 个月内平定内乱"],
     likes:["Bisexual","???"]
   },
   /* worn with the North Academy uniform: who she was at eighteen */
@@ -775,6 +777,9 @@ const ENTRIES = {
       "下卷讨论的是魔法的运用，是法师在施法那一刻的思考，分为创造、激活、毁灭、转化、维持和理解六个部分，理解是全卷的落点。下卷从未发表。在 Iris 活着的大部分时间里，形而上学魔法只是一篇有名却没人用得上的论文；它真正开始改写这个世界，是在她死去的那一年。"
     ]]
   ]},
+  birthday:{ tag:"事件 · 生日宴闹剧", title:"生日宴闹剧", scene:true, body:[
+    ["",["那天是Julian二十二岁的生辰宴，庭院里布置得极尽奢华，宾客们端着酒杯三三两两地寒暄，空气里飘着蛋糕和鲜花混在一起的甜香。Aurelia穿着一身淡黄色的裙子，被安排和Lucian Solenne的姐姐单独待在偏厅一角，说是让公主和未来的嫂子多亲近亲近。", "那位小姐维持着得体的微笑，端着茶盏，礼数周全却也带着几分心不在焉。她的注意力显然更多地落在庭院那头、被宾客们簇拥着的Julian身上。", "Aurelia就那么坐在她对面，晃着两条还够不到地面的腿，忽然状似天真地开了口，说这桩婚事听长辈们私下议论，办得挺仓促的,又说起了Lucian那桩没成的娃娃亲，说那门婚事说变就变了,压根没个准数。她顿了顿,又用一种毫不设防的、孩子式的坦率补了一句,说:", "> 不过姐姐也不必太担心,反正哥哥不缺首都的淑女追求,就算真的像Lucian那样“被退货”，也没什么大不了的。", "这话说得轻飘飘的，带着孩子特有的、毫无恶意包装的语气，可每一个字都精准地扎进了那位小姐心里最深处的不安。她端着茶盏的手骤然一颤，脸上那层维持了半晌的得体笑容彻底碎了。", "而Aurelia就在她情绪即将彻底失控的那个瞬间，猛地端起面前那杯还冒着热气的咖啡，径直泼向了自己的裙摆。", "滚烫的液体瞬间渗透进那层淡黄色的绸缎，褐色的痕迹丑陋地晕开一大片,她“啊”地一声惨叫，整个人像是被烫得站立不稳，往后一仰，重重地摔倒在铺着地毯的地面上。", "...", "偏厅的动静很快引来了外头的宾客，几个人涌了进来，交头接耳的议论声瞬间响成一片。而原本被众人簇拥着切蛋糕的Julian，一听见妹妹的哭喊，几乎是立刻丢开了手里的事情，几步冲了过来，脸色又急又白，追问着到底发生了什么。", "Aurelia埋在哥哥怀里，眼泪流得凶。那副被烫伤、被吓坏的可怜样子，落在所有涌进来的宾客眼里，几乎不需要更多解释——大家的目光，不约而同地落在了那位站在原地、手足无措的Solenne家小姐身上。"]]
+  ]},
   apple:{ tag:"物品 · 苹果", title:"苹果", scene:true, desc:"Iris 客厅桌上的苹果，被咬过一口。", body:[
     ["",[
       "多年以后，已经是哲学教授的 Iris 用一个苹果，把这件事讲给她唯一的学生 Kris 听。",
@@ -799,7 +804,7 @@ function entryHTML(key){
       <h2>${e.title}</h2>
       <button class="close" type="button" data-close aria-label="返回资料"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"/></svg></button>
     </div>
-    <div class="ebody${e.scene?" scene":""}">${e.desc?`<p class="desc">${e.desc}</p>`:""}${e.body.map(([h,ps])=>(h?`<h3>${h}</h3>`:"")+ps.map(t=>`<p>${t}</p>`).join("")).join("")}</div>`;
+    <div class="ebody${e.scene?" scene":""}">${e.desc?`<p class="desc">${e.desc}</p>`:""}${e.body.map(([h,ps])=>(h?`<h3>${h}</h3>`:"")+ps.map(t=>t==="..." ? `<p class="gap">⋯</p>` : t.startsWith("> ") ? `<blockquote>${t.slice(2)}</blockquote>` : `<p>${t}</p>`).join("")).join("")}</div>`;
 }
 const store={ get(k){ try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; } },
               set(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} } };
@@ -846,15 +851,20 @@ const STK={
 };
 /* a line from the owner, said beside the thing in hand */
 const sayEl=$("#say");
+/* lines are always said in the same place: centred just above the portrait frame */
+function placeSay(){ const st=$("#stage"), r=st.getBoundingClientRect(), dx=parseFloat(st.style.getPropertyValue("--shift"))||0;
+  const x=st.offsetLeft+st.offsetWidth/2+(document.body.classList.contains("bare")?dx:0);
+  sayEl.style.left=x+"px"; sayEl.style.top=Math.max(0, r.top)+"px"; }
+addEventListener("resize", ()=>{ if(sayEl.classList.contains("show")) placeSay(); });
 function speak(id, kind, x, y){
   const t=ITEMS[id] && ITEMS[id].says && ITEMS[id].says[kind]; if(!t) return;
   if(x===undefined){ const el=STK[id] && STK[id].el; if(!el) return; x=el.offsetLeft+el.offsetWidth/2; y=el.offsetTop-4; }
-  sayLine(t, ITEMS[id].owner, x, y);
+  sayLine(t, ITEMS[id].owner);
 }
-function sayLine(t, owner, x, y){
+function sayLine(t, owner){
   const who=PEOPLE.find(p=>p.id===owner).name.toUpperCase();
   sayEl.innerHTML=`${t}<small>—— ${who}</small>`;
-  sayEl.style.left=Math.max(90, Math.min(innerWidth-90, x))+"px"; sayEl.style.top=Math.max(56, y)+"px";
+  placeSay();
   sayEl.classList.add("show"); clearTimeout(sayEl._t); sayEl._t=setTimeout(()=>sayEl.classList.remove("show"), 2200);
 }
 /* the birthday is her sore spot: go near it and she cuts in. first lightly, then not */
@@ -864,8 +874,7 @@ function sore(el){
   if(PEOPLE[cur].id!=="aurelia") return;
   const now=Date.now(); if(el===soreEl && now-soreLast<2600) return;
   soreEl=el; soreLast=now;
-  const r=el.getClientRects()[0] || el.getBoundingClientRect();
-  sayLine(SORE_LINES[Math.min(soreTurn++, SORE_LINES.length-1)], "aurelia", r.left+Math.min(r.width/2, 140), r.top-4);
+  sayLine(SORE_LINES[Math.min(soreTurn++, SORE_LINES.length-1)], "aurelia");
 }
 document.addEventListener("mouseover",e=>{ const s=e.target.closest && e.target.closest("[data-sore]"); if(s && !s.contains(e.relatedTarget)) sore(s); });
 document.addEventListener("focusin",e=>{ const s=e.target.closest && e.target.closest("[data-sore]"); if(s) sore(s); });
@@ -1073,15 +1082,14 @@ document.addEventListener("pointermove",e=>{
   if(!drag) return;
   if(!drag.moved && Math.hypot(e.clientX-drag.x, e.clientY-drag.y)>5){
     drag.moved=true; document.body.classList.add("dragging"); drag.from.classList.add("lifted");
-    speak(drag.id,"move", e.clientX, e.clientY-28); sayEl._follow=true;
+    speak(drag.id,"move");
     const g=document.createElement("div"); g.className="ghost"; g.innerHTML=`<img src="${ITEMS[drag.id].icon}" alt="">`; document.body.appendChild(g); drag.ghost=g;
   }
-  if(drag.moved){ drag.ghost.style.left=e.clientX+"px"; drag.ghost.style.top=e.clientY+"px"; markOver(e.clientX,e.clientY,drag.id);
-    if(sayEl._follow){ sayEl.style.left=Math.max(90, Math.min(innerWidth-90, e.clientX))+"px"; sayEl.style.top=Math.max(56, e.clientY-28)+"px"; } }
+  if(drag.moved){ drag.ghost.style.left=e.clientX+"px"; drag.ghost.style.top=e.clientY+"px"; markOver(e.clientX,e.clientY,drag.id); }
 });
 document.addEventListener("pointerup",e=>{
   if(!drag) return;
-  const d=drag; drag=null; sayEl._follow=false;
+  const d=drag; drag=null;
   if(d.ghost) d.ghost.remove(); d.from.classList.remove("lifted"); document.body.classList.remove("dragging"); clearOver();
   e.stopPropagation();
   if(!d.moved){
@@ -1114,7 +1122,7 @@ function hold(id, el){
     if(t===el) return;
     if(t.dataset.drop==="bag" || canWear(id, t.dataset.slot) || hasJoke(id, t.dataset.slot)) t.classList.add("can"); });
   bagname.textContent=`拿着 · ${ITEMS[id].name}`; bagname.classList.add("named");
-  const r=el.getBoundingClientRect(); speak(id,"move", r.left+r.width/2, r.top-4);
+  speak(id,"move");
 }
 function release(){
   if(!held) return; held=null;
