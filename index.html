@@ -296,6 +296,8 @@
     --fig-amb:none; --fig-key:none; --sat:.82; --veil:radial-gradient(110% 90% at 10% -10%, rgba(240,246,196,.3), rgba(240,246,196,0) 60%); --veil-blend:screen;
   }
   body.skinned .skinart{ opacity:1 }
+  #stage:focus:not(:focus-visible), .slot:focus:not(:focus-visible){ outline:none }
+  #stage:focus-visible{ outline:1px solid var(--ink); outline-offset:6px; border-radius:var(--r) }
   body.skinned .figure{ opacity:0 !important }
   /* the readout keeps its words but turns its marks around */
   body.skinned .readout::before{ left:auto; right:-.375rem; border-left:0; border-right:1px solid var(--glow); border-top-color:var(--glow);
