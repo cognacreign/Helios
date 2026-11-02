@@ -206,6 +206,7 @@
   /* the readout folds away when you click into the hall */
   .readout{ transition:opacity .45s ease, transform .55s cubic-bezier(.2,.7,.2,1) }
   body.bare .readout{ opacity:0; transform:translateX(1.75rem); pointer-events:none }
+  .frame:focus:not(:focus-visible), .slot:focus:not(:focus-visible){ outline:none }
   .frame{ cursor:pointer; transform:translateX(var(--shift,0px)); transition:transform .8s cubic-bezier(.33,1,.68,1) }
 
   /* ---------- stickers: die-cut, draggable, they stay where you leave them ---------- */
@@ -898,7 +899,7 @@ function appleJoke(){
   takeOut("apple"); renderSkins(); apple.classList.add("away");
   const slot=equip.querySelector(".eq.top .slot"), quip=$("#quip");
   slot.classList.remove("empty"); slot.classList.add("full","caught"); slot.innerHTML=`<img src="${APPLE_SRC}" alt="">`;
-  quip.innerHTML="苹果不能作为上衣。<small>—— IRIS</small>"; quip.classList.add("show");
+  quip.innerHTML="苹果不能作为上衣，但……<small>—— IRIS</small>"; quip.classList.add("show");
   setTimeout(()=>{ slot.classList.remove("wobble"); void slot.offsetWidth; slot.classList.add("wobble"); }, 1500);
   setTimeout(()=>{ quip.classList.remove("show"); joking=false; putInBag("apple", 0); }, 2300);
 }
