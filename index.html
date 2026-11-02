@@ -228,7 +228,16 @@
   .readout .in.swap .sheet, .readout .in.swap .tale{ animation:swapIn .5s ease }
   @keyframes swapIn{ from{ opacity:0; transform:translateY(.3rem) } }
   #deer, #deer2{ width:3.6rem }
-  #rope{ width:2.6rem }
+  #rope{ width:3.4rem }
+  /* the rope falls in from above and swings itself still */
+  .sticker.drop{ transform-origin:50% 0; animation:ropeDrop 1.6s cubic-bezier(.3,.7,.4,1) }
+  @keyframes ropeDrop{
+    0%{ transform:translateY(-70vh) rotate(var(--rot)) scale(var(--s)) }
+    38%{ transform:translateY(.6rem) rotate(calc(var(--rot) + 14deg)) scale(var(--s)) }
+    55%{ transform:translateY(0) rotate(calc(var(--rot) - 9deg)) scale(var(--s)) }
+    72%{ transform:rotate(calc(var(--rot) + 5deg)) scale(var(--s)) }
+    86%{ transform:rotate(calc(var(--rot) - 2deg)) scale(var(--s)) }
+    100%{ transform:rotate(var(--rot)) scale(var(--s)) } }
   .sheet p.told{ margin:0; text-align:justify }
   /* a line said beside a sticker or the thing in hand */
   .say{ position:fixed; z-index:6; transform:translate(-50%, calc(-100% - .4rem)); text-align:center; white-space:nowrap; pointer-events:none;
@@ -253,7 +262,7 @@
   .sticker .lit{ position:absolute; inset:0; pointer-events:none; -webkit-mask-size:100% 100%; mask-size:100% 100%; -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat }
   .sticker .amb{ background:var(--fig-amb); mix-blend-mode:multiply }
   .sticker .key{ background:var(--fig-key); mix-blend-mode:soft-light }
-  @media (prefers-reduced-motion: reduce){ .readout .in.entry, .sticker.pop, .sticker.boop{ animation:none } .sticker, .readout{ transition:none } }
+  @media (prefers-reduced-motion: reduce){ .readout .in.entry, .sticker.pop, .sticker.boop, .sticker.drop{ animation:none } .sticker, .readout{ transition:none } }
 
   /* ---------- 背包: one row, a block aligned under the readout; it shows itself on hover ---------- */
   .inv{ position:fixed; z-index:3; right:4vw; bottom:var(--bot); width:clamp(22.5rem, 33vw, 25rem);
@@ -860,7 +869,10 @@ const S_MIN=.6, S_MAX=2.4;      /* a sticker stays between about 28px and 110px 
 const clampS=s=>Math.max(S_MIN, Math.min(S_MAX, s));
 const STK={
   apple:{ el:$("#apple"), src:APPLE_SRC, owner:"iris", s:1, r:-8, bagKey:"helios-apple-in-bag", posKey:"helios-sticker-apple", untilFound:"helios-sticker-apple-found" },
-  rope: { el:$("#rope"),  src:ROPE_SRC,  owner:"iris", s:1, r:4,  bagKey:"helios-rope-in-bag",  posKey:"helios-sticker-rope", untilFound:"helios-sticker-rope-found", nudge:[6,-150] },
+  rope: { el:$("#rope"),  src:ROPE_SRC,  owner:"iris", s:1, r:4,  bagKey:"helios-rope-in-bag",  posKey:"helios-sticker-rope", untilFound:"helios-sticker-rope-found", drop:true,
+          /* first landing: in the gap between the frame and the panel, high up where the eye already is */
+          spot:()=>{ const s=$("#stage").getBoundingClientRect(), p=$("#readout").getBoundingClientRect();
+            return p.width && p.left>s.right+60 ? [(s.right+p.left)/2-24, p.top+30] : [s.right-70, s.top+40]; } },
   deer: { el:$("#deer"),  src:DEER_SRC,  owner:"iris", s:1, r:6,  bagKey:"helios-deer-in-bag",  posKey:"helios-sticker-deer", startInBag:true },
   /* Aurelia has one too. she knows where it came from */
   deer_aurelia:{ el:$("#deer2"), src:DEER_SRC, owner:"aurelia", s:1, r:-6, bagKey:"helios-deer-aurelia-in-bag", posKey:"helios-sticker-deer-aurelia", startInBag:true }
@@ -903,8 +915,8 @@ function placeSt(id){
   if(saved){ k.el.style.left=Math.min(innerWidth-50, saved[0])+"px"; k.el.style.top=Math.min(innerHeight-50, saved[1])+"px";
     if(saved[2]) k.s=clampS(saved[2]); if(saved[3]!==undefined) k.r=saved[3]; applySt(id); return; }
   const r=$("#stage").getBoundingClientRect();
-  const [nx,ny]=k.nudge||[0,0];
-  k.el.style.left=(r.right+18+nx)+"px"; k.el.style.top=(r.bottom-90+ny)+"px"; applySt(id);
+  if(k.spot){ const [x,y]=k.spot(); k.el.style.left=x+"px"; k.el.style.top=y+"px"; applySt(id); return; }
+  k.el.style.left=(r.right+18)+"px"; k.el.style.top=(r.bottom-90)+"px"; applySt(id);
 }
 Object.values(STK).forEach(k=>{ k.el.querySelector("img").src=k.src;
   k.el.querySelectorAll(".lit").forEach(el=>{ el.style.webkitMaskImage=el.style.maskImage=`url("${k.src}")`; }); });
@@ -913,7 +925,8 @@ function reveal(id){
   const k=STK[id];
   if(!k || !k.el.hidden || PEOPLE[cur].id!==k.owner) return;
   k.el.hidden=false; placeSt(id);
-  k.el.classList.remove("pop"); void k.el.offsetWidth; k.el.classList.add("pop");
+  const how=k.drop ? "drop" : "pop";
+  k.el.classList.remove("pop","drop"); void k.el.offsetWidth; k.el.classList.add(how);
   store.set(k.untilFound, true);
 }
 window.syncStickers=()=>{ Object.entries(STK).forEach(([id,k])=>{
