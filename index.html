@@ -173,6 +173,15 @@
   .tl b{ position:absolute; left:0; top:0; width:1.375rem; text-align:center; font-family:var(--wide); font-weight:400; font-size:0.6875rem; line-height:1.1875rem; letter-spacing:.02em }
   .tl li:not(:last-child)::after{ content:""; position:absolute; left:0.6875rem; top:1.25rem; bottom:1px; width:1px; background:var(--line) }
   .tale dd{ margin:0 }
+  /* 秘闻: short headings, then the note; hidden spans stay black until you look */
+  .tale .secrets{ display:block }
+  .tale .secrets dt{ margin-top:0.75rem; font-family:var(--sans); font-size:0.6875rem; letter-spacing:.06em; color:var(--dim) }
+  .tale .secrets dt:first-child{ margin-top:0 }
+  .tale .secrets dd{ margin:0.25rem 0 0; line-height:1.85 }
+  .spoil{ background:var(--ink); color:transparent; border-radius:0.1875rem; padding:0.0625rem 0.125rem; cursor:help;
+    -webkit-box-decoration-break:clone; box-decoration-break:clone; transition:background .3s ease, color .3s ease; outline:none }
+  .spoil::selection{ color:transparent }
+  .spoil:hover, .spoil:focus-visible, .spoil.open{ background:var(--faint); color:var(--ink) }
 
   .story{ display:flex; flex-direction:column; flex:1; min-height:0; padding-top:1rem }
   .page{ flex:1; min-height:0; overflow:auto; scrollbar-width:thin; scrollbar-color:var(--faint) transparent; padding-right:0.375rem }
@@ -574,7 +583,10 @@ const SHEET = {
     likes:["广交朋友","flirt","骑马","讨厌黄色的裙子"]
   }
 };
-const sheetOver={};    /* person id -> the sheet an outfit swaps in */
+const sheetOver={};
+/* a tap (or Enter) opens a hidden span for good; hover and focus only peek */
+document.addEventListener("click",e=>{ const s=e.target.closest(".spoil"); if(s) s.classList.toggle("open"); });
+document.addEventListener("keydown",e=>{ const s=e.target.closest && e.target.closest(".spoil"); if(s && (e.key==="Enter"||e.key===" ")){ e.preventDefault(); s.classList.toggle("open"); } });    /* person id -> the sheet an outfit swaps in */
 function sheetHTML(p){
   const s=SHEET[sheetOver[p.id] || p.id];
   return `<div class="sheet">
@@ -612,33 +624,31 @@ const STORY = {
             ["38 岁","在大教堂下令剥夺 Iris 的魔法，最终下令当场处死。"]]
   }
 };
-/* the North Academy years only, for when the uniform is on */
+/* the uniform turns the second page into 秘闻: who they were then, and what nobody saw.
+   【】 marks a hidden span, black until hovered */
 STORY.iris_academy={
   rel:[["Aurelia","室友。在图书馆“偶遇”她的公主。","aurelia"],
        ["Liora","教会学校时的朋友，Iris 的口音是学着她褪掉的。"]],
-  events:[["14 岁","离家出走到 Enore 城，进了教会学校，从一本东方诗集里给自己取名 Lyren。"],
-          ["16 岁","冬天差点冻死在酒馆门口，被一个女孩带回家，过了一夜。"],
-          ["18 岁","北方学院二年级。图书馆里，公主“偶遇”了她，两人成了室友。"],
-          ["19 岁","发表论文上卷。一个算命师和她擦肩而过。"],
-          ["22 岁","跟着 Aurelia 去了首都。"]]
+  secrets:[["关于名字","Lyren 是她从一本东方诗集里挑的，她本姓 【Nord】。"],
+           ["关于爱情","【十六岁那年，有个女孩把她从酒馆门口带回家过了一夜。她没再见过她。】"]]
 };
 STORY.aurelia_academy={
   rel:[["Julian","哥哥。点头同意把她送去北方的人。"],
        ["Cordelia","准嫂子，生日宴上被她嫁祸的人。"],
        ["Iris","观察了一整年的穷学生，后来的室友。","iris"]],
-  events:[["14 岁","Julian 的生日宴上，她故意摔倒、把咖啡泼在自己身上，嫁祸 Cordelia。"],
-          ["16 岁","因为生日宴那件事，Solonne 家提议、Julian 同意，她被送往北方学院。"],
-          ["17 岁","开始注意图书馆里一个白头发的穷学生。"],
-          ["18 岁","在图书馆制造了一场偶遇，两人成了室友。"],
-          ["22 岁","带着 Iris 回到首都。"]]
+  secrets:[["关于偶遇Iris","【图书馆那次不是偶然，她已经看了那个白头发的学生一整年。】"],
+           ["关于被送来北方","【生日宴闹剧】后，她一直以为是哥哥Julian 的意思。提议的其实是 Solonne 家"]]
 };
+const spoil=t=>t.replace(/【(.*?)】/g,'<span class="spoil" tabindex="0" role="button" aria-label="隐藏内容，悬停或点按显示">$1</span>');
 function storyHTML(p){
   const s=STORY[sheetOver[p.id] || p.id];
   return `<div class="tale">
     <h3>人物关系</h3>
     <dl class="rel">${s.rel.map(([n,t,go])=>`<dt>${go?`<button class="go" data-go="${go}">${n}</button>`:n}</dt><dd>${t}</dd>`).join("")}</dl>
-    <h3>事件</h3>
-    <ul class="tl">${s.events.map(([a,t])=>`<li><b>${a.replace(" 岁","")}</b>${t}</li>`).join("")}</ul>
+    ${s.secrets ? `<h3>秘闻</h3>
+    <dl class="secrets">${s.secrets.map(([h,t])=>`<dt>${h}</dt><dd>${spoil(t)}</dd>`).join("")}</dl>`
+    : `<h3>事件</h3>
+    <ul class="tl">${s.events.map(([a,t])=>`<li><b>${a.replace(" 岁","")}</b>${t}</li>`).join("")}</ul>`}
   </div>`;
 }
 function fitRole(){
@@ -654,7 +664,7 @@ function renderReadout(){
   readin.innerHTML = `
     <div class="tabs" role="tablist">
       <button role="tab" aria-selected="${tab===0}" data-tab="0">Profile<small>资料</small></button>
-      <button role="tab" aria-selected="${tab===1}" data-tab="1">Story<small>故事</small></button>
+      <button role="tab" aria-selected="${tab===1}" data-tab="1">${(STORY[sheetOver[p.id]]||{}).secrets ? "Secrets<small>秘闻</small>" : "Story<small>故事</small>"}</button>
     </div>
     ${tab===0 ? `
       <div class="body">${sheetHTML(p)}</div>`
