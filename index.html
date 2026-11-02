@@ -247,7 +247,7 @@
     100%{ transform:rotate(var(--rot)) scale(var(--s)) } }
   .sheet p.told{ margin:0; text-align:justify }
   /* a line said beside a sticker or the thing in hand */
-  .say{ position:fixed; z-index:6; transform:translate(-50%, calc(-100% - .4rem)); text-align:center; white-space:nowrap; pointer-events:none;
+  .say{ position:fixed; z-index:30; transform:translate(-50%, calc(-100% - .4rem)); text-align:center; white-space:nowrap; pointer-events:none;
     font-family:var(--serif); font-size:.8rem; line-height:1.6; color:var(--ink); text-shadow:0 0 .5rem var(--bg), 0 0 .2rem var(--bg);
     opacity:0; transition:opacity .35s ease, transform .35s ease }
   .say small{ display:block; font-family:var(--mono); font-size:.58rem; letter-spacing:.14em; color:var(--dim) }
@@ -265,7 +265,7 @@
   .sticker .handle{ position:absolute; right:-0.375rem; bottom:-0.375rem; width:calc(0.6875rem / var(--s)); height:calc(0.6875rem / var(--s));
     border-radius:50%; background:var(--bg); border:calc(1px / var(--s)) solid var(--ink); cursor:nwse-resize; opacity:0; transition:opacity .2s }
   .sticker:hover .handle, .sticker:focus-visible .handle, .sticker.turn .handle{ opacity:1 }
-  .sticker img{ display:block; width:100%; height:auto; pointer-events:none }
+  .sticker img{ display:block; width:100%; height:auto; pointer-events:none; filter:hue-rotate(var(--hue, 0deg)) }
   .sticker .lit{ position:absolute; inset:0; pointer-events:none; -webkit-mask-size:100% 100%; mask-size:100% 100%; -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat }
   .sticker .amb{ background:var(--fig-amb); mix-blend-mode:multiply }
   .sticker .key{ background:var(--fig-key); mix-blend-mode:soft-light }
@@ -299,6 +299,14 @@
   .slot.held{ border-color:var(--ink); box-shadow:inset 0 0 0 1px var(--ink) }
   .slot.held img{ transform:translateY(-.2rem) rotate(-6deg) scale(1.1) }
   .slot.can{ border-style:dashed; border-color:var(--ink) }
+  /* the hue slider under a picked-up sticker */
+  .stk-tools{ position:fixed; z-index:31; padding:.45rem .6rem; border-radius:999px; background:var(--panel); border:1px solid var(--line);
+    -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); box-shadow:0 .4rem 1rem rgba(30,20,12,.18) }
+  .stk-tools[hidden]{ display:none }
+  .stk-tools input{ -webkit-appearance:none; appearance:none; display:block; width:7.5rem; height:.5rem; margin:0; border-radius:999px; cursor:pointer;
+    background:linear-gradient(90deg,#c7584a,#c9a54a,#7fa65a,#4aa69c,#4a74c2,#8a5ac2,#c24a8f,#c7584a) }
+  .stk-tools input::-webkit-slider-thumb{ -webkit-appearance:none; width:1rem; height:1rem; border-radius:50%; background:var(--bg); border:1px solid var(--ink); box-shadow:0 1px 3px rgba(0,0,0,.3) }
+  .stk-tools input::-moz-range-thumb{ width:1rem; height:1rem; border-radius:50%; background:var(--bg); border:1px solid var(--ink) }
   .slot.no{ animation:no .45s ease }
   @keyframes no{ 20%{ transform:translateX(-.25rem) } 40%{ transform:translateX(.25rem) } 60%{ transform:translateX(-.15rem) } 80%{ transform:translateX(.1rem) } }
   .sticker.home{ transition:left .4s cubic-bezier(.3,.7,.3,1), top .4s cubic-bezier(.3,.7,.3,1), transform .2s ease }
@@ -328,7 +336,7 @@
   @keyframes wobble{ 0%,100%{ transform:rotate(0) } 20%{ transform:rotate(-14deg) } 40%{ transform:rotate(11deg) } 60%{ transform:rotate(-7deg) } 80%{ transform:rotate(4deg) } }
 
   /* the thing in hand while dragging */
-  .ghost{ position:fixed; z-index:20; width:3.6rem; height:3.6rem; pointer-events:none; transform:translate(-50%,-50%) rotate(-6deg);
+  .ghost{ position:fixed; z-index:40; width:3.6rem; height:3.6rem; pointer-events:none; transform:translate(-50%,-50%) rotate(-6deg);
     filter:drop-shadow(0 .5rem .8rem rgba(30,20,12,.35)) }
   .ghost img{ width:100%; height:100%; object-fit:contain }
   body.dragging, body.dragging *{ cursor:grabbing !important }
@@ -438,6 +446,7 @@
 <button class="sticker" id="apple" type="button" aria-label="苹果贴纸：打开物品。可拖动；拖角上的圆点或滚轮缩放旋转；键盘 + − 缩放，[ ] 旋转" hidden><img alt=""><span class="lit amb" aria-hidden="true"></span><span class="lit key" aria-hidden="true"></span><span class="handle" aria-hidden="true"></span></button>
 <button class="sticker" id="deer2" type="button" aria-label="Aurelia 的小鹿玩偶贴纸。可拖动，也可以拖回背包；拖角上的圆点或滚轮缩放旋转；键盘 + − 缩放，[ ] 旋转" hidden><img alt=""><span class="lit amb" aria-hidden="true"></span><span class="lit key" aria-hidden="true"></span><span class="handle" aria-hidden="true"></span></button>
 <div class="say" id="say" aria-live="polite"></div>
+<div class="stk-tools" id="stkTools" hidden><input type="range" min="0" max="360" step="1" value="0" aria-label="贴纸色相"></div>
 <button class="sticker" id="rope" type="button" aria-label="绞索贴纸：打开物品。可拖动，也可以拖回背包；拖角上的圆点或滚轮缩放旋转；键盘 + − 缩放，[ ] 旋转" hidden><img alt=""><span class="lit amb" aria-hidden="true"></span><span class="lit key" aria-hidden="true"></span><span class="handle" aria-hidden="true"></span></button>
 <button class="sticker" id="deer" type="button" aria-label="小鹿玩偶贴纸。可拖动，也可以拖回背包；拖角上的圆点或滚轮缩放旋转；键盘 + − 缩放，[ ] 旋转" hidden><img alt=""><span class="lit amb" aria-hidden="true"></span><span class="lit key" aria-hidden="true"></span><span class="handle" aria-hidden="true"></span></button>
 
@@ -809,12 +818,29 @@ document.addEventListener("mouseover",e=>{ const s=e.target.closest && e.target.
 document.addEventListener("focusin",e=>{ const s=e.target.closest && e.target.closest("[data-sore]"); if(s) sore(s); });
 document.addEventListener("click",e=>{ const s=e.target.closest("[data-sore]"); if(s) sore(s); });
 const inBag=id=>{ const v=store.get(STK[id].bagKey); return v===null ? !!STK[id].startInBag : !!v; };
-function applySt(id){ const k=STK[id]; k.el.style.setProperty("--s", k.s); k.el.style.setProperty("--rot", k.r+"deg"); }
-function saveSt(id){ const k=STK[id]; store.set(k.posKey,[k.el.offsetLeft, k.el.offsetTop, k.s, k.r]); }
+function applySt(id){ const k=STK[id]; k.el.style.setProperty("--s", k.s); k.el.style.setProperty("--rot", k.r+"deg"); k.el.style.setProperty("--hue", (k.h||0)+"deg"); }
+function saveSt(id){ const k=STK[id]; store.set(k.posKey,[k.el.offsetLeft, k.el.offsetTop, k.s, k.r, k.h||0]); }
+/* the sticker last touched sits on top of the others; the order is remembered */
+let stackOrder=(store.get("helios-sticker-order")||[]).filter(id=>STK[id]);
+function stackStickers(){ Object.keys(STK).forEach(id=>{ if(!stackOrder.includes(id)) stackOrder.unshift(id); });
+  stackOrder.forEach((id,i)=>{ STK[id].el.style.zIndex=5+i; }); }
+function raise(id){ stackOrder=stackOrder.filter(x=>x!==id); stackOrder.push(id); stackStickers(); store.set("helios-sticker-order", stackOrder); }
+/* a hue slider shows under the sticker you last picked up */
+const tools=$("#stkTools"), hueIn=tools.querySelector("input");
+let toolFor=null;
+function showTools(id){ toolFor=id; const k=STK[id]; hueIn.value=k.h||0; tools.hidden=false; placeTools(); }
+function placeTools(){ if(!toolFor) return; const r=STK[toolFor].el.getBoundingClientRect();
+  tools.style.left=Math.max(8, Math.min(innerWidth-tools.offsetWidth-8, r.left+r.width/2-tools.offsetWidth/2))+"px";
+  tools.style.top=Math.min(innerHeight-tools.offsetHeight-8, r.bottom+10)+"px"; }
+function hideTools(){ toolFor=null; tools.hidden=true; }
+hueIn.addEventListener("input",()=>{ if(!toolFor) return; const k=STK[toolFor]; k.h=+hueIn.value; applySt(toolFor);
+  clearTimeout(tools._t); tools._t=setTimeout(()=>saveSt(toolFor),250); });
+document.addEventListener("pointerdown",e=>{ if(toolFor && !e.target.closest(".sticker, #stkTools")) hideTools(); }, true);
+addEventListener("resize", placeTools);
 function placeSt(id){
   const k=STK[id], saved=store.get(k.posKey);
   if(saved){ k.el.style.left=Math.min(innerWidth-50, saved[0])+"px"; k.el.style.top=Math.min(innerHeight-50, saved[1])+"px";
-    if(saved[2]) k.s=clampS(saved[2]); if(saved[3]!==undefined) k.r=saved[3]; applySt(id); return; }
+    if(saved[2]) k.s=clampS(saved[2]); if(saved[3]!==undefined) k.r=saved[3]; if(saved[4]!==undefined) k.h=saved[4]; applySt(id); return; }
   const r=$("#stage").getBoundingClientRect();
   if(k.spot){ const [x,y]=k.spot(); k.el.style.left=x+"px"; k.el.style.top=y+"px"; applySt(id); return; }
   k.el.style.left=(r.right+18)+"px"; k.el.style.top=(r.bottom-90)+"px"; applySt(id);
@@ -839,14 +865,14 @@ function bindSticker(id){
   const k=STK[id], el=k.el, handle=el.querySelector(".handle");
   let sx,sy,ox,oy,moved=false,down=false, turning=false, a0,d0,s0,r0;
   const centre=()=>{ const r=el.getBoundingClientRect(); return [r.left+r.width/2, r.top+r.height/2]; };
-  handle.addEventListener("pointerdown",e=>{ e.stopPropagation(); turning=true; el.classList.add("turn");
+  handle.addEventListener("pointerdown",e=>{ e.stopPropagation(); raise(id); hideTools(); turning=true; el.classList.add("turn");
     const [cx,cy]=centre(); a0=Math.atan2(e.clientY-cy,e.clientX-cx); d0=Math.hypot(e.clientX-cx,e.clientY-cy)||1; s0=k.s; r0=k.r;
     handle.setPointerCapture(e.pointerId); });
   handle.addEventListener("pointermove",e=>{ if(!turning) return; const [cx,cy]=centre();
     k.s=clampS(s0*Math.hypot(e.clientX-cx,e.clientY-cy)/d0); k.r=r0+(Math.atan2(e.clientY-cy,e.clientX-cx)-a0)*180/Math.PI; applySt(id); });
-  handle.addEventListener("pointerup",e=>{ if(!turning) return; turning=false; el.classList.remove("turn"); moved=true; saveSt(id); });
+  handle.addEventListener("pointerup",e=>{ if(!turning) return; turning=false; el.classList.remove("turn"); moved=true; saveSt(id); showTools(id); });
   handle.addEventListener("click",e=>{ e.stopPropagation(); e.preventDefault(); moved=false; });
-  el.addEventListener("pointerdown",e=>{ if(turning) return; down=true; moved=false; sx=e.clientX; sy=e.clientY; ox=el.offsetLeft; oy=el.offsetTop; el.setPointerCapture(e.pointerId); });
+  el.addEventListener("pointerdown",e=>{ if(turning) return; raise(id); hideTools(); down=true; moved=false; sx=e.clientX; sy=e.clientY; ox=el.offsetLeft; oy=el.offsetTop; el.setPointerCapture(e.pointerId); });
   el.addEventListener("pointermove",e=>{ if(!down) return; const dx=e.clientX-sx, dy=e.clientY-sy;
     if(!moved && Math.hypot(dx,dy)>4){ moved=true; el.classList.add("drag"); document.body.classList.add("dragging"); speak(id,"move"); }
     if(moved){ el.style.left=Math.max(-10,Math.min(innerWidth-40, ox+dx))+"px"; el.style.top=Math.max(-10,Math.min(innerHeight-40, oy+dy))+"px";
@@ -856,7 +882,8 @@ function bindSticker(id){
       if(t && place(id, t)) return;
       if(t && t.dataset.drop==="worn"){ refuse(t); el.classList.add("home"); el.style.left=ox+"px"; el.style.top=oy+"px";
         setTimeout(()=>el.classList.remove("home"), 450); return; }
-      saveSt(id); speak(id,"stick"); } });
+      saveSt(id); speak(id,"stick"); }
+    if(!el.classList.contains("away") && !el.hidden) showTools(id); });
   el.addEventListener("click",e=>{ if(moved){ e.preventDefault(); e.stopImmediatePropagation(); moved=false; return; }
     if(ITEMS[id].entry) openEntry(ITEMS[id].entry);
     else { el.classList.remove("boop"); void el.offsetWidth; el.classList.add("boop"); speak(id,"move"); } });
@@ -1080,7 +1107,7 @@ addEventListener("click",e=>{
 document.addEventListener("keydown",e=>{ const sl=e.target.closest && e.target.closest(".slot.full"); if(sl && (e.key==="Enter"||e.key===" ")){ e.preventDefault(); activate(sl.dataset.item, sl); } });
 document.addEventListener("click",e=>{ if(e.target.closest(".slot, .equip, .inv")) e.stopPropagation(); }, true);
 Object.values(ITEMS).forEach(it=>{ const s=it.skin?it.skin.art:it.fig; if(s){ const im=new Image(); im.src=s; } }); { const im=new Image(); im.src="images/iris-apple.webp"; }
-Object.keys(STK).forEach(bindSticker);
+Object.keys(STK).forEach(bindSticker); stackStickers();
 /* ============================================================
    内容：所有文字都写在 content/ 文件夹的 Markdown 里，页面打开时读进来。
    新增一个词条：把 .md 放进 content/词条/，再在下面 entries 里加一行。
