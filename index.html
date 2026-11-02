@@ -100,6 +100,9 @@
     filter:drop-shadow(0 0 .6px rgba(40,30,20,.3)) drop-shadow(0 0.875rem 1.625rem rgba(40,28,18,.16)) }
   .figure.out-l{ opacity:0; transform:translate(-62%,-50%) }
   .figure.out-r{ opacity:0; transform:translate(-38%,-50%) }
+  /* changing clothes: a short sideways slide */
+  .figure.swap-out{ opacity:0; transform:translate(-56%,-50%); transition:opacity .28s ease, transform .3s ease-in }
+  .figure.swap-in{ opacity:0; transform:translate(-44%,-50%) }
 
   /* ---------- C: the readout, same height as the frame ---------- */
   .readout{
@@ -361,6 +364,7 @@
     --fig-amb:none; --fig-key:none; --sat:.82; --veil:radial-gradient(110% 90% at 10% -10%, rgba(240,246,196,.3), rgba(240,246,196,0) 60%); --veil-blend:screen;
   }
   body.skinned .skinart{ opacity:1 }
+  body.skinned .skinart.fade{ opacity:0; transition:opacity .26s ease }
   #stage:focus:not(:focus-visible), .slot:focus:not(:focus-visible){ outline:none }
   #stage:focus-visible{ outline:1px solid var(--ink); outline-offset:6px; border-radius:var(--r) }
   body.skinned .figure{ opacity:0 !important }
@@ -958,6 +962,33 @@ window.renderSkins=()=>{
   bagName(null);
   applySkin();
 };
+/* changing clothes slides the portrait out and the new one in, once it has loaded: no blank flash */
+let figToken=0;
+function swapFigure(src, alt, sz, hidden){
+  const apply=()=>{ figure.style.setProperty('--ar', `${sz[0]}/${sz[1]}`); figure.style.setProperty('--hs', sz[1]/1616);
+    art.src=src; art.alt=alt; figure.querySelectorAll('.lit').forEach(el=>{ el.style.webkitMaskImage=el.style.maskImage=`url(${src})`; }); };
+  if(art.getAttribute("src")===src){ figure.style.setProperty('--ar', `${sz[0]}/${sz[1]}`); figure.style.setProperty('--hs', sz[1]/1616); return; }
+  const t=++figToken;
+  if(reduce || busy || hidden || !contentReady){ apply(); return; }
+  const pre=new Image(); pre.src=src;
+  figure.classList.add("swap-out");
+  Promise.all([pre.decode().catch(()=>{}), new Promise(r=>setTimeout(r,300))]).then(()=>{
+    if(t!==figToken) return;
+    figure.style.transition="none"; apply(); figure.classList.remove("swap-out"); figure.classList.add("swap-in");
+    void figure.offsetWidth; figure.style.transition=""; figure.classList.remove("swap-in");
+  });
+}
+/* one skin to another: the painting fades out, changes, fades back */
+let skinToken=0;
+function swapSkinArt(src, alt, wasOn){
+  if(skinart.getAttribute("src")===src) return;
+  const t=++skinToken;
+  if(!wasOn || reduce){ skinart.src=src; skinart.alt=alt; return; }
+  const pre=new Image(); pre.src=src;
+  skinart.classList.add("fade");
+  Promise.all([pre.decode().catch(()=>{}), new Promise(r=>setTimeout(r,280))]).then(()=>{
+    if(t!==skinToken) return; skinart.src=src; skinart.alt=alt; skinart.classList.remove("fade"); });
+}
 function applySkin(){
   const s=me();
   /* the white cloth with the apple: she tried it on, and the apple rolled away */
@@ -967,10 +998,11 @@ function applySkin(){
   const sk = combo ? { art:"images/iris-apple.webp", mood:"light", turn:true, name:"古希腊白布与苹果" }
            : hanged ? { art:"images/iris-drape.webp", mood:"dark", turn:true, name:"倒吊人" }
                    : Object.values(s.worn).map(id=>id && ITEMS[id].skin && Object.assign({name:ITEMS[id].name}, ITEMS[id].skin)).find(Boolean);
+  const wasSkinned=document.body.classList.contains("skinned");
   document.body.classList.toggle("skinned", !!sk);
   document.body.classList.toggle("skin-drape", !!sk && sk.mood==="dark");
   document.body.classList.toggle("skin-day", !!sk && sk.mood==="light");
-  if(sk){ skinart.src=sk.art; skinart.alt=`${PEOPLE[cur].full}，${sk.name}`; }
+  if(sk) swapSkinArt(sk.art, `${PEOPLE[cur].full}，${sk.name}`, wasSkinned);
   /* an outfit: the standing portrait changes, the scene stays as it is */
   const outfit=Object.values(s.worn).map(id=>id && ITEMS[id].fig ? ITEMS[id] : null).find(Boolean);
   const src=outfit ? outfit.fig : PEOPLE[cur].img;
@@ -978,9 +1010,7 @@ function applySkin(){
   /* some outfits bring their own profile */
   const sh=(hanged ? "iris_drape" : Object.values(s.worn).map(id=>id && ITEMS[id].sheet).find(Boolean)) || null, pid=PEOPLE[cur].id;
   if((sheetOver[pid]||null)!==sh){ sheetOver[pid]=sh; if(!view){ renderReadout(); readin.classList.remove("swap"); void readin.offsetWidth; readin.classList.add("swap"); } }
-  figure.style.setProperty('--ar', `${sz[0]}/${sz[1]}`); figure.style.setProperty('--hs', sz[1]/1616);
-  if(art.getAttribute("src")!==src){ art.src=src; art.alt=`${PEOPLE[cur].full}，${outfit?outfit.name:"作者绘"}`;
-    figure.querySelectorAll('.lit').forEach(el=>{ el.style.webkitMaskImage=el.style.maskImage=`url(${src})`; }); }
+  swapFigure(src, `${PEOPLE[cur].full}，${outfit?outfit.name:"作者绘"}`, sz, !!sk);
   if(window.HALL && HALL.force) HALL.force(sk ? sk.mood : null);
   if(window.HALL && HALL.roll) HALL.roll(!!(sk && sk.turn));
 }
