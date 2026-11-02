@@ -1261,6 +1261,9 @@ renderSkins();
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/objects/Reflector.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/objects/Refractor.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/objects/Water2.js"></script>
 <script>
 (function(){
 if(!window.THREE) return;
@@ -1437,25 +1440,6 @@ const M = {
 };
 MAPS.floor={ day:[M.floor.map,null], dusk:[tex(strokeFloor,26,26),null] };
 Object.keys(M).forEach(k=>paintify(M[k], k!=="floor", k!=="rib" && k!=="floor"));
-const WATER={ uTime:{value:0}, uWater:{value:0} };
-{ const base=M.floor.onBeforeCompile;
-  M.floor.onBeforeCompile=sh=>{ base(sh); sh.uniforms.uTime=WATER.uTime; sh.uniforms.uWater=WATER.uWater;
-    sh.fragmentShader="uniform float uTime;\nuniform float uWater;\n"+sh.fragmentShader
-      .replace("#include <map_fragment>", `#include <map_fragment>
-        vec2 wp = vUv / 26.0 * 400.0;
-        float wt = uTime;
-        float w1 = sin(wp.y*1.9 + wt*1.25 + sin(wp.x*0.33 + wt*0.45)*1.7);
-        float w2 = sin(wp.y*3.3 - wt*0.85 + sin(wp.x*0.58 - wt*0.6)*1.3 + wp.x*0.12);
-        float w3 = sin((wp.x*0.7 + wp.y*1.05)*1.2 + wt*0.55);
-        float wave = w1*0.5 + w2*0.33 + w3*0.17;
-        diffuseColor.a *= mix(1.0, 0.8 + 0.3*wave, uWater);
-        float glint = smoothstep(0.5, 0.95, wave);`)
-      .replace("#include <normal_fragment_maps>", `#include <normal_fragment_maps>
-        normal = normalize(normal + uWater*vec3(w2*0.05, w1*0.07, 0.0));`)
-      .replace("#include <emissivemap_fragment>", `#include <emissivemap_fragment>
-        totalEmissiveRadiance += uWater * glint * vec3(0.5, 0.25, 0.12) * 0.22;`);
-  };
-}
 
 /* ============================================================
    Architecture
@@ -1539,6 +1523,40 @@ box(forecourt, WALL_W, 2, 40, M.wallBox, 0, WALL_H+1, 20, false);
 const floor=new THREE.Mesh(new THREE.PlaneGeometry(400,400), M.floor);
 floor.rotation.x=-Math.PI/2; floor.receiveShadow=true; scene.add(floor);
 
+/* dusk water: a real sheet over the stone (three.js Water2) */
+function waterNormals(seed){
+  /* a tileable height field of crossing ripples, turned into a normal map */
+  const N=256, c=document.createElement("canvas"); c.width=c.height=N; const x=c.getContext("2d");
+  let s=seed; const rnd=()=>{ s=(s*16807)%2147483647; return s/2147483647; };
+  const waves=[]; for(let i=0;i<22;i++){ const fx=Math.round((rnd()*2-1)*(2+i*.45)), fy=Math.round((rnd()*2-1)*(2+i*.45))||1;
+    waves.push([fx,fy,rnd()*6.283, 1/Math.pow(Math.hypot(fx,fy),1.25)]); }
+  const H=new Float32Array(N*N);
+  for(let j=0;j<N;j++) for(let i=0;i<N;i++){ let h=0; const u=i/N, v=j/N;
+    for(const [fx,fy,ph,a] of waves) h+=a*Math.sin(6.2832*(fx*u+fy*v)+ph);
+    H[j*N+i]=h; }
+  const img=x.createImageData(N,N), K=2.2;
+  for(let j=0;j<N;j++) for(let i=0;i<N;i++){
+    const dx=(H[j*N+(i+1)%N]-H[j*N+(i+N-1)%N])*K, dy=(H[((j+1)%N)*N+i]-H[((j+N-1)%N)*N+i])*K;
+    const l=Math.hypot(dx,dy,1), o=(j*N+i)*4;
+    img.data[o]=(-dx/l*.5+.5)*255; img.data[o+1]=(-dy/l*.5+.5)*255; img.data[o+2]=(1/l*.5+.5)*255; img.data[o+3]=255; }
+  x.putImageData(img,0,0);
+  const t=new THREE.CanvasTexture(c); t.wrapS=t.wrapT=THREE.RepeatWrapping; return t;
+}
+let water=null;
+if(THREE.Water && THREE.Reflector && THREE.Refractor){ try{
+  const RT=Math.min(1024, renderer.capabilities.maxTextureSize);
+  water=new THREE.Water(new THREE.PlaneGeometry(400,400), {
+    color:0xe4ece6, scale:46, flowDirection:new THREE.Vector2(.3,1), flowSpeed:.018, reflectivity:.06,
+    textureWidth:RT, textureHeight:RT, normalMap0:waterNormals(7), normalMap1:waterNormals(4211) });
+  water.rotation.x=-Math.PI/2; water.position.y=.06; water.visible=false; scene.add(water);
+  /* the reflection and refraction are drawn already toned and encoded: read them back as linear, tone once */
+  const wm=water.material; wm.toneMapped=false;
+  wm.fragmentShader=wm.fragmentShader
+    .replace("vec4 reflectColor = texture2D( tReflectionMap, vec2( 1.0 - uv.x, uv.y ) );","vec4 reflectColor = sRGBToLinear( texture2D( tReflectionMap, vec2( 1.0 - uv.x, uv.y ) ) );")
+    .replace("vec4 refractColor = texture2D( tRefractionMap, uv );","vec4 refractColor = sRGBToLinear( texture2D( tRefractionMap, uv ) );")
+    .replace("vec2 uv = coord.xy + coord.z * normal.xz * 0.05;","vec2 uv = coord.xy + coord.z * normal.xz * 0.028;");
+}catch(e){ water=null; } }
+
 /* ============================================================
    Light
    ============================================================ */
@@ -1620,6 +1638,21 @@ const canopy=new THREE.Mesh(new THREE.PlaneGeometry(190,190),
   new THREE.MeshBasicMaterial({map:leafTex, alphaTest:.5, transparent:true, colorWrite:false, depthWrite:false, side:THREE.DoubleSide}));
 canopy.customDepthMaterial=new THREE.MeshDepthMaterial({depthPacking:THREE.RGBADepthPacking, map:leafTex, alphaTest:.5, side:THREE.DoubleSide});
 canopy.castShadow=true; canopy.renderOrder=-1; scene.add(canopy);
+const LEAF={ uLeafT:{value:0} };
+canopy.customDepthMaterial.onBeforeCompile=sh=>{ sh.uniforms.uLeafT=LEAF.uLeafT;
+  sh.fragmentShader=sh.fragmentShader.replace("void main() {", `uniform float uLeafT;
+float lHash(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7)))*43758.5453); }
+float lNoise(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f);
+  return mix(mix(lHash(i),lHash(i+vec2(1,0)),f.x), mix(lHash(i+vec2(0,1)),lHash(i+vec2(1,1)),f.x), f.y); }
+void main() {`).replace("#include <map_fragment>", `#ifdef USE_MAP
+  float lt = uLeafT;
+  float gust = 0.35 + 0.65*smoothstep(0.2, 0.8, lNoise(vec2(lt*0.17, 3.1)));
+  vec2 sway = (vec2(lNoise(vUv*2.6 + vec2(lt*0.12, 0.0)), lNoise(vUv*2.6 + vec2(5.2, lt*0.11))) - 0.5) * 0.005 * gust;
+  vec2 flut = (vec2(lNoise(vUv*38.0 + vec2(lt*0.9, 0.0)), lNoise(vUv*38.0 + vec2(7.3, -lt*0.8))) - 0.5) * 0.0015 * (0.3 + gust);
+  vec4 texelColor = mapTexelToLinear( texture2D( map, vUv + sway + flut ) );
+  diffuseColor *= texelColor;
+#endif`);
+};
 function placeCanopy(){
   const d=new THREE.Vector3().subVectors(sun.position, sun.target.position);
   canopy.position.copy(sun.target.position).add(d.multiplyScalar(.62));
@@ -1706,7 +1739,6 @@ let accentHex=null, curMood=null;
 function setAccent(h){ accentHex=h; if(!curMood||!curMood.door[1]) return; const c=new THREE.Color(h).lerp(new THREE.Color(curMood.door[0]),.35); doorLight.color.copy(c); glow.material.color.copy(c); dirty=true; }
 function applyMood(name){
   if(forcedMood) name=forcedMood;
-  WATER.uWater.value = name==='dark' ? 1 : 0;
   const m=MOODS[name]; curMood=m; const col=(c,hex)=> m.raw ? c.setHex(hex) : lin(c,hex);
   /* fog and clear color land after the shader's own encoding; through the bloom chain that space is linear */
   const air=c=> composer ? lin(new THREE.Color(),c) : new THREE.Color(c);
@@ -1738,6 +1770,7 @@ function applyMood(name){
   if(bloom){ bloom.strength=m.bloom[0]; bloom.radius=m.bloom[1]; bloom.threshold=m.bloom[2]; }
   if(frost) frost.uniforms.uGrain.value=m.grain;
   forecourt.visible = name!=='light';
+  { const wet=!!water && name!=='light'; if(water) water.visible=wet; mirror.visible=!wet; if(wet){ skyBelow.visible=false; M.floor.opacity=1; } }
   canopy.visible = name==='light'; placeCanopy();
   buildShafts(m.shaft[0], m.shaft[1], col);
   if(accentHex!==null) setAccent(accentHex);
@@ -1762,7 +1795,7 @@ let mx=0,my=0,tx=0,ty=0, dirty=true;
 addEventListener("pointermove", e=>{ tx=e.clientX/innerWidth-.5; ty=e.clientY/innerHeight-.5; if(still) requestAnimationFrame(frame); });
 const clock=new THREE.Clock();
 let rollC=0, rollF=0, rollT=0, rollStart=-1; const ROLL_DUR=1.6;
-let push=0, tripStart=-1; const TRIP=1.15;
+let push=0, tripStart=-1, lastDraw=0; const TRIP=1.15;
 function frame(){
   /* a still picture: nothing drifts, pulses or flickers. The camera only follows
      the pointer, and when it has settled nothing is redrawn at all. */
@@ -1770,11 +1803,14 @@ function frame(){
   const dx=tx-mx, dy=ty-my, moving=Math.abs(dx)>1e-4 || Math.abs(dy)>1e-4;
   mx+=dx*k; my+=dy*k;
   const focusing = focusStart>=0; if(focusing){ const q=Math.min(1,(clock.getElapsedTime()-focusStart)/FOCUS_DUR), e=1-Math.pow(1-q,3); focusC=focusF+(focusT-focusF)*e; applyFocus(); if(q>=1) focusStart=-1; }
-  const flowing = !still && WATER.uWater.value>0; if(flowing) WATER.uTime.value=clock.getElapsedTime();
+  const flowing = !still && !!water && water.visible;
+  const swaying = !still && canopy.visible; if(swaying) LEAF.uLeafT.value=clock.getElapsedTime();
   const rolling = rollStart>=0; if(rolling){ const q=Math.min(1,(clock.getElapsedTime()-rollStart)/ROLL_DUR), e=q<.5?4*q*q*q:1-Math.pow(-2*q+2,3)/2; rollC=rollF+(rollT-rollF)*e; if(q>=1) rollStart=-1; }
-  const travelling = tripStart>=0 || focusing || flowing || rolling;
+  const travelling = tripStart>=0 || focusing || flowing || swaying || rolling;
   if(tripStart>=0){ const p=Math.min(1,(clock.getElapsedTime()-tripStart)/TRIP); push=(1-Math.cos(Math.PI*Math.min(p,.62)/.62))/2*9; if(p>=1){ push=0; tripStart=-1; } }
-  if(moving || dirty || travelling){
+  const nowT=clock.getElapsedTime(), ambientOnly=(flowing||swaying) && !(tripStart>=0 || focusing || rolling);
+  if(moving || dirty || (travelling && !(ambientOnly && nowT-lastDraw<1/30))){
+    lastDraw=nowT;
     const rc=Math.cos(rollC), rs=Math.sin(rollC), px=mx*2.4, py=-my*1.6, lx=mx*1.2, ly=-my*1.2;
     camera.up.set(rs, rc, 0);
     camera.position.set(px*rc+py*rs, 3.4+(-px*rs+py*rc), 16-push);
@@ -1787,6 +1823,8 @@ function frame(){
 addEventListener("resize", resize); resize();
 window.HALL={ accent:setAccent, travel(){ if(!still){ tripStart=clock.getElapsedTime(); } }, roll(on){ const tgt=on?Math.PI:0; if(Math.abs(tgt-rollT)<1e-6) return; rollT=tgt; if(still){ rollC=rollT; dirty=true; frame(); } else { rollF=rollC; rollStart=clock.getElapsedTime(); } }, force(n){ if(forcedMood===n) return; forcedMood=n; applyMood(n||current()); dirty=true; if(still) frame(); }, focus(){ focusT=window.hallFocus?hallFocus():.4; if(still){ focusC=focusT; applyFocus(); dirty=true; frame(); } else { focusF=focusC; focusStart=clock.getElapsedTime(); } } };
 if(typeof PEOPLE!=="undefined") setAccent(PEOPLE[cur].accent);
+/* draw one frame at a given moment of the water and the leaves (used for stills) */
+HALL.at=t=>{ if(water){ const c=water.material.uniforms.config.value; c.x=(t*.018)%c.z; c.y=c.x+c.z; } LEAF.uLeafT.value=t; dirty=true; frame(); };
 frame();
 })();
 </script>
