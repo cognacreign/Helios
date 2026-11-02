@@ -1,0 +1,1230 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Helios 人物</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200..500&family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&family=Noto+Sans+SC:wght@300;400;500&family=Noto+Serif+SC:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#ece2d5; --ink:#3a322a; --dim:#7a6c5c; --line:rgba(58,50,42,.5); --faint:rgba(58,50,42,.18);
+    --panel:rgba(250,244,234,.6); --chip:rgba(255,250,242,.5); --frame:rgba(58,50,42,.55);
+    --wide:"Helvetica Neue", "Inter", Arial, sans-serif;
+    --mono:"IBM Plex Mono", ui-monospace, monospace;
+    --sans:"Noto Sans SC", "PingFang SC", sans-serif;
+    --serif:"Noto Serif SC", "Songti SC", serif;
+    /* every column shares one top line and one bottom line */
+    --sat:.82; --veil:radial-gradient(110% 90% at 10% -10%, rgba(240,246,196,.3), rgba(240,246,196,0) 60%); --veil-blend:screen;
+    --fig-amb:none; --fig-key:none;   /* by day the painting keeps its own colour */
+    --edge:4vw; --top:80px; --bot:22px; --nameW:21vw; --A:.5037; --pad:22px; --r:26px;   /* one corner radius for the frame and the readout */   /* --A: width/height of the painting */
+    color-scheme:light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#231e1b; --ink:#efe5d5; --dim:#b3a48f; --line:rgba(239,229,213,.5); --faint:rgba(239,229,213,.17);
+      --panel:rgba(30,25,21,.58); --chip:rgba(30,24,20,.45); --frame:rgba(239,229,213,.55); color-scheme:dark;
+      --bg:#5f5348; --sat:1; --veil:radial-gradient(90% 80% at 50% 46%, rgba(95,83,72,0) 45%, rgba(55,51,36,.35) 100%); --veil-blend:multiply;
+      --fig-amb:linear-gradient(100deg, #f2d9c2 0%, #c9b3a2 55%, #9c8a7e 100%); --fig-key:linear-gradient(100deg, rgba(229,135,83,.7) 0%, rgba(229,135,83,.18) 45%, rgba(229,135,83,0) 75%);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#231e1b; --ink:#efe5d5; --dim:#b3a48f; --line:rgba(239,229,213,.5); --faint:rgba(239,229,213,.17);
+    --panel:rgba(30,25,21,.58); --chip:rgba(30,24,20,.45); --frame:rgba(239,229,213,.55); color-scheme:dark;
+      --bg:#5f5348; --sat:1; --veil:radial-gradient(90% 80% at 50% 46%, rgba(95,83,72,0) 45%, rgba(55,51,36,.35) 100%); --veil-blend:multiply;
+      --fig-amb:linear-gradient(100deg, #f2d9c2 0%, #c9b3a2 55%, #9c8a7e 100%); --fig-key:linear-gradient(100deg, rgba(229,135,83,.7) 0%, rgba(229,135,83,.18) 45%, rgba(229,135,83,0) 75%);
+  }
+  *{ box-sizing:border-box }
+  html,body{ margin:0; height:100% }
+  body{ background:var(--bg); color:var(--ink); font-family:var(--sans); overflow:hidden; -webkit-font-smoothing:antialiased }
+  button{ font:inherit }
+
+  /* ---------- the lit hall behind everything ---------- */
+  #c{ position:fixed; inset:0; width:100%; height:100%; display:block; z-index:0; filter:saturate(var(--sat)) }
+  .veil{ position:fixed; inset:0; z-index:1; pointer-events:none; background:var(--veil); mix-blend-mode:var(--veil-blend) }
+  .grain{ position:fixed; inset:0; z-index:1; pointer-events:none; opacity:.22; mix-blend-mode:soft-light;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>") }
+  .wash{ position:fixed; inset:0; z-index:1; pointer-events:none; background:var(--bg); opacity:0; transition:opacity .45s ease }
+  .wash.on{ opacity:1 }
+
+  .topbar{ position:fixed; z-index:4; left:4vw; right:4vw; top:22px; display:flex; align-items:center; gap:22px }
+  .mark{ font-family:var(--wide); font-weight:400; letter-spacing:.34em; font-size:14px }
+  .topbar .rule{ flex:1 }
+  .count{ font-family:var(--mono); font-size:11px; letter-spacing:.12em; color:var(--dim) }
+  .mode{
+    all:unset; cursor:pointer; width:34px; height:34px; display:grid; place-items:center; border-radius:50%;
+    background:var(--chip); color:var(--ink); -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
+  }
+  .mode:focus-visible{ outline:1px solid var(--ink); outline-offset:3px }
+
+
+  /* ---------- bottom-left: the name, then the switch ---------- */
+  /* the full name stays just inside the frame's bottom line; the switch drops to the page's bottom inset */
+  .nav{ display:flex; align-items:center; gap:14px; margin-top:26px; pointer-events:auto }
+  .nav button{ all:unset; cursor:pointer; color:var(--ink); display:grid; place-items:center; width:32px; height:22px }
+  .nav button svg{ width:28px; height:15px }
+  .nav button:focus-visible{ outline:1px solid var(--ink); outline-offset:3px }
+  .nav .dots{ display:flex; gap:10px }
+  .nav .dots button{ width:auto; height:auto; font-family:var(--mono); font-size:10.5px; letter-spacing:.12em; color:var(--dim); padding:4px 0; border-bottom:1px solid transparent; white-space:nowrap }
+  .nav .dots button[aria-current="true"]{ color:var(--ink); border-bottom-color:var(--ink) }
+
+  .plate{ position:fixed; z-index:3; left:var(--edge); bottom:var(--bot); width:var(--nameW); pointer-events:none }
+  .plate .who{
+    font-family:var(--wide); font-weight:200; text-transform:uppercase; white-space:nowrap;
+    font-size:min(4.6vw, 76px); line-height:.9; letter-spacing:.08em; margin:0 0 0 -.04em;
+  }
+  .plate .full{ margin-top:14px; display:flex; align-items:center; gap:12px; font-family:var(--mono); font-size:11px; letter-spacing:.14em; color:var(--dim) }
+  .plate .full::before{ content:""; width:36px; height:1px; background:var(--line) }
+
+  /* ---------- B: the painting, framed, snug ---------- */
+  .frame{
+    position:fixed; z-index:2; top:var(--top); bottom:var(--bot); left:calc(var(--edge) + var(--nameW) + 1.6vw);
+    width:calc((100vh - var(--top) - var(--bot) - 2 * var(--pad)) * var(--A) + 2 * var(--pad));
+    touch-action:pan-y; user-select:none;
+  }
+  .figure{
+    position:absolute; left:50%; top:50%; height:calc((100% - 2 * var(--pad)) * var(--hs, 1)); aspect-ratio:var(--ar, 814/1616);
+    transform:translate(-50%,-50%); transition:opacity .5s ease, transform .7s cubic-bezier(.2,.7,.2,1);
+  }
+  /* the frame is painted: a 3px stroke with ragged edges and dry, broken patches */
+  .brush{ position:absolute; inset:0; width:100%; height:100%; overflow:visible; pointer-events:none; color:var(--ink); opacity:.72 }
+  .brush path{ fill:none; stroke:currentColor; stroke-width:3; stroke-linejoin:round }
+  .figure .lit{ position:absolute; inset:0; pointer-events:none; -webkit-mask-size:100% 100%; mask-size:100% 100%; -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat }
+  .figure .amb{ background:var(--fig-amb); mix-blend-mode:multiply }
+  .figure .key{ background:var(--fig-key); mix-blend-mode:soft-light }
+  .figure img{ width:100%; height:100%; display:block; pointer-events:none;
+    filter:drop-shadow(0 0 .6px rgba(40,30,20,.3)) drop-shadow(0 14px 26px rgba(40,28,18,.16)) }
+  .figure.out-l{ opacity:0; transform:translate(-62%,-50%) }
+  .figure.out-r{ opacity:0; transform:translate(-38%,-50%) }
+
+  /* ---------- C: the readout, same height as the frame ---------- */
+  .readout{
+    position:fixed; z-index:3; right:4vw; top:var(--top); max-height:calc(100vh - var(--top) - var(--bot)); width:clamp(360px, 33vw, 400px);
+    display:flex; flex-direction:column; padding:18px 22px 0;
+    border:1px solid var(--line); border-radius:var(--r);
+    background:var(--panel); -webkit-backdrop-filter:blur(10px) saturate(.9); backdrop-filter:blur(10px) saturate(.9);
+    transition:opacity .4s ease;
+  }
+  .readout.fade .in{ opacity:0 }
+  .readout .in{ display:flex; flex-direction:column; min-height:0; flex:0 1 auto; transition:opacity .35s ease }
+  .readout::before, .readout::after{ content:""; position:absolute; width:22px; height:22px; border:1px solid var(--ink); pointer-events:none }
+  .readout::before{ left:-6px; top:-6px; border-right:0; border-bottom:0; border-top-left-radius:calc(var(--r) + 6px) }
+  .readout::after{ right:-6px; bottom:-6px; border-left:0; border-top:0; border-bottom-right-radius:calc(var(--r) + 6px) }
+
+  .tabs{ display:flex; gap:22px; border-bottom:1px solid var(--faint) }
+  .tabs button{
+    all:unset; cursor:pointer; padding:0 0 10px; margin-bottom:-1px; color:var(--dim);
+    font-family:var(--wide); text-transform:uppercase; font-size:9.5px; letter-spacing:.26em;
+    border-bottom:1px solid transparent;
+  }
+  .tabs button small{ font-family:var(--sans); letter-spacing:.08em; margin-left:6px; font-size:10.5px }
+  .tabs button[aria-selected="true"]{ color:var(--ink); border-bottom-color:var(--ink) }
+  .tabs button:focus-visible, .chips button:focus-visible, .pager button:focus-visible, .go:focus-visible{ outline:1px solid var(--ink); outline-offset:3px }
+
+  .chips{ display:flex; flex-wrap:wrap; gap:6px; margin:14px 0 2px }
+  .chips button{
+    all:unset; cursor:pointer; padding:2px 10px; border:1px solid var(--faint); border-radius:999px;
+    font-size:11px; letter-spacing:.12em; color:var(--dim);
+  }
+  .chips button[aria-pressed="true"]{ border-color:var(--ink); color:var(--ink) }
+
+  .body{ flex:0 1 auto; min-height:0; overflow-y:auto; overflow-x:hidden; padding:18px 0 0 0; scrollbar-width:thin; scrollbar-color:var(--faint) transparent }
+  .rows{ margin:0 0 0 3px; padding:0 0 0 18px; border-left:1px solid var(--faint); list-style:none }
+  .rows li{ position:relative; margin:0 0 10px; font-size:12px; font-weight:300; line-height:1.8 }
+  .rows li::before{ content:""; position:absolute; left:-18px; top:.9em; width:12px; height:1px; background:var(--line) }
+  .rows li::after{ content:""; position:absolute; left:-8px; top:calc(.9em - 3px); border:3px solid transparent; border-left:5px solid var(--line) }
+  .rows b{ display:block; font-family:var(--mono); font-weight:400; font-size:9.5px; letter-spacing:.08em; color:var(--dim); margin-bottom:1px }
+  .go{ all:unset; cursor:pointer; border-bottom:1px solid var(--line); color:var(--ink) }
+
+  /* 资料: one left edge, one rhythm (24px between blocks), nothing stretched */
+  .sheet{ padding:4px 0 20px }
+  .sheet > div + div{ margin-top:24px }
+  .sheet .role{ margin:0; font-size:17px; line-height:1.4; font-weight:300; letter-spacing:.02em; white-space:nowrap }
+  .sheet .role i{ font-style:normal; color:var(--dim); margin:0 .35em }
+  .sheet .place{ margin:6px 0 0; font-size:12px; line-height:1.6; color:var(--dim); font-weight:300 }
+  .sheet .stats{ font-size:14px; line-height:1.6; font-weight:300; letter-spacing:.02em }
+  .sheet .stats span{ white-space:nowrap }
+  .sheet .stats span + span{ margin-left:12px }
+  .sheet .stats em{ font-style:normal; color:var(--dim); margin:0 14px }
+  .sheet h3{ margin:0 0 8px; font-family:var(--mono); font-weight:400; font-size:9.5px; line-height:1; letter-spacing:.18em; color:var(--dim) }
+  .sheet p{ margin:0; font-size:12.5px; line-height:1.8; font-weight:300 }
+  .sheet ol{ list-style:none; margin:0; padding:0 }
+  .sheet ol li{ display:grid; grid-template-columns:24px 1fr; font-size:12.5px; line-height:1.8; font-weight:300 }
+  .sheet ol b{ font-family:var(--mono); font-weight:400; font-size:10px; color:var(--dim); line-height:2.25 }
+  .sheet .likes{ font-size:12.5px; line-height:1.8; font-weight:300 }
+  .sheet .likes span{ white-space:nowrap }
+  .sheet .likes i{ font-style:normal; color:var(--dim); margin:0 .45em }
+
+  /* 故事: two plain two-column lists. Names, then ages, in the left column */
+  .tale{ padding:0 0 10px }
+  .tale h3{ margin:0 0 8px; font-family:var(--mono); font-weight:400; font-size:9.5px; line-height:1; letter-spacing:.18em; color:var(--dim) }
+  .tale dl{ display:grid; gap:2px 12px; margin:0 0 14px; font-size:12px; line-height:1.6; font-weight:300 }
+  .tale dl:last-child{ margin-bottom:0 }
+  .tale .rel{ grid-template-columns:58px 1fr }
+  .tale dt{ font-family:var(--wide); font-weight:400; letter-spacing:.04em }
+  /* the timeline: ages stand where the nodes were, a thin line runs between them */
+  .tl{ list-style:none; margin:0; padding:0; font-size:12px; line-height:1.6; font-weight:300 }
+  .tl li{ position:relative; padding:0 0 5px 34px }
+  .tl li:last-child{ padding-bottom:0 }
+  .tl b{ position:absolute; left:0; top:0; width:22px; text-align:center; font-family:var(--wide); font-weight:400; font-size:11px; line-height:19px; letter-spacing:.02em }
+  .tl li:not(:last-child)::after{ content:""; position:absolute; left:11px; top:20px; bottom:1px; width:1px; background:var(--line) }
+  .tale dd{ margin:0 }
+
+  .story{ display:flex; flex-direction:column; flex:1; min-height:0; padding-top:16px }
+  .page{ flex:1; min-height:0; overflow:auto; scrollbar-width:thin; scrollbar-color:var(--faint) transparent; padding-right:6px }
+  .page .num{ font-family:var(--wide); font-weight:200; font-size:20px; letter-spacing:.1em; color:var(--dim); margin:0 0 10px }
+  .page p{ margin:0; font-family:var(--serif); font-size:12.5px; line-height:2; text-align:justify; animation:in .5s ease }
+  @keyframes in{ from{ opacity:0; transform:translateX(14px) } to{ opacity:1; transform:none } }
+  .pager{ display:flex; align-items:center; justify-content:space-between; padding:12px 0 16px; border-top:1px solid var(--faint); margin-top:12px }
+  .pager button{ all:unset; cursor:pointer; width:36px; height:22px; display:grid; place-items:center; color:var(--ink) }
+  .pager button:disabled{ opacity:.25; cursor:default }
+  .pager button svg{ width:28px; height:15px }
+  .pager span{ font-family:var(--mono); font-size:10px; letter-spacing:.14em; color:var(--dim) }
+
+  /* ---------- 词条: a card over the readout's place ---------- */
+  .term{ all:unset; cursor:pointer; border-bottom:1px dotted var(--ink); }
+  .term:hover{ border-bottom-style:solid }
+  .term:focus-visible{ outline:1px solid var(--ink); outline-offset:2px }
+  .entry .head{ position:relative; padding-right:34px }
+  .entry .tag{ font-family:var(--mono); font-size:9.5px; letter-spacing:.18em; color:var(--dim) }
+  .entry h2{ margin:7px 0 0; font-size:19px; font-weight:300; letter-spacing:.04em }
+  .entry .close{ all:unset; cursor:pointer; position:absolute; right:-6px; top:-4px; width:28px; height:28px; display:grid; place-items:center; color:var(--ink) }
+  .entry .close:focus-visible{ outline:1px solid var(--ink); outline-offset:2px }
+  .entry .ebody{ flex:0 1 auto; min-height:0; overflow-y:auto; margin-top:12px; padding:12px 4px 18px 0; border-top:1px solid var(--faint); scrollbar-width:thin; scrollbar-color:var(--faint) transparent }
+  .entry .ebody p{ margin:0 0 .8em; font-size:12.5px; line-height:1.85; font-weight:300; text-align:justify }
+  .entry .ebody h3{ margin:18px 0 8px; font-family:var(--mono); font-weight:400; font-size:9.5px; letter-spacing:.18em; color:var(--dim) }
+  .entry .ebody .desc{ font-style:italic; color:var(--dim); margin-bottom:1.1em }
+  .entry .ebody.scene p:not(.desc){ font-family:var(--serif); font-size:12px; line-height:1.78; margin-bottom:.4em }
+  .entry .ebody p:last-child{ margin-bottom:0 }
+  .readout .in.entry{ animation:entryIn .35s cubic-bezier(.2,.7,.2,1) }
+  @keyframes entryIn{ from{ opacity:0; transform:translateX(10px) } to{ opacity:1; transform:none } }
+
+  /* the readout folds away when you click into the hall */
+  .readout{ transition:opacity .45s ease, transform .55s cubic-bezier(.2,.7,.2,1) }
+  body.bare .readout{ opacity:0; transform:translateX(28px); pointer-events:none }
+  .frame{ cursor:pointer; transform:translateX(var(--shift,0px)); transition:transform .8s cubic-bezier(.33,1,.68,1) }
+
+  /* ---------- stickers: die-cut, draggable, they stay where you leave them ---------- */
+  .sticker{ all:unset; box-sizing:border-box; position:fixed; z-index:2; width:46px; cursor:grab; touch-action:none; user-select:none;
+    --s:1; --rot:-8deg; filter:drop-shadow(0 6px 10px rgba(30,20,12,.28));
+    transform:rotate(var(--rot)) scale(var(--s)); transition:transform .2s ease }
+  .sticker[hidden]{ display:none }
+  .sticker.away{ opacity:0; visibility:hidden; pointer-events:none; transition:opacity .4s ease, visibility 0s .4s }
+  .sticker{ transition:transform .2s ease, opacity .4s ease }
+  .sticker.drag, .sticker.turn{ transition:none }
+  .sticker.drag{ cursor:grabbing }
+  .sticker.pop{ animation:pop .45s cubic-bezier(.2,1.6,.4,1) }
+  @keyframes pop{ from{ transform:rotate(var(--rot)) scale(.2); opacity:0 } }
+  .sticker:focus-visible{ outline:1px solid var(--ink); outline-offset:4px; border-radius:8px }
+  /* the handle: drag it to turn and resize; it stays the same size on screen */
+  .sticker .handle{ position:absolute; right:-6px; bottom:-6px; width:calc(11px / var(--s)); height:calc(11px / var(--s));
+    border-radius:50%; background:var(--bg); border:calc(1px / var(--s)) solid var(--ink); cursor:nwse-resize; opacity:0; transition:opacity .2s }
+  .sticker:hover .handle, .sticker:focus-visible .handle, .sticker.turn .handle{ opacity:1 }
+  .sticker img{ display:block; width:100%; height:auto; pointer-events:none }
+  .sticker .lit{ position:absolute; inset:0; pointer-events:none; -webkit-mask-size:100% 100%; mask-size:100% 100%; -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat }
+  .sticker .amb{ background:var(--fig-amb); mix-blend-mode:multiply }
+  .sticker .key{ background:var(--fig-key); mix-blend-mode:soft-light }
+  @media (prefers-reduced-motion: reduce){ .readout .in.entry, .sticker.pop{ animation:none } .sticker, .readout{ transition:none } }
+
+  @media (max-width: 1000px){
+    body{ overflow:auto }
+    main{ display:flex; flex-direction:column; padding:84px 16px 28px; gap:0 }
+    .topbar{ left:16px; right:16px; top:14px }
+    .plate, .frame, .readout{ position:relative; inset:auto; width:auto }
+    .frame{ order:2; align-self:center; margin-top:0; width:min(84vw, 400px); height:calc((min(84vw, 400px) - 2 * var(--pad)) / var(--A) + 2 * var(--pad)) }
+    .plate{ order:3; margin-top:24px; bottom:auto; width:auto } .nav{ margin-top:22px }
+    .readout{ order:4; margin-top:48px; max-height:none }
+    .body, .page{ overflow:visible }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .figure, .wash, .readout .in{ transition:none } .page p{ animation:none }
+  }
+</style>
+</head>
+<body>
+<canvas id="c" aria-hidden="true"></canvas>
+<div class="wash" id="wash" aria-hidden="true"></div>
+<div class="veil" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
+
+<header class="topbar">
+  <span class="mark">HELIOS</span>
+  <span class="rule"></span>
+  <span class="count" id="count"></span>
+  <button class="mode" id="mode" type="button" aria-label="切换明暗">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.6M12 18.9v2.6M2.5 12h2.6M18.9 12h2.6M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></svg>
+  </button>
+</header>
+
+<main>
+  <section class="frame" id="stage" aria-label="人设图，点击显示资料" tabindex="0">
+    <svg class="brush" aria-hidden="true">
+      <defs>
+        <filter id="dry" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+          <!-- where: broad, uneven zones; some runs stay whole, others are scuffed away -->
+          <feTurbulence type="fractalNoise" baseFrequency="0.0045" numOctaves="2" seed="19" result="zoneN"/>
+          <feColorMatrix in="zoneN" type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0 1" result="zone"/>
+          <!-- how: a grain, so the erasing has texture -->
+          <feTurbulence type="fractalNoise" baseFrequency="0.16 0.12" numOctaves="3" seed="5" result="grainN"/>
+          <feColorMatrix in="grainN" type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0 1" result="grain"/>
+          <feComposite in="grain" in2="zone" operator="arithmetic" k1="0" k2="9" k3="16" k4="-11.2" result="mix"/>
+          <feColorMatrix in="mix" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  1 0 0 0 0" result="gate"/>
+          <feComposite in="SourceGraphic" in2="gate" operator="in"/>
+        </filter>
+      </defs>
+      <path id="framePath" filter="url(#dry)"/>
+    </svg>
+    <div class="figure" id="figure"><img id="art" alt=""><div class="lit amb" aria-hidden="true"></div><div class="lit key" aria-hidden="true"></div></div>
+  </section>
+
+  <div class="plate">
+    <h1 class="who" id="who"></h1><div class="full" id="full"></div>
+    <nav class="nav" aria-label="换人">
+      <button id="prev" aria-label="上一位"><svg viewBox="0 0 34 18" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M31 9H5M10 3L4 9l6 6"/></svg></button>
+      <div class="dots" id="dots"></div>
+      <button id="next" aria-label="下一位"><svg viewBox="0 0 34 18" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M3 9h26M24 3l6 6-6 6"/></svg></button>
+    </nav>
+  </div>
+
+  <section class="readout" id="readout">
+    <div class="in" id="readin" aria-live="polite"></div>
+  </section>
+</main>
+
+<button class="sticker" id="apple" type="button" aria-label="苹果贴纸：打开物品。可拖动；拖角上的圆点或滚轮缩放旋转；键盘 + − 缩放，[ ] 旋转" hidden><img alt=""><span class="lit amb" aria-hidden="true"></span><span class="lit key" aria-hidden="true"></span><span class="handle" aria-hidden="true"></span></button>
+
+<script>
+/* ============================================================
+   人物资料，全部取自设定 bio。
+   glance: 一眼要看到的档案；sections: 分页的资料，每种内容用自己的排法；
+   story: 讲述。改内容只需要改这里。
+   ============================================================ */
+const PEOPLE = [
+  {
+    id:"iris", name:"Iris", full:"Iris Lyren", img:"images/iris-fig.webp", fig:[814,1616], accent:0xf4efe6,
+    glance:[
+      ["本姓","Nord"],
+      ["MBTI","INTJ"],
+      ["身高","172cm · 45kg"],
+      ["出身","Enore 省，背靠夜域的海边小镇", 3],
+      ["职位","情报副大臣 → 情报首长 → 首都学院哲学教授", 3]
+    ],
+    sections:[
+      { name:"外貌", type:"rows", rows:[
+        ["头发","白色长发，侧刘海遮住左眼。原本是灰发，白发来自北方一些人会有的体质，加上童年反复高烧"],
+        ["眼睛","大而浅的灰色"],
+        ["身形","清瘦，骨感，肤色白"],
+        ["相貌","不算标准的美人；脸总被猜成二十六岁，配上那双眼睛，让人不安"],
+        ["穿着","偏爱白衬衫、白色皮衣或白风衣，偶尔穿黑色大衣"],
+        ["上班","整洁，穿内阁制服，头发编到一侧"],
+        ["私下","很乱，散着头发坐在地上或瘫在沙发上看书"],
+        ["三十岁后","朝服配复杂的半编发，每天早上现编"]
+      ]},
+      { name:"性格", type:"persona",
+        lead:"爱以结构看人和权力；好奇心不受边界约束，危险的知识只要存在，她就要知道。智识上的赌徒，渴望把才华直接兑换成权力。典型的回避型人格，常常一言不发就和人断了。",
+        facets:[
+          ["阵营","混乱中立","不依附任何人，讨厌被命令，只在目标一致时合作。"],
+          ["她想要的","","一种不可撤销的存在感。无论多大的家族、多大的权势，跟她打交道都要带着几分忌惮。这份渴望不需要爱，甚至不需要她活着。"],
+          ["暗面","","感知魔法的天赋很强，身体施法的天赋很弱。对“只会理论不会施法”的评价极度敏感，谁质疑她的能力，她就用压倒性的智识让对方难堪。"],
+          ["性向","Demisexual，女同","经由智识和信任被吸引，几乎不主动碰人，讨厌没有预告的触碰。公开独身。"]
+        ]},
+      { name:"习惯", type:"list", items:[
+        "爱读书，雅俗不分，只看作者有没有真的看见什么；只有哲学需要她全部的心思。读哲学，也读艳情小说，口味古怪，一概不挑，读的时候一脸正经",
+        "穷的时候在书店和图书馆取暖，有钱了很多书还是借的",
+        "重度饮酒却很少醉，公开场合只喝一杯，家里满是威士忌。十四岁开始喝酒，其他坏习惯都戒了",
+        "牌技很好，北方学院时养成；Aurelia 明令禁止后只敢偷偷去地下牌馆",
+        "最喜欢草莓奶油蛋糕"
+      ]},
+      { name:"关系", type:"rel", rows:[
+        ["Aurelia","室友，同窗，政治伙伴。Aurelia 喜欢她，却从没给过她名分。Iris 不把 Aurelia 算作挚友，因为她真心害怕她。后期两人像旧情人一样别扭，Iris 只说她们之间没有私人恩怨","aurelia"],
+        ["Liora","挚友，损友，一辈子的人。Iris 是她孩子的教母"],
+        ["Owen","首都篇互相提防，内战里成了盟友，内阁篇是宿敌兼朋友"],
+        ["Gauvin","首都篇唯一对她真心友善的贵族青年；Cordelia 之后与她成了纯恨，主持了她的审判"],
+        ["O","神与人。二十九岁起两人以监视为名反复智斗"],
+        ["Cyrus","最接近她真面目的人之一。Iris 对她别扭、有点愧疚，又毫无距离感"],
+        ["Kris","唯一的学生。导师关系本身就是 Iris 的爱的形式"],
+        ["Emma","女仆，比她小五到七岁。Iris 在书店认识她，那时 Emma 在那里打工。替 Iris 整理信件、跑腿，后来学着替她梳头"],
+        ["Pippa","三十五岁时的女朋友，住在隔壁的研究员，浅黄色软发，比她小五六岁，是 Pippa 先追的她。Iris 从不公开承认她，两人交往半年后分开"]
+      ]}
+    ],
+    story:[
+      "Iris 出生在 Enore 省一个背靠夜域的海边小镇，那里的夜比白天长。她本姓 Nord。十四岁那年，她离家去了 Enore 城，进了一所 Varn 家资助的教会学校，在那里认识了 Liora。她从一本东方诗集里给自己挑了 Lyren 这个姓，又学着 Liora 的说话方式，一点点把北方口音褪掉。十六岁的冬天，她差点冻死在一家酒馆门口，一个比她大三岁的女孩把她带回家，两个人挤在一起取暖，过了一夜。",
+      "北方学院二年级，十八岁的 Iris 在图书馆里“偶遇”了 Aurelia，那位公主已经暗中观察了她一年。两人后来成了室友。十九岁那年，Iris 发表了形而上学魔法论文的上卷，读起来像一篇哲学散文，没几个人读得懂。同一年，一个扮成街头算命师的女人和她擦肩而过，那是 O。",
+      "二十二岁，她随 Aurelia 来到首都。理论停在原地，她做着一些没有意义的工作，夜里泡在酒吧和地下牌馆，住处只有一把椅子和满屋的二手书。她常以随从的身份陪 Aurelia 出入社交场合，在一次沙龙上认识了 Cyrus。",
+      "二十四岁，北方内战。她在北方首都的学院里用自己的理论速成训练军中法师，O 现身叫停了训练，Iris 当场提出让 Order 派法师协助军队。那是她第一次握住一张让人害怕的底牌。也是在这场战争里，她在被绞死的人中认出了十六岁那年冬天带她回家的女孩。",
+      "战后的春天很冷。她回到首都，连升两级，战争把她变得更沉。她告诉 Cyrus 自己要放弃研究、专心从政，两人大吵一架。也是在那段时间，她开始主动回应 Aurelia。Aurelia 登基，Iris 以情报副大臣的身份入阁，加冕那夜两人第一次同床。第二年，她执行了对 Cordelia 的清算，完成了 Aurelia 的忠诚测试，正式坐上情报首长的位置。三十岁之后，她奉命教 Elowen 历史和哲学；保守派拿她的性向做文章，她就借教会学校的出身宣布独身。",
+      "三十四岁生日刚过，她毫无征兆地辞了职。第二年，她进入首都学院做了哲学教授，和隔壁的研究员 Pippa 交往了半年。三十六岁，她收下 Kris 作为自己唯一的学生。一年后，Order 和大家族的压力同时落下来，她的理论也开始通过 Kris 变得可以使用。三十八岁那年，她被捕、受审，被判流放，在大教堂里当众抗命，当天就被大教堂的钟绳吊死在正门口。"
+    ]
+  },
+  {
+    id:"aurelia", name:"Aurelia", full:"Aurelia Helios", img:"images/aurelia-fig.webp", fig:[814,1616], accent:0xffd08e,
+    glance:[
+      ["家族","Helios"],
+      ["MBTI","ENTP"],
+      ["身高","168cm · 54kg"],
+      ["身份","Helios 的公主；二十七岁加冕为女王", 3],
+      ["兄长","Julian Helios，比她大八岁", 3]
+    ],
+    sections:[
+      { name:"外貌", type:"rows", rows:[
+        ["头发","金橙色，中分刘海"],
+        ["眼睛","Helios 的金色眼睛"],
+        ["身形","运动型身材"],
+        ["相貌","令人过目不忘的尖锐美貌。笑起来明亮，不笑的时候吓人"],
+        ["穿着","偏爱中性的衣服、金色和繁复的装饰。讨厌黄色的裙子"],
+        ["朝服","拜占庭式的厚重织锦"],
+        ["私下","丝绸衬衫和薄如蝉翼的金丝纱外套，也有军装"]
+      ]},
+      { name:"性格", type:"persona",
+        lead:"孩子气，任性，有一种天真的残忍：想要的东西并不现实，她自己却不这么觉得，也几乎没有常规意义上的是非观，真心看不出嫁给哥哥有什么问题。她不是老谋深算的人。外向，爱沙龙，爱成为焦点，嘴上能伤人。低风险的社交里讨人喜欢，记得每个人的生日；一旦有了竞争就变得冷酷。",
+        facets:[
+          ["阵营","中立邪恶","自我中心，愿意伤害挡路的任何人，包括家人；她要的是一个照她意志运转的世界。"],
+          ["她最恨的","","身为一个不能继承的公主，被安上“某某夫人”一样的头衔。"],
+          ["弧光","","从被排在权力边缘的小公主，到 Helios 第一位真正压制住 Order 的君主，靠的正是 Iris 用命换来的突破。"],
+          ["性向","双性恋","性别不是阻碍，想要一个人就要那个人。"]
+        ],
+        quote:"You are the ruler. Everything you did is justified."
+      },
+      { name:"关系", type:"rel", rows:[
+        ["Julian","她最爱的人，也是全书最恨他的人。她在心里把哥哥劈成两半，没有人察觉到她的恨，这正是她可怕的地方。她利用北方的矛盾，让他死在了北方"],
+        ["Cordelia","她这辈子最极端的个人行为，就是杀了 Cordelia，完全出于她自己的意志"],
+        ["Gauvin","第二个哥哥。当上女王后还会去找他下棋，叫他 Gavvy，想把从前的他叫出来"],
+        ["Iris","她挑人叛逆，挑的不是现成的人选，而是有趣的人。她喜欢 Iris，从没给过名分，只当 Cyrus 和 Liora 是 Iris 的朋友","iris"],
+        ["Owen","从小互相看不顺眼，她撩他只为了气他"],
+        ["Lucian","三岁定下的娃娃亲。偶尔给他一点甜头，用 Cordelia 不喜欢她当借口拒绝他"],
+        ["Elowen","送他一只猫，半是为了吓他；听说他把小猫藏起来，她露出看同类一样的厌恶"]
+      ]}
+    ],
+    story:[
+      "Aurelia 是 Helios 王朝的公主，比哥哥 Julian 小八岁。母亲去世得早，她小时候和 Julian 睡同一张床，被子滑下去，是哥哥半夜替她掖好。她丢过一匹心爱的白色小马，Julian 找了一天一夜，天亮时牵着它出现在宫门口。教她骑马的是 Gav。五到七岁的时候，她在宫廊里跟踪过一个神秘的女人，那是 O。",
+      "十四岁，她嚷着不嫁人，只嫁哥哥，拉上 Lucian 和 Gav 一场一场搅黄 Julian 的约会。Julian 二十二岁的生日宴上，她故意摔倒，把咖啡泼在自己身上，嫁祸给 Cordelia。满场只有 Owen 看穿了这场戏。十六岁，Julian 婚礼的前夜，她去找他，先吻了他。不久，她被送往北方学院。",
+      "在北方，她和一位 K 家的少爷谈过恋爱，也和学院里的一个女孩谈过。她观察了 Iris 整整一年，十八岁那年，在图书馆里制造了一场偶遇。回到首都以后，她组建起自己的幕僚团，用家庭争吵和社交场合掩护暗中的布局。她和 Owen 有过一段策略性的暧昧，Lucian 重新追求她，而她不停地撩 Iris。",
+      "二十四岁，北方内战，Julian 死在了北方。第二年，她拒绝了 Owen 的求婚，赢下大议会，和 Iris 之间开始有了双向的暧昧，之后又与 Owen 公开订婚。二十七岁她加冕为女王，以北方灾荒为由搁置了婚礼。同一年，她清算了 Cordelia，把年幼的 Elowen 送去 Daeris。三十岁之后，她让 Iris 去教 Elowen，给 Iris 的忠诚测试也越来越苛刻。",
+      "三十四岁，Iris 辞职，她暴怒。三十八岁，Iris 受审，她逼 Gav 撤回了谋杀王室的罪名；在大教堂里，她下令剥夺 Iris 的魔法，最后下令当场处死。一周以后，她带着司法部的一位秘书去了 Liora 家，在那里见到了 Kris。"
+    ]
+  }
+];
+
+/* ============================================================
+   UI
+   ============================================================ */
+const $ = s => document.querySelector(s);
+const figure=$("#figure"), art=$("#art"), readout=$("#readout"), readin=$("#readin"), wash=$("#wash");
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const ROMAN=["I","II","III","IV","V","VI","VII","VIII","IX","X"];
+let cur=0, tab=0, group=0, page=0, busy=false;
+const pad = n => String(n).padStart(2,"0");
+
+PEOPLE.forEach(p=>{ const im=new Image(); im.src=p.img; });   /* warm the cache so the swap is clean */
+$("#dots").innerHTML = PEOPLE.map((p,i)=>`<button data-i="${i}">${pad(i+1)} ${p.name.toUpperCase()}</button>`).join("");
+
+function rowsHTML(rows){
+  return `<ul class="rows">${rows.map(([k,v,go])=>{
+    const key = k ? `<b>${go?`<button class="go" data-go="${go}">${k}</button>`:k}</b>` : "";
+    return `<li>${key}${v}</li>`;
+  }).join("")}</ul>`;
+}
+/* 资料：客观记录 */
+const SHEET = {
+  iris:{
+    role:["ex 情报部部长","首都学院哲学教授"], place:"Enore 省 · 背靠群山的小镇",
+    stats:[["172cm","45kg","清瘦"],["INTJ","混乱中立"]],
+    look:["白色长发，侧刘海遮住左眼；大而浅的灰色眼睛","偏爱白色衬衫、白皮衣；上班穿内阁制服，半编发"],
+    events:["<button class=\"term\" data-term=\"meta\">形而上学魔法</button>的作者，死后引发魔法范式革命","内阁最年轻的部长，时任 27 岁","38 岁因政治罪判刑，当众抗命展示魔法，当天被处死"],
+    likes:["读书雅俗不分","威士忌纯饮","草莓奶油蛋糕","Demisexual lesbian"]
+  },
+  aurelia:{
+    role:["王女","Helios 国王"], place:"首都",
+    stats:[["168cm","54kg","线条美型"],["ENTP","中立邪恶"]],
+    look:["金橙色头发，金色眼睛；Helios 家族标准的锋利容貌，笑起来明亮","偏爱中性的西裤、金色和繁复的装饰；收藏拜占庭式厚重织锦，私下穿丝绸衬衫和金丝纱外套"],
+    events:["14 岁，在哥哥 Julian 的生日宴上嫁祸准王妃，制造当众闹剧","24 岁，北方内战中与中央军一同率军支援前线，3 个月内平定内乱"],
+    likes:["Bisexual","???"]
+  }
+};
+function sheetHTML(p){
+  const s=SHEET[p.id];
+  return `<div class="sheet">
+    <div><p class="role">${s.role.join("<i>·</i>")}</p>${s.place?`<p class="place">${s.place}</p>`:""}</div>
+    <div class="stats">${s.stats.map(g=>g.map(x=>`<span>${x}</span>`).join("")).join("<em>｜</em>")}</div>
+    <div><h3>外貌</h3>${s.look.map(t=>`<p>${t}</p>`).join("")}</div>
+    <div><h3>知名事件</h3><ol>${s.events.map((t,i)=>`<li><b>${String(i+1).padStart(2,"0")}</b><span>${t}</span></li>`).join("")}</ol></div>
+    <div><h3>习惯偏好</h3><div class="likes">${s.likes.map(t=>`<span>${t}</span>`).join("<i>·</i>")}</div></div>
+  </div>`;
+}
+/* 故事：人物关系，然后事件 */
+const STORY = {
+  iris:{
+    rel:[["Aurelia","室友，政治伙伴，和 Iris 纠缠了大半辈子的人。本作的国王。","aurelia"],
+         ["Liora","损友，Iris 是她孩子的教母。唯一收到 Iris 遗书的挚友。"],
+         ["Cyrus","青年时代的研究搭档，后来闹掰了。最接近 Iris 真面目的人之一。"],
+         ["Kris","Iris 唯一亲自带过的学生，继承了她的魔法理论。Iris 的死改变了她。"]],
+    events:[["14 岁","离家出走到 Enore 城，进了 Varn 资助的教会学校，认识 Liora。从一本东方诗集里给自己取名 Lyren。"],
+            ["19 岁","北方学院二年级。发表<button class=\"term\" data-term=\"meta\">形而上学魔法</button>论文的上卷，读起来像哲学散文，引起学术圈热议。Aurelia 在图书馆“偶遇”她，两人成为室友。"],
+            ["25 岁","随 Aurelia 参与北方内战。内战后回到首都连升两级。她告诉 Cyrus 自己要放弃研究、专心从政，两人大吵一架。"],
+            ["27 岁","Aurelia 登基，她以情报副大臣身份入阁。疑似参与或主导了 Solonne 家族前王妃 Cordelia 的清算。后正式成为情报部部长。"],
+            ["34 岁","毫无征兆地辞职。后进入首都学院成为哲学教授。"],
+            ["38 岁","被捕、受审、判流放，在大教堂抗命，当天被绞死。"]]
+  },
+  aurelia:{
+    rel:[["Julian","哥哥。她最爱的人，也是最恨的人。死在北方内战。"],
+         ["Iris","室友，同窗，政治伙伴。喜欢她，却从没给过她名分。","iris"],
+         ["Gauvin","第二个哥哥，教她骑马。当上国王后还会去找他下棋。"],
+         ["Owen","从小互相看不顺眼，后来与她公开订婚。"]],
+    events:[["14 岁","嚷着不嫁人、只嫁哥哥，拉上 Lucian 和 Gav 一场场搅黄 Julian 的约会。"],
+            ["16 岁","Julian 婚礼前夜去找他，先吻了他。随后被送往北方学院。"],
+            ["18 岁","观察 Iris 一年后，在图书馆制造了一场偶遇，两人成为室友。"],
+            ["24 岁","北方内战，Julian 死在北方。"],
+            ["27 岁","加冕，以北方灾荒为由搁置与 Owen 的婚礼。清算 Cordelia。"],
+            ["38 岁","在大教堂下令剥夺 Iris 的魔法，最终下令当场处死。"]]
+  }
+};
+function storyHTML(p){
+  const s=STORY[p.id];
+  return `<div class="tale">
+    <h3>人物关系</h3>
+    <dl class="rel">${s.rel.map(([n,t,go])=>`<dt>${go?`<button class="go" data-go="${go}">${n}</button>`:n}</dt><dd>${t}</dd>`).join("")}</dl>
+    <h3>事件</h3>
+    <ul class="tl">${s.events.map(([a,t])=>`<li><b>${a.replace(" 岁","")}</b>${t}</li>`).join("")}</ul>
+  </div>`;
+}
+function fitRole(){
+  const r=readin.querySelector(".role"); if(!r) return;
+  r.style.fontSize=""; let s=parseFloat(getComputedStyle(r).fontSize);
+  while(r.scrollWidth>r.clientWidth+1 && s>14){ s-=.5; r.style.fontSize=s+"px"; }
+}
+let view=null;   /* null: the person's own pages; otherwise the key of an open entry */
+function renderReadout(){
+  const p=PEOPLE[cur];
+  readin.classList.toggle("entry", !!view);
+  if(view){ readin.innerHTML=entryHTML(view); return; }
+  readin.innerHTML = `
+    <div class="tabs" role="tablist">
+      <button role="tab" aria-selected="${tab===0}" data-tab="0">Profile<small>资料</small></button>
+      <button role="tab" aria-selected="${tab===1}" data-tab="1">Story<small>故事</small></button>
+    </div>
+    ${tab===0 ? `
+      <div class="body">${sheetHTML(p)}</div>`
+    : `
+      <div class="body">${storyHTML(p)}</div>`}`;
+  fitRole();
+}
+/* one size for every name: the longest one decides, so the names never jump in size */
+function fitName(){
+  const el=$("#who"), keep=el.textContent;
+  const longest=PEOPLE.reduce((a,p)=>p.name.length>a.length?p.name:a,"");
+  el.style.fontSize=""; el.textContent=longest;
+  let s=parseFloat(getComputedStyle(el).fontSize);
+  while(el.scrollWidth>el.clientWidth+1 && s>18){ s-=1; el.style.fontSize=s+"px"; }
+  el.textContent=keep;
+}
+function renderPlate(){
+  const p=PEOPLE[cur];
+  $("#who").textContent=p.name; $("#full").textContent=p.full; fitName();
+  art.src=p.img; art.alt=`${p.full}，作者绘`;
+  figure.querySelectorAll('.lit').forEach(el=>{ el.style.webkitMaskImage=el.style.maskImage=`url(${p.img})`; });
+  /* same scale for both; each centred in the frame */
+  figure.style.setProperty('--ar', `${p.fig[0]}/${p.fig[1]}`); figure.style.setProperty('--hs', p.fig[1]/1616);
+  $("#count").textContent=`${pad(cur+1)} / ${pad(PEOPLE.length)}`;
+  document.querySelectorAll("#dots button").forEach((b,i)=>b.setAttribute("aria-current", i===cur));
+  if(window.HALL) HALL.accent(p.accent);
+  if(window.syncStickers) syncStickers();
+  try{ history.replaceState(null,"","#"+p.id) }catch(e){}
+}
+
+function show(i, dir){
+  const n=PEOPLE.length; i=(i+n)%n;
+  if(i===cur || busy) return;
+  if(dir===undefined) dir = i>cur ? 1 : -1;
+  cur=i; group=0; page=0;
+  view=null;
+  if(reduce){ renderPlate(); renderReadout(); return; }
+  busy=true;
+  if(window.HALL) HALL.travel();
+  figure.classList.add(dir>0?"out-l":"out-r"); readout.classList.add("fade");
+  setTimeout(()=>wash.classList.add("on"), 520);
+  setTimeout(()=>{
+    renderPlate(); renderReadout();
+    figure.style.transition="none"; figure.classList.remove("out-l","out-r"); figure.classList.add(dir>0?"out-r":"out-l");
+    void figure.offsetWidth; figure.style.transition="";
+  }, 600);
+  setTimeout(()=>{ wash.classList.remove("on"); figure.classList.remove("out-l","out-r"); readout.classList.remove("fade"); busy=false; }, 1180);
+}
+
+document.addEventListener("click",e=>{
+  const go=e.target.closest("[data-go]"); if(go){ show(PEOPLE.findIndex(p=>p.id===go.dataset.go)); return; }
+  const d=e.target.closest("#dots [data-i]"); if(d){ show(+d.dataset.i); return; }
+  const t=e.target.closest("[data-tab]"); if(t){ tab=+t.dataset.tab; renderReadout(); readin.querySelector(`[data-tab="${tab}"]`).focus(); return; }
+  const g=e.target.closest("[data-group]"); if(g){ group=+g.dataset.group; renderReadout(); readin.querySelector(`[data-group="${group}"]`).focus(); return; }
+  const pg=e.target.closest("[data-page]"); if(pg){ page=Math.max(0,Math.min(PEOPLE[cur].story.length-1, page+ +pg.dataset.page)); renderReadout();
+    const b=readin.querySelector(`[data-page="${pg.dataset.page}"]`); (b&&!b.disabled?b:readin.querySelector("[data-page]:not([disabled])")).focus(); }
+});
+$("#prev").addEventListener("click",()=>show(cur-1,-1));
+$("#next").addEventListener("click",()=>show(cur+1,1));
+document.addEventListener("keydown",e=>{
+  if(e.key==="ArrowRight") show(cur+1,1);
+  if(e.key==="ArrowLeft") show(cur-1,-1);
+});
+/* swipe sideways: on the painting to change person, on the story to turn the page */
+function swipe(el, fn){
+  let sx=null, sy=null;
+  el.addEventListener("pointerdown",e=>{ sx=e.clientX; sy=e.clientY; });
+  el.addEventListener("pointerup",e=>{
+    if(sx===null) return; const dx=e.clientX-sx, dy=e.clientY-sy; sx=null;
+    if(Math.abs(dx)>50 && Math.abs(dx)>Math.abs(dy)*1.3) fn(dx<0?1:-1);
+  });
+}
+swipe($("#stage"), d=>show(cur+d,d));
+swipe(readout, d=>{ if(tab!==1) return; const np=page+d; if(np<0||np>=PEOPLE[cur].story.length) return; page=np; renderReadout(); });
+addEventListener("resize", ()=>{ fitName(); fitRole(); });
+if(document.fonts) document.fonts.ready.then(()=>{ fitName(); fitRole(); });
+
+/* the hall's door stands behind the painting */
+window.hallFocus = ()=>{ if(document.body.classList.contains("bare")) return .5; const st=$("#stage"); return (st.offsetLeft+st.offsetWidth/2)/innerWidth; };
+
+/* the frame: a rounded rectangle, the same radius as the readout */
+function drawFrame(){
+  const st=$("#stage"), w=st.clientWidth, h=st.clientHeight, i=1.5;
+  if(!w||!h) return;
+  const r=parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--r"))||26;
+  $("#framePath").setAttribute("d",
+    `M${i+r} ${i} L${w-i-r} ${i} A${r} ${r} 0 0 1 ${w-i} ${i+r} L${w-i} ${h-i-r} A${r} ${r} 0 0 1 ${w-i-r} ${h-i} `+
+    `L${i+r} ${h-i} A${r} ${r} 0 0 1 ${i} ${h-i-r} L${i} ${i+r} A${r} ${r} 0 0 1 ${i+r} ${i} Z`);
+}
+addEventListener("resize", drawFrame);
+
+const start = Math.max(0, PEOPLE.findIndex(p=>"#"+p.id===location.hash));
+cur=start; renderPlate(); renderReadout(); drawFrame();
+
+/* ============================================================
+   词条与物品：都在资料框里打开，替换它的内容
+   ============================================================ */
+const ENTRIES = {
+  meta:{ tag:"词条 · 魔法理论", title:"形而上学魔法", sticker:"apple", body:[
+    ["",[
+      "元素魔法建立在一个几百年来没人怀疑过的前提上：世界由现成的东西组成，火有火的属性，水有水的属性，法师的天赋在于让自己成为介质，去操控这些本来就在那里的东西。学院的训练，教的都是把这种操控做得更精准、更细。Iris 的转向从这个前提底下开始。她问，一团火在被法师理解之前是什么？她的回答是，没有任何东西存在于关系之外。",
+      "火、光、护盾，这些名字是人与世界相遇时默认给出的解释，事物只在某一次相遇里，才成为它所是的样子。法师本来就是以自身为介质作用于现实的人，那么魔法真正发生的地方，就在法师与能量之间的那段关系里。"
+    ]],
+    ["论文",[
+      "Iris 的论文分上下两卷。上卷在她十九岁那年发表，只做了一件事：提出魔法应当从关系里去理解。它没有公式，没有咒式，也没有一条可以照着练的方法，通篇是哲学散文，追问一个东西如何成为它所是的东西，读起来像一篇哲学论文。学院里受过正统训练的法师大多读不进去，只当它是抽象的呓语；它在学界掀起过一阵争议，随后被搁在一边，人们记住的多半是作者的名字和“读不懂”三个字。",
+      "下卷讨论的是魔法的运用，是法师在施法那一刻的思考，分为创造、激活、毁灭、转化、维持和理解六个部分，理解是全卷的落点。下卷从未发表。在 Iris 活着的大部分时间里，形而上学魔法只是一篇有名却没人用得上的论文；它真正开始改写这个世界，是在她死去的那一年。"
+    ]]
+  ]},
+  apple:{ tag:"物品 · 苹果", title:"苹果", scene:true, desc:"Iris 客厅桌上的苹果，被咬过一口。", body:[
+    ["",[
+      "多年以后，已经是哲学教授的 Iris 用一个苹果，把这件事讲给她唯一的学生 Kris 听。",
+      "那是一个傍晚，在 Iris 的客厅里，Kris 正说着自己的新发现：把老师的原理拆进一个最基础的照明法术里，会发现它的能量结构和“制造光”其实无关。Iris 从厨房拿回两个苹果，咬了一口，问她看着这个苹果看见了什么。Kris 说了它的功用，说了它的象征，说它是“苹果”这一类东西里的一个，最后才慢慢想到：苹果本身没有意义，它的意义要等法师去理解它的时候才会显现。",
+      "“好多了，”Iris 说，“可你还是把自己和苹果分开了，观察者和被观察的东西。”",
+      "她把桌上另一个苹果拿起来，托在手里。",
+      "“没有独立于你的苹果。‘苹果’这个东西，本身就是你的头脑给一团还没分开的现实划出来的边界。”",
+      "她又咬了一口，很小的一口。",
+      "“我吃它的时候，打交道的从来不是‘一个苹果’，是一个正在成形的时刻。它显现为能吃的，因为我带来了吃的能力；显现为滋养，因为我需要滋养。画家看见的是颜色、形状和光。植物学家看见的是种子怎么散出去。小孩看见的是玩具、炮弹，或者一件礼物。”",
+      "“哪个是对的？”",
+      "“都对。它们都是苹果在不同关系里露出来的一面。”",
+      "Kris 轻声说：“所以没有一个真正的苹果。”",
+      "“没有关系之外的苹果。问它到底是什么，这个问题本身就没有意义，只能问它在这一次相遇里成为了什么。”Iris 把苹果放回桌上，“这就是形而上学魔法：靠理解，参与现实的成形。”",
+      "Kris 看着她，已经不在看苹果了。"
+    ]]
+  ]}
+};
+function entryHTML(key){
+  const e=ENTRIES[key];
+  return `<div class="head">
+      <div class="tag">${e.tag}</div>
+      <h2>${e.title}</h2>
+      <button class="close" type="button" data-close aria-label="返回资料"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"/></svg></button>
+    </div>
+    <div class="ebody${e.scene?" scene":""}">${e.desc?`<p class="desc">${e.desc}</p>`:""}${e.body.map(([h,ps])=>(h?`<h3>${h}</h3>`:"")+ps.map(t=>`<p>${t}</p>`).join("")).join("")}</div>`;
+}
+const store={ get(k){ try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; } },
+              set(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} } };
+let lastFocus=null;
+function openEntry(key){
+  if(!view) lastFocus=document.activeElement;
+  view=key; showPanel(); renderReadout();
+  if(ENTRIES[key].sticker==="apple") revealApple();
+  const c=readin.querySelector("[data-close]"); if(c) c.focus({focusVisible:false, preventScroll:true});
+}
+function closeEntry(){ if(!view) return; view=null; renderReadout(); if(lastFocus && document.contains(lastFocus)) lastFocus.focus(); }
+
+/* ---------- the readout folds away when you click into the hall ---------- */
+function centreShift(){
+  const st=$("#stage");
+  if(innerWidth<=1000) return 0;
+  return innerWidth/2-(st.offsetLeft+st.offsetWidth/2);
+}
+function setShift(){ const st=$("#stage"), bare=document.body.classList.contains("bare");
+  const dx=bare?centreShift():0; st.style.setProperty("--shift", dx+"px"); }
+addEventListener("resize", ()=>{ const st=$("#stage"); st.style.transition="none"; setShift(); void st.offsetWidth; st.style.transition=""; });
+function showPanel(){ if(document.body.classList.contains("bare")){ document.body.classList.remove("bare"); setShift(); if(window.HALL) HALL.focus(); } }
+function hidePanel(){ if(!document.body.classList.contains("bare")){ document.body.classList.add("bare"); view=null; renderReadout(); setShift(); if(window.HALL) HALL.focus(); } }
+document.addEventListener("click",e=>{
+  const t=e.target.closest("[data-term]"); if(t){ e.stopPropagation(); openEntry(t.dataset.term); return; }
+  if(e.target.closest("[data-close]")){ e.stopPropagation(); closeEntry(); return; }
+  if(e.target.closest("#stage")){ showPanel(); return; }
+  if(!e.target.closest("#readout, .plate, .topbar, .sticker, button, a")) hidePanel();
+}, true);
+$("#stage").addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); showPanel(); } });
+document.addEventListener("keydown",e=>{ if(e.key==="Escape"){ if(view) closeEntry(); else hidePanel(); } });
+
+/* ---------- the apple: lit like the painting, dragged anywhere, opens its own story ---------- */
+const APPLE_SRC="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 220"> <defs> <clipPath id="appleBody"><polygon points="100,66 122,55 150,58 170,75 182,100 170,108 162,122 166,138 178,146 172,172 152,195 128,205 110,200 100,206 88,200 70,205 48,192 30,168 22,138 24,108 36,80 58,62 80,58"/></clipPath> </defs> <g fill="#faf7f0" stroke="#faf7f0" stroke-width="16" stroke-linejoin="miter"> <polygon points="100,66 122,55 150,58 170,75 182,100 170,108 162,122 166,138 178,146 172,172 152,195 128,205 110,200 100,206 88,200 70,205 48,192 30,168 22,138 24,108 36,80 58,62 80,58"/> <polygon points="97,66 103,30 111,27 107,66"/><polygon points="106,42 128,21 154,22 140,40 118,48"/> </g> <g clip-path="url(#appleBody)"> <rect width="200" height="220" fill="#b6462f"/> <polygon points="20,100 60,70 70,210 20,210" fill="#7d2e29" opacity=".85"/> <polygon points="20,150 200,150 200,220 20,220" fill="#5d4a66" opacity=".5"/> <rect x="120" y="40" width="70" height="40" fill="#d79a46" opacity=".75" transform="rotate(18 150 60)"/> <rect x="58" y="78" width="46" height="15" fill="#e7966b" transform="rotate(-22 80 85)"/> <rect x="68" y="98" width="26" height="9" fill="#f4caa2" transform="rotate(-18 80 102)"/> <rect x="96" y="118" width="12" height="70" fill="#c9603f" opacity=".7" transform="rotate(6 100 150)"/> <rect x="130" y="150" width="14" height="46" fill="#8e3b2e" opacity=".8" transform="rotate(-10 137 170)"/> <rect x="40" y="128" width="10" height="44" fill="#a33b2c" transform="rotate(12 45 150)"/> <polygon points="170,108 162,122 166,138 178,146 171,152 155,141 151,121 163,102" fill="#efe1c0"/> <polygon points="163,112 158,124 161,134 156,128" fill="#d9c39a"/> </g> <polygon points="97,66 103,30 111,27 107,66" fill="#4a3b2e"/> <polygon points="106,42 128,21 154,22 140,40 118,48" fill="#6f8a55"/> <polygon points="118,44 132,30 148,26 136,38" fill="#9cb07a"/> </svg>`);
+const apple=$("#apple");
+apple.querySelector("img").src=APPLE_SRC;
+apple.querySelectorAll(".lit").forEach(el=>{ el.style.webkitMaskImage=el.style.maskImage=`url("${APPLE_SRC}")`; });
+const S_MIN=.6, S_MAX=2.4;      /* the apple stays between about 28px and 110px across */
+let aS=1, aR=-8;
+const clampS=s=>Math.max(S_MIN, Math.min(S_MAX, s));
+function applyApple(){ apple.style.setProperty("--s", aS); apple.style.setProperty("--rot", aR+"deg"); }
+function saveApple(){ store.set("helios-sticker-apple",[apple.offsetLeft, apple.offsetTop, aS, aR]); }
+function placeApple(){
+  const saved=store.get("helios-sticker-apple");
+  if(saved){ apple.style.left=Math.min(innerWidth-50, saved[0])+"px"; apple.style.top=Math.min(innerHeight-50, saved[1])+"px";
+    if(saved[2]) aS=clampS(saved[2]); if(saved[3]!==undefined) aR=saved[3]; applyApple(); return; }
+  const r=$("#stage").getBoundingClientRect();
+  apple.style.left=(r.right+18)+"px"; apple.style.top=(r.bottom-90)+"px"; applyApple();
+}
+function revealApple(){
+  if(!apple.hidden || PEOPLE[cur].id!==APPLE_OWNER) return;
+  apple.hidden=false; placeApple();
+  apple.classList.remove("pop"); void apple.offsetWidth; apple.classList.add("pop");
+  store.set("helios-sticker-apple-found", true);
+}
+const APPLE_OWNER="iris";
+window.syncStickers=()=>{ const mine=PEOPLE[cur].id===APPLE_OWNER, found=store.get("helios-sticker-apple-found");
+  apple.classList.toggle("away", !mine); if(found && apple.hidden){ apple.hidden=false; placeApple(); } };
+syncStickers();
+(function(){
+  const handle=apple.querySelector(".handle");
+  let sx,sy,ox,oy,moved=false,down=false, turning=false, a0,d0,s0,r0;
+  const centre=()=>{ const r=apple.getBoundingClientRect(); return [r.left+r.width/2, r.top+r.height/2]; };
+  handle.addEventListener("pointerdown",e=>{ e.stopPropagation(); turning=true; apple.classList.add("turn");
+    const [cx,cy]=centre(); a0=Math.atan2(e.clientY-cy,e.clientX-cx); d0=Math.hypot(e.clientX-cx,e.clientY-cy)||1; s0=aS; r0=aR;
+    handle.setPointerCapture(e.pointerId); });
+  handle.addEventListener("pointermove",e=>{ if(!turning) return; const [cx,cy]=centre();
+    aS=clampS(s0*Math.hypot(e.clientX-cx,e.clientY-cy)/d0); aR=r0+(Math.atan2(e.clientY-cy,e.clientX-cx)-a0)*180/Math.PI; applyApple(); });
+  handle.addEventListener("pointerup",e=>{ if(!turning) return; turning=false; apple.classList.remove("turn"); moved=true; saveApple(); });
+  handle.addEventListener("click",e=>{ e.stopPropagation(); e.preventDefault(); moved=false; });
+  apple.addEventListener("pointerdown",e=>{ if(turning) return; down=true; moved=false; sx=e.clientX; sy=e.clientY; ox=apple.offsetLeft; oy=apple.offsetTop; apple.setPointerCapture(e.pointerId); });
+  apple.addEventListener("pointermove",e=>{ if(!down) return; const dx=e.clientX-sx, dy=e.clientY-sy;
+    if(!moved && Math.hypot(dx,dy)>4){ moved=true; apple.classList.add("drag"); }
+    if(moved){ apple.style.left=Math.max(-10,Math.min(innerWidth-40, ox+dx))+"px"; apple.style.top=Math.max(-10,Math.min(innerHeight-40, oy+dy))+"px"; } });
+  apple.addEventListener("pointerup",()=>{ if(!down) return; down=false; apple.classList.remove("drag"); if(moved) saveApple(); });
+  apple.addEventListener("click",e=>{ if(moved){ e.preventDefault(); e.stopImmediatePropagation(); moved=false; return; } openEntry("apple"); });
+  /* the wheel resizes; with Shift held it turns */
+  apple.addEventListener("wheel",e=>{ e.preventDefault();
+    if(e.shiftKey) aR+=e.deltaY>0?6:-6; else aS=clampS(aS*(e.deltaY>0?.92:1.08));
+    applyApple(); clearTimeout(apple._t); apple._t=setTimeout(saveApple,250); }, {passive:false});
+  apple.addEventListener("keydown",e=>{
+    const k=e.key; let hit=true;
+    if(k==="+"||k==="=") aS=clampS(aS*1.1); else if(k==="-"||k==="_") aS=clampS(aS/1.1);
+    else if(k==="]") aR+=8; else if(k==="[") aR-=8; else hit=false;
+    if(hit){ e.preventDefault(); applyApple(); saveApple(); } });
+})();
+
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/GammaCorrectionShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+<script>
+(function(){
+if(!window.THREE) return;
+const canvas=document.getElementById("c");
+let renderer;
+try{ renderer=new THREE.WebGLRenderer({canvas, antialias:true}); }catch(e){ return; }
+
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.outputEncoding=THREE.sRGBEncoding;
+
+const scene=new THREE.Scene();
+scene.fog=new THREE.Fog(0xffffff, 20, 140);
+const camera=new THREE.PerspectiveCamera(48, 1, .1, 400);
+const still=matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* bloom, for the dreamy glow; if the extra scripts don't arrive the scene renders plain */
+let composer=null, bloom=null, frost=null;
+if(THREE.EffectComposer && THREE.UnrealBloomPass && THREE.GammaCorrectionShader){
+  try{
+    const gl2=renderer.capabilities.isWebGL2;
+    const RT=gl2 && THREE.WebGLMultisampleRenderTarget ? THREE.WebGLMultisampleRenderTarget : THREE.WebGLRenderTarget;
+    const half=gl2 && renderer.extensions.has("EXT_color_buffer_float");
+    const rt=new RT(2,2,{ type: half ? THREE.HalfFloatType : THREE.UnsignedByteType });
+    composer=new THREE.EffectComposer(renderer, rt);
+    composer.addPass(new THREE.RenderPass(scene, camera));
+    bloom=new THREE.UnrealBloomPass(new THREE.Vector2(2,2), .5, .7, .7);
+    composer.addPass(bloom);
+    composer.addPass(new THREE.ShaderPass(THREE.GammaCorrectionShader));
+    /* film grain over the finished picture, mostly in the mid-tones */
+    frost=new THREE.ShaderPass({
+      uniforms:{ tDiffuse:{value:null}, uRes:{value:new THREE.Vector2(1,1)}, uCell:{value:1}, uTime:{value:0}, uGrain:{value:.03} },
+      vertexShader:"varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }",
+      fragmentShader:`
+        uniform sampler2D tDiffuse; uniform vec2 uRes; uniform float uCell, uGrain, uTime;
+        varying vec2 vUv;
+        float h(vec2 p){ p=fract(p*vec2(123.34,456.21)); p+=dot(p,p+45.32); return fract(p.x*p.y); }
+        void main(){
+          vec2 px=floor(gl_FragCoord.xy/uCell);
+          vec3 c=texture2D(tDiffuse, vUv).rgb;
+          float l=dot(c,vec3(.299,.587,.114));
+          float f=mod(floor(uTime*24.0),61.0);                 /* the grain moves like film */
+          float n=h(px+71.7+f*vec2(13.1,7.7))+h(px*1.7+5.3+f*vec2(3.3,19.9))-1.0;
+          c+=n*uGrain*(.3+.7*(1.0-abs(l*2.0-1.0)));
+          gl_FragColor=vec4(c,1.0);
+        }`
+    });
+    composer.addPass(frost);
+  }catch(e){ composer=null; bloom=null; }
+}
+
+/* ============================================================
+   Painted textures, made on the fly: every surface carries loose
+   brush daubs, so the light lands on paint rather than plastic.
+   ============================================================ */
+function rng(seed){ return ()=>{ seed|=0; seed=seed+0x6D2B79F5|0; let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+function brushCanvas({seed=1, size=512, base=232, spread=22, strokes=900, dir="v", veins=0}){
+  const c=document.createElement("canvas"); c.width=c.height=size; const x=c.getContext("2d"), r=rng(seed);
+  x.fillStyle=`rgb(${base},${base},${base})`; x.fillRect(0,0,size,size);
+  for(let i=0;i<14;i++){                      /* washes */
+    const g=x.createRadialGradient(r()*size,r()*size,0, r()*size,r()*size, size*(.2+r()*.4));
+    const v=Math.max(0,Math.min(255,base+(r()-.5)*spread*1.6|0));
+    g.addColorStop(0,`rgba(${v},${v},${v},.35)`); g.addColorStop(1,`rgba(${v},${v},${v},0)`);
+    x.fillStyle=g; x.fillRect(0,0,size,size);
+  }
+  for(let i=0;i<strokes;i++){                 /* daubs with dry, ragged ends */
+    const v=Math.max(0,Math.min(255, base+(r()-.5)*spread*2|0));
+    x.fillStyle=`rgba(${v},${v},${v},${.04+r()*.22})`;
+    const w=3+r()*26, l=18+r()*150;
+    x.save(); x.translate(r()*size, r()*size);
+    x.rotate((dir==="v"?Math.PI/2:0) + (r()-.5)*.35);
+    x.fillRect(-l/2,-w/2,l,w);
+    for(let k=0;k<4;k++) x.fillRect(l/2-r()*12, -w/2+r()*w, 6+r()*14, 1+r()*2);
+    x.restore();
+  }
+  for(let i=0;i<veins;i++){                   /* marble veins */
+    x.strokeStyle=`rgba(${base-70},${base-62},${base-58},${.16+r()*.25})`; x.lineWidth=.6+r()*1.6;
+    x.beginPath(); let px=r()*size, py=0; x.moveTo(px,py);
+    while(py<size){ px+=(r()-.5)*38; py+=18+r()*30; x.lineTo(px,py); } x.stroke();
+  }
+  return c;
+}
+function tex(c, rx=1, ry=1, color=true){
+  const t=new THREE.CanvasTexture(c); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(rx,ry);
+  if(color) t.encoding=THREE.sRGBEncoding; t.anisotropy=4; return t;
+}
+const plasterC = brushCanvas({seed:3, base:236, spread:26, strokes:1100});
+const marbleC  = brushCanvas({seed:7, base:240, spread:18, strokes:700, veins:7});
+const floorC   = brushCanvas({seed:11, base:226, spread:30, strokes:1300, dir:"h", veins:4});
+const bumpC    = brushCanvas({seed:5, base:128, spread:90, strokes:1400});
+/* dusk is painted in strokes: broad flat loads of paint laid side by side,
+   each a shade off its neighbour, with dry, split ends and a few drag lines
+   inside. Tileable, so the strokes wrap across the edges. */
+function strokeCanvas({seed, size=512, base=220, spread=11, dir="v", wMin=24, wMax=72, lMin=160, lMax=460}){
+  const c=document.createElement("canvas"); c.width=c.height=size; const x=c.getContext("2d"), r=rng(seed);
+  x.fillStyle=`rgb(${base},${base},${base})`; x.fillRect(0,0,size,size);
+  const val=s=>Math.max(0,Math.min(255, base+(r()-.5)*2*s|0));
+  const make=(cx,cy,w,l,v,a,ang)=>{                     /* every random number fixed up front, so wrapped copies match */
+    const n=5+(r()*6|0), tail=[], head=[], drag=[];
+    for(let k=0;k<n;k++){ tail.push([l*(.04+r()*.24), .55+r()*.5]); head.push(r()*l*.06); }
+
+    return {cx,cy,w,l,v,a,ang,n,tail,head,drag};
+  };
+  const draw=S=>{
+    for(const ox of [-size,0,size]) for(const oy of [-size,0,size]){
+      const X=S.cx+ox, Y=S.cy+oy, reach=S.l*.7;
+      if(X<-reach||X>size+reach||Y<-reach||Y>size+reach) continue;
+      x.save(); x.translate(X,Y); x.rotate(S.ang);
+      x.fillStyle=`rgba(${S.v},${S.v},${S.v},${S.a})`;
+      const bw=S.w/S.n;
+      x.fillRect(-S.l/2+S.l*.04, -S.w/2, S.l*.82, S.w);                    /* the load of paint */
+      for(let k=0;k<S.n;k++){
+        x.fillRect(S.l*.36, -S.w/2+k*bw, S.tail[k][0], bw*S.tail[k][1]);     /* dry, split tail */
+        x.fillRect(-S.l/2+S.l*.04-S.head[k], -S.w/2+k*bw, S.l*.05, bw*.92);  /* ragged start */
+      }
+      S.drag.forEach(([dv,da,pos,len,th])=>{ x.fillStyle=`rgba(${dv},${dv},${dv},${da})`; x.fillRect(-S.l/2, -S.w/2+pos*S.w, S.l*len, th); });
+      x.restore();
+    }
+  };
+  const along = dir==="v" ? Math.PI/2 : 0;
+  /* first coat: columns of strokes edge to edge, staggered */
+  for(let u=0; u<size; ){
+    const w=wMin+r()*(wMax-wMin);
+    for(let t=-r()*lMax; t<size; ){
+      const l=lMin+r()*(lMax-lMin), cu=u+w/2, ct=t+l/2;
+      draw(make(dir==="v"?cu:ct, dir==="v"?ct:cu, w*1.08, l, val(spread), .72+r()*.26, along+(r()-.5)*.07));
+      t+=l*(.7+r()*.25);
+    }
+    u+=w*(.78+r()*.2);
+  }
+  /* second coat: sparse strokes laid over */
+  for(let i=0;i<46;i++){
+    const w=wMin*.8+r()*(wMax-wMin)*.8, l=lMin*.6+r()*(lMax-lMin)*.6;
+    draw(make(r()*size, r()*size, w, l, val(spread*1.2), .3+r()*.35, along+(r()-.5)*.12));
+  }
+  return c;
+}
+const strokeV = strokeCanvas({seed:31, dir:"v"}), strokeH = strokeCanvas({seed:37, dir:"h"});
+const strokeBumpV = strokeCanvas({seed:31, dir:"v", base:128, spread:70});
+const strokeFloor = strokeCanvas({seed:41, dir:"h", base:214, spread:20, wMin:14, wMax:44, lMin:200, lMax:500});
+/* each material keeps its painterly map for morning and gets brush strokes for dusk */
+const MAPS={};
+function twoMaps(name, rx, ry, bump, dusk){
+  MAPS[name]={ day:[tex(name==="marble"?marbleC:plasterC,rx,ry), bump?tex(bumpC,rx,ry,false):null],
+               dusk:[tex(dusk.c,dusk.rx,dusk.ry), dusk.bump?tex(strokeBumpV,dusk.rx,dusk.ry,false):null] };
+  return MAPS[name].day;
+}
+/* matte for dusk (no sheen on the plaster), and light that breaks along the strokes:
+   the stroke values nudge where each fragment reads the sunset's shadow map */
+const PAINT={ uSpec:{value:1}, uJitter:{value:0} };
+function paintify(mat, matte, jit){
+  mat.onBeforeCompile=sh=>{
+    sh.uniforms.uSpec = matte ? PAINT.uSpec : {value:1}; sh.uniforms.uJitter = jit ? PAINT.uJitter : {value:0};
+    sh.fragmentShader = "uniform float uSpec;\nuniform float uJitter;\n" + sh.fragmentShader
+      .replace("#include <map_fragment>", "#include <map_fragment>\nvec2 strokeJit = vec2(0.0);\n#ifdef USE_MAP\nstrokeJit = vec2( texelColor.r - 0.7, mapTexelToLinear( texture2D( map, vUv * 1.37 + vec2( .31, .17 ) ) ).r - 0.7 ) * uJitter;\n#endif")
+      .replace("#include <lights_physical_fragment>", "#include <lights_physical_fragment>\nmaterial.specularColor *= uSpec;")
+      .replace("#include <lights_fragment_begin>", THREE.ShaderChunk.lights_fragment_begin.split("vSpotShadowCoord[ i ] )").join("vSpotShadowCoord[ i ] + vec4( strokeJit * vSpotShadowCoord[ i ].w, 0.0, 0.0 ) )"));
+  };
+  return mat;
+}
+
+const std=(o)=>new THREE.MeshStandardMaterial(o);
+const M = {
+  wall:    std({ map:twoMaps("wall",.075,.075,1,{c:strokeV,rx:.07,ry:.07,bump:0})[0], bumpMap:MAPS.wall.day[1], bumpScale:.035, roughness:.95 }),
+  wallBox: std({ map:twoMaps("wallBox",1,1,1,{c:strokeV,rx:2,ry:2,bump:0})[0], bumpMap:MAPS.wallBox.day[1], bumpScale:.03, roughness:.95 }),
+  plaster: std({ map:twoMaps("plaster",1,1,1,{c:strokeV,rx:1,ry:1,bump:0})[0], bumpMap:MAPS.plaster.day[1], bumpScale:.03, roughness:.95 }),
+  vault:   std({ map:twoMaps("vault",2,1,1,{c:strokeH,rx:2,ry:1,bump:0})[0], bumpMap:MAPS.vault.day[1], bumpScale:.03, roughness:.92, side:THREE.DoubleSide }),
+  rib:     std({ map:twoMaps("rib",1,1,0,{c:strokeV,rx:6,ry:.08,bump:0})[0], roughness:.95 }),     /* along the arc, never across the thin tube */
+  marble:  std({ map:twoMaps("marble",2,1,1,{c:strokeV,rx:2,ry:1,bump:0})[0], bumpMap:MAPS.marble.day[1], bumpScale:.02, roughness:.5 }),
+  niche:   std({ map:twoMaps("niche",1,1,0,{c:strokeV,rx:1,ry:1,bump:0})[0], roughness:1 }),
+  floor:   std({ map:tex(floorC,26,26), roughness:.25, metalness:.05, transparent:true })
+};
+MAPS.floor={ day:[M.floor.map,null], dusk:[tex(strokeFloor,26,26),null] };
+Object.keys(M).forEach(k=>paintify(M[k], k!=="floor", k!=="rib" && k!=="floor"));
+
+/* ============================================================
+   Architecture
+   ============================================================ */
+const BAY=14, N=6, OW=12, SPR=12, R=OW/2;
+const WALL_W=44, WALL_H=27, WALL_D=3, COLS_PER_BAY=4;
+
+function portalGeo(){
+  const s=new THREE.Shape();
+  s.moveTo(-WALL_W/2,0); s.lineTo(WALL_W/2,0); s.lineTo(WALL_W/2,WALL_H); s.lineTo(-WALL_W/2,WALL_H); s.lineTo(-WALL_W/2,0);
+  const h=new THREE.Path();
+  h.moveTo(-R,0); h.lineTo(-R,SPR); h.absarc(0,SPR,R,Math.PI,0,true); h.lineTo(R,0); h.lineTo(-R,0);
+  s.holes.push(h);
+  return new THREE.ExtrudeGeometry(s,{depth:WALL_D, bevelEnabled:false, curveSegments:48});
+}
+function vaultGeo(len){
+  const su=48, sv=10, pos=[], uv=[], idx=[];
+  for(let v=0;v<=sv;v++) for(let u=0;u<=su;u++){
+    const a=Math.PI*u/su; pos.push(Math.cos(a)*R, SPR+Math.sin(a)*R, -len*v/sv); uv.push(u/su, v/sv);
+  }
+  for(let v=0;v<sv;v++) for(let u=0;u<su;u++){ const a=v*(su+1)+u,b=a+1,c=a+su+1,d=c+1; idx.push(a,c,b,b,c,d); }
+  const g=new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.Float32BufferAttribute(pos,3));
+  g.setAttribute("uv", new THREE.Float32BufferAttribute(uv,2));
+  g.setIndex(idx); g.computeVertexNormals(); return g;
+}
+/* a loose Doric column: fluted shaft with a slight swell, cushion capital,
+   square abacus, a torus at the foot. Suggested, not archaeological. */
+const colCache={};
+function columnGeos(H, r0){
+  const key=H+"_"+r0; if(colCache[key]) return colCache[key];
+  const parts=[], prof=[];
+  for(let i=0;i<=24;i++){ const t=i/24; prof.push(new THREE.Vector2(r0*(1-.16*t+.05*Math.sin(Math.PI*t)), t*H)); }
+  const shaft=new THREE.LatheGeometry(prof, 80), p=shaft.attributes.position;
+  for(let i=0;i<p.count;i++){ const x=p.getX(i), z=p.getZ(i), a=Math.atan2(z,x), k=1-.045*(.5+.5*Math.cos(a*20)); p.setX(i,x*k); p.setZ(i,z*k); }
+  shaft.computeVertexNormals(); parts.push(shaft);
+  const tor=new THREE.TorusGeometry(r0*1.05, r0*.16, 10, 40); tor.rotateX(Math.PI/2); tor.translate(0,r0*.3,0); parts.push(tor);
+  const pl=new THREE.BoxGeometry(r0*2.6, r0*.28, r0*2.6); pl.translate(0,r0*.14,0); parts.push(pl);
+  const ech=new THREE.LatheGeometry([new THREE.Vector2(r0*.84,0),new THREE.Vector2(r0,r0*.12),new THREE.Vector2(r0*1.28,r0*.36),new THREE.Vector2(r0*1.36,r0*.5)],40);
+  ech.translate(0,H,0); parts.push(ech);
+  const ab=new THREE.BoxGeometry(r0*2.9, r0*.34, r0*2.9); ab.translate(0,H+r0*.67,0); parts.push(ab);
+  return colCache[key]=parts;
+}
+function addColumn(g,x,z,H,r0){
+  columnGeos(H,r0).forEach(geo=>{ const m=new THREE.Mesh(geo,M.marble); m.position.set(x,0,z); m.castShadow=m.receiveShadow=true; g.add(m); });
+}
+function box(g,w,h,d,mat,x,y,z,cast=true){ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat); m.position.set(x,y,z); m.castShadow=cast; m.receiveShadow=true; g.add(m); return m; }
+
+const PG=portalGeo(), blockers=[], ribs=[];
+function buildHall(g){
+  for(let i=0;i<N;i++){
+    const z=-i*BAY;
+    const w=new THREE.Mesh(PG,M.wall); w.position.set(0,0,z-WALL_D); w.receiveShadow=true; g.add(w); if(g===hall) blockers.push(w);   /* at dusk walls and vault let the light through, so it washes the whole hall */
+    const band=new THREE.Mesh(new THREE.TorusGeometry(R+.4,.4,12,56,Math.PI),M.plaster); band.position.set(0,SPR,z+.06); band.castShadow=true; g.add(band); ribs.push(band);
+    [-1,1].forEach(sd=> addColumn(g, sd*(R+1.5), z+1.4, SPR-.9, .78));      /* columns framing each doorway */
+    [-1,1].forEach(sd=> box(g, 3.2, 1.1, 2.4, M.plaster, sd*(R+1.5), SPR+.55, z+1.4));   /* an entablature block over each, leaving the arch open */
+    if(i<N-1){
+      const z0=z-WALL_D, len=BAY-WALL_D;
+      const v=new THREE.Mesh(vaultGeo(len),M.vault); v.position.z=z0; v.receiveShadow=true; g.add(v); if(g===hall) blockers.push(v);
+      for(let k=1;k<5;k++){ const rb=new THREE.Mesh(new THREE.TorusGeometry(R-.14,.2,8,48,Math.PI),M.rib); rb.position.set(0,SPR,z0-len*k/5); rb.castShadow=true; g.add(rb); ribs.push(rb); }
+      for(let k=1;k<8;k++){ const a=Math.PI*k/8; box(g,.32,.32,len,M.rib,Math.cos(a)*(R-.17),SPR+Math.sin(a)*(R-.17),z0-len/2); }
+      for(let k=0;k<COLS_PER_BAY;k++) addColumn(g, -R-.6, z0-len*(k+.5)/COLS_PER_BAY, SPR-.9, .55);   /* open colonnade on the left */
+      box(g, 2.2, 1.1, len, M.plaster, -R-.6, SPR+.55, z0-len/2);
+      { const rw=box(g, 1, SPR+1.1, len, M.wallBox, R+.5, (SPR+1.1)/2, z0-len/2, false); if(g===hall) blockers.push(rw); }   /* solid wall on the right */
+      [-1,1].forEach(o=> box(g,.2,5.4,2.4,M.niche,R+.02,4.8,z0-len/2+o*3.4,false));
+    }
+  }
+  for(let s=0;s<5;s++) box(g, OW+6,.32,1.1, M.plaster, 0,.16+s*.32, -BAY*2-4-s*1.1);
+  const L=BAY*(N-3)+4; box(g, OW+6,1.6,L, M.plaster, 0,.8, -BAY*2-4-5*1.1-L/2+.55);
+}
+const hall=new THREE.Group(); buildHall(hall); scene.add(hall);
+const mirror=new THREE.Group(); buildHall(mirror); mirror.scale.y=-1; scene.add(mirror);
+mirror.traverse(o=>{ if(o.isMesh) o.castShadow=false; });
+
+/* a covered forecourt: only at night, so by day the sun falls full on the front */
+const forecourt=new THREE.Group(); scene.add(forecourt);
+[-1,1].forEach(sd=> box(forecourt, 2, WALL_H, 40, M.wallBox, sd*(WALL_W/2-1), WALL_H/2, 20, false));
+box(forecourt, WALL_W, 2, 40, M.wallBox, 0, WALL_H+1, 20, false);
+
+/* water over stone: a thin sheet the mirrored hall shows through */
+const floor=new THREE.Mesh(new THREE.PlaneGeometry(400,400), M.floor);
+floor.rotation.x=-Math.PI/2; floor.receiveShadow=true; scene.add(floor);
+
+/* ============================================================
+   Light
+   ============================================================ */
+const farZ=-(N-1)*BAY-WALL_D;
+/* the air beyond the far door: one flat color, no painted sky */
+const skyMat=new THREE.MeshBasicMaterial({color:0xffffff, fog:false});
+const sky=new THREE.Mesh(new THREE.PlaneGeometry(90,70), skyMat);
+sky.position.set(0,22,farZ-30); scene.add(sky);
+const skyBelow=new THREE.Mesh(sky.geometry, skyMat);          /* the same air lying in the water */
+skyBelow.position.set(0,-22,farZ-30); skyBelow.scale.y=-1; scene.add(skyBelow);
+function radial(stops){
+  const c=document.createElement("canvas"); c.width=c.height=256; const x=c.getContext("2d");
+  const g=x.createRadialGradient(128,128,0,128,128,128); stops.forEach(([o,a])=>g.addColorStop(o,`rgba(255,255,255,${a})`));
+  x.fillStyle=g; x.fillRect(0,0,256,256); return new THREE.CanvasTexture(c);
+}
+const glow=new THREE.Sprite(new THREE.SpriteMaterial({map:radial([[0,1],[.22,.4],[1,0]]), transparent:true, depthWrite:false, blending:THREE.AdditiveBlending, fog:false}));
+glow.position.set(0,8,farZ+1); glow.scale.set(38,38,1); scene.add(glow);
+const glowBelow=new THREE.Sprite(glow.material); glowBelow.position.set(0,-8,farZ+1); glowBelow.scale.set(38,30,1); scene.add(glowBelow);
+const hazeTex=radial([[0,.6],[.5,.2],[1,0]]), hazes=[];
+for(let i=0;i<N-1;i++){
+  const s=new THREE.Sprite(new THREE.SpriteMaterial({map:hazeTex, transparent:true, depthWrite:false, fog:false}));
+  s.position.set(0,7,-i*BAY-BAY/2-1); s.scale.set(26,20,1); scene.add(s); hazes.push(s);
+}
+const doorLight=new THREE.PointLight(0xffffff,3,90,1.4); doorLight.position.set(0,8,farZ+2); scene.add(doorLight);
+const sun=new THREE.DirectionalLight(0xffffff,3);
+sun.castShadow=true; const SM=renderer.capabilities.maxTextureSize>=8192?4096:2048; sun.shadow.mapSize.set(SM,SM);
+Object.assign(sun.shadow.camera,{left:-62,right:62,top:62,bottom:-62,near:1,far:240});
+sun.shadow.bias=-.0005; sun.shadow.normalBias=.02;
+scene.add(sun, sun.target);
+const hemi=new THREE.HemisphereLight(0xffffff,0x000000,.3); scene.add(hemi);
+/* a second broad light from high on the other side, no shadow: a wash over everything */
+const wash=new THREE.DirectionalLight(0xffffff,1); scene.add(wash, wash.target);
+/* dusk: one big, far sunset light low over the left shoulder. A spot with a full
+   penumbra, so it lands as a broad pool that falls off softly across the plaster. */
+const dusk=new THREE.SpotLight(0xffffff, 1, 230, 1.0, .5, 1.5);
+dusk.castShadow=true; dusk.shadow.mapSize.set(SM,SM); dusk.shadow.bias=-.00012; dusk.shadow.normalBias=.03;
+Object.assign(dusk.shadow.camera,{near:40, far:260});   /* the light is far off: a deep near plane keeps depth precise */
+scene.add(dusk, dusk.target);
+
+/* dappled sun: an unseen canopy between the sun and the hall, it only casts shadow */
+function leafC(){
+  /* a tree seen as shadow, in layers: a few big crowns, middling clumps,
+     small sprigs, lace at every edge and coins of light punched through */
+  const S=2048, c=document.createElement("canvas"); c.width=c.height=S; const x=c.getContext("2d"), r=rng(23);
+  const g=()=>(r()+r()+r()+r()-2)/2;
+  const leaf=(px,py,sz)=>{ x.save(); x.translate(px,py); x.rotate(r()*6.28);
+    x.beginPath(); x.ellipse(0,0,sz,sz*(.4+r()*.2),0,0,6.28); x.fill(); x.restore(); };
+  x.fillStyle="#fff"; x.strokeStyle="#fff"; x.lineCap="round";
+  const crowns=[];
+  [[6,.13,.19],[16,.06,.1],[26,.025,.04]].forEach(([n,a,b])=>{ for(let i=0;i<n;i++) crowns.push([r(),r(),a+r()*(b-a)]); });
+  crowns.forEach(([cx,cy,rad])=>{
+    const R0=rad*S;
+    if(rad>.04) for(let b=0;b<4;b++){                           /* branches */
+      let px=cx*S, py=cy*S, a=r()*6.28, w=2+rad*30;
+      for(let k=0;k<8;k++){ const nx=px+Math.cos(a)*R0*.13, ny=py+Math.sin(a)*R0*.16;
+        x.lineWidth=w; x.beginPath(); x.moveTo(px,py); x.lineTo(nx,ny); x.stroke(); px=nx; py=ny; a+=(r()-.5)*.7; w*=.8; }
+    }
+    const subs=Math.max(4, Math.floor(rad*260));
+    for(let k=0;k<subs;k++){                                   /* lumpy clumps */
+      const d=Math.abs(g())*1.15, a=r()*6.28, sx=cx*S+Math.cos(a)*d*R0, sy=cy*S+Math.sin(a)*d*R0, sr=R0*(.18+r()*.2);
+      const n=Math.floor(sr*sr*.26)+8;
+      for(let i=0;i<n;i++){
+        const dd=Math.abs(g()), aa=r()*6.28;
+        if(r()<.2+.6*dd) continue;
+        leaf(sx+Math.cos(aa)*dd*sr, sy+Math.sin(aa)*dd*sr, 2.2+r()*4);
+      }
+    }
+  });
+  x.globalCompositeOperation="destination-out";                 /* coins of light */
+  crowns.forEach(([cx,cy,rad])=>{ const R0=rad*S, n=Math.floor(rad*rad*S*.9);
+    for(let i=0;i<n;i++){ const d=Math.abs(g())*1.2, a=r()*6.28; leaf(cx*S+Math.cos(a)*d*R0, cy*S+Math.sin(a)*d*R0, 2+r()*5.5); } });
+  x.globalCompositeOperation="source-over";
+  for(let i=0;i<1800;i++) leaf(r()*S, r()*S, 2+r()*3);          /* stray leaves */
+  const t=new THREE.CanvasTexture(c); t.anisotropy=4; return t;
+}
+const leafTex=leafC();
+const canopy=new THREE.Mesh(new THREE.PlaneGeometry(190,190),
+  new THREE.MeshBasicMaterial({map:leafTex, alphaTest:.5, transparent:true, colorWrite:false, depthWrite:false, side:THREE.DoubleSide}));
+canopy.customDepthMaterial=new THREE.MeshDepthMaterial({depthPacking:THREE.RGBADepthPacking, map:leafTex, alphaTest:.5, side:THREE.DoubleSide});
+canopy.castShadow=true; canopy.renderOrder=-1; scene.add(canopy);
+function placeCanopy(){
+  const d=new THREE.Vector3().subVectors(sun.position, sun.target.position);
+  canopy.position.copy(sun.target.position).add(d.multiplyScalar(.62));
+  canopy.lookAt(sun.position);
+}
+
+function shaftTex(){
+  const c=document.createElement("canvas"); c.width=8; c.height=256; const x=c.getContext("2d");
+  const g=x.createLinearGradient(0,0,0,256);
+  g.addColorStop(0,"rgba(255,255,255,0)"); g.addColorStop(.12,"rgba(255,255,255,1)"); g.addColorStop(.8,"rgba(255,255,255,.5)"); g.addColorStop(1,"rgba(255,255,255,0)");
+  x.fillStyle=g; x.fillRect(0,0,8,256); return new THREE.CanvasTexture(c);
+}
+const sTex=shaftTex(); let shafts=[];
+function buildShafts(color, opacity, col){
+  shafts.forEach(s=>scene.remove(s)); shafts=[];
+  if(!opacity) return;
+  const dir=new THREE.Vector3().subVectors(sun.target.position, sun.position).normalize();
+  const mat=new THREE.MeshBasicMaterial({map:sTex, color:col(new THREE.Color(),color), transparent:true, opacity, depthWrite:false, blending:THREE.AdditiveBlending, side:THREE.DoubleSide});
+  for(let i=0;i<N-1;i++){
+    const z0=-i*BAY-WALL_D, len=BAY-WALL_D;
+    for(let k=0;k<=COLS_PER_BAY;k++){
+      const start=new THREE.Vector3(-R-.6, 9.5, z0-len*k/COLS_PER_BAY), Ls=24, mid=start.clone().add(dir.clone().multiplyScalar(Ls/2));
+      [0,1].forEach(j=>{
+        const m=new THREE.Mesh(new THREE.PlaneGeometry(1.8,Ls),mat);
+        m.position.copy(mid); m.quaternion.setFromUnitVectors(new THREE.Vector3(0,-1,0),dir); m.rotateY(Math.PI/2*(j+1));
+        scene.add(m); shafts.push(m);
+      });
+    }
+  }
+}
+const DN=1400, dp=new Float32Array(DN*3);
+for(let i=0;i<DN;i++){ dp[i*3]=(Math.random()-.5)*12; dp[i*3+1]=Math.random()*16; dp[i*3+2]=-Math.random()*(N*BAY)+4; }
+const dg=new THREE.BufferGeometry(); dg.setAttribute("position", new THREE.BufferAttribute(dp,3));
+const dustMat=new THREE.PointsMaterial({size:.05, transparent:true, depthWrite:false});
+/* dust motes are left out: at this size they only shimmered */
+
+/* ============================================================
+   Two moods.
+   Morning is the original day scene, untouched in its shade and
+   materials (rose-cream plaster, sage in the shadows); only the sun
+   turns a pale, low-saturation yellow-green, with a faint bloom.
+   Dusk takes the palette of the reference painting: taupe air and
+   shade (#5f5348), olive-grey in the vault (#373324), and one
+   orange (#e58753) from a big, far sunset low over the left
+   shoulder. The sun itself is below the horizon, so the door
+   opens onto plain dusk air. Fill values were solved back through
+   the tone curve so the shade lands on that taupe.
+   ============================================================ */
+const MOODS={
+  light:{
+    raw:true, maps:"day", wallShadows:true, marbleRough:.5, paint:[1,0],
+    mats:{wall:0xf0d8c2, plaster:0xf3e2cf, vault:0xe9d2bb, rib:0xcdb9a4, marble:0xf4e9dc, niche:0x9c9b80, floor:0xe2d2c1}, floorOpacity:.8,
+    bg:0xeee2d4, air:0xebdfcf, fogNear:70, fogFar:320, exposure:.9,
+    sun:[0xe0ff88,3.6], sunPos:[-38,52,46], sunTarget:[6,0,-34], sunShadow:true,
+    wash:[0xffffff,0], washPos:[0,60,80],
+    dusk:[0xffffff,0], duskPos:[-80,20,60], duskTarget:[0,4,-40],
+    hemi:[0xe6dcc6,0x8f8a62,.5],
+    door:[0xf0f8d0,2.2], glow:.5, haze:[0xf0f6d6,.08],
+    shaft:[0xeaf7c0,.07], dust:[0xf6fadf,.55], sky:[0xf8fbe8,true],
+    bloom:[.25,.6,.92], grain:.03
+  },
+  dark:{
+    raw:false, maps:"dusk", wallShadows:true, marbleRough:1, paint:[0,.009],
+    grey:0xbcbcbc, floorOpacity:.76,
+    bg:0x5f5348, air:0x5f5348, fogNear:30, fogFar:210, exposure:1.0,
+    sun:[0xffffff,0], sunPos:[0,70,-130], sunTarget:[0,0,-30], sunShadow:false,
+    wash:[0xffffff,0], washPos:[0,60,80],
+    dusk:[0xff7f48,5.6], duskPos:[-90,22,-12], duskTarget:[4,5,-34],
+    hemi:[0xffe4d8,0xfff4c8,1], hemiK:[.31,.12],
+    door:[0xffffff,0], glow:0, haze:[0xe58753,0],
+    shaft:[0xe58753,0], dust:[0xe58753,.35], sky:[0x6b6763,false],
+    bloom:[.5,.85,.5], grain:.045
+  }
+};
+const lin=(c,hex)=>c.setHex(hex).convertSRGBToLinear();
+let accentHex=null, curMood=null;
+function setAccent(h){ accentHex=h; if(!curMood||!curMood.door[1]) return; const c=new THREE.Color(h).lerp(new THREE.Color(curMood.door[0]),.35); doorLight.color.copy(c); glow.material.color.copy(c); dirty=true; }
+function applyMood(name){
+  const m=MOODS[name]; curMood=m; const col=(c,hex)=> m.raw ? c.setHex(hex) : lin(c,hex);
+  /* fog and clear color land after the shader's own encoding; through the bloom chain that space is linear */
+  const air=c=> composer ? lin(new THREE.Color(),c) : new THREE.Color(c);
+  scene.background=air(m.bg); scene.fog.color.copy(air(m.air)); scene.fog.near=m.fogNear; scene.fog.far=m.fogFar;
+  renderer.toneMappingExposure=m.exposure;
+  Object.keys(MAPS).forEach(k=>{ const mt=M[k], [map,bump]=MAPS[k][m.maps];
+    if(mt.bumpMap!==bump) mt.needsUpdate=true; mt.map=map; mt.bumpMap=bump; });
+  Object.keys(M).forEach(k=> col(M[k].color, m.mats ? m.mats[k==="wallBox"?"wall":k] : m.grey));
+  M.marble.roughness=m.marbleRough; M.floor.opacity=m.floorOpacity;
+  PAINT.uSpec.value=m.paint[0]; PAINT.uJitter.value=m.paint[1];
+  col(sun.color,m.sun[0]); sun.intensity=m.sun[1]; sun.castShadow=m.sunShadow; sun.visible=m.sun[1]>0;
+  sun.position.set(...m.sunPos); sun.target.position.set(...m.sunTarget); sun.target.updateMatrixWorld();
+  col(wash.color,m.wash[0]); wash.intensity=m.wash[1]; wash.visible=m.wash[1]>0; wash.position.set(...m.washPos); wash.target.position.set(0,0,-30); wash.target.updateMatrixWorld();
+  col(dusk.color,m.dusk[0]); dusk.intensity=m.dusk[1]; dusk.visible=m.dusk[1]>0;
+  dusk.position.set(...m.duskPos); dusk.target.position.set(...m.duskTarget); dusk.target.updateMatrixWorld();
+  col(hemi.color,m.hemi[0]); col(hemi.groundColor,m.hemi[1]); hemi.intensity=m.hemi[2];
+  if(m.hemiK){ hemi.color.multiplyScalar(m.hemiK[0]); hemi.groundColor.multiplyScalar(m.hemiK[1]); }
+  blockers.forEach(o=>o.castShadow=m.wallShadows);
+  ribs.forEach(o=>o.receiveShadow=m.wallShadows && !m.raw);   /* the original morning keeps its sunlit white ribs */
+  col(doorLight.color,m.door[0]); doorLight.intensity=m.door[1]; doorLight.visible=m.door[1]>0;
+  col(glow.material.color,m.door[0]); glow.userData.base=m.glow; glow.material.opacity=m.glow; glow.visible=glowBelow.visible=m.glow>0;
+  glowBelow.visible=false;
+  hazes.forEach(h=>{ col(h.material.color,m.haze[0]); h.material.opacity=m.haze[1]; h.visible=m.haze[1]>0; });
+  col(dustMat.color,m.dust[0]); dustMat.opacity=m.dust[1];
+  /* the far air: in the morning as the original drew it, at dusk an exact taupe */
+  skyMat.toneMapped=m.sky[1]; (m.sky[1] ? col : lin)(skyMat.color,m.sky[0]); skyMat.needsUpdate=true;
+  skyBelow.visible = name==='dark';
+  if(bloom){ bloom.strength=m.bloom[0]; bloom.radius=m.bloom[1]; bloom.threshold=m.bloom[2]; }
+  if(frost) frost.uniforms.uGrain.value=m.grain;
+  forecourt.visible = name==='dark';
+  canopy.visible = name==='light'; placeCanopy();
+  buildShafts(m.shaft[0], m.shaft[1], col);
+  if(accentHex!==null) setAccent(accentHex);
+}
+const root=document.documentElement, mq=matchMedia("(prefers-color-scheme: dark)");
+const current=()=> root.dataset.theme || (mq.matches ? "dark" : "light");
+applyMood(current());
+if(mq.addEventListener) mq.addEventListener("change", ()=>{ if(!root.dataset.theme){ applyMood(current()); dirty=true; if(still) frame(); } });
+document.getElementById("mode").addEventListener("click", ()=>{
+  root.dataset.theme = current()==="dark" ? "light" : "dark"; applyMood(root.dataset.theme); dirty=true; if(still) frame();
+});
+
+/* ============================================================
+   Camera and loop
+   ============================================================ */
+function resize(){ const w=innerWidth,h=innerHeight; renderer.setSize(w,h,false); dirty=true; if(composer){ composer.setPixelRatio(renderer.getPixelRatio()); composer.setSize(w,h); if(frost){ const pr=renderer.getPixelRatio(); frost.uniforms.uRes.value.set(w*pr,h*pr); frost.uniforms.uCell.value=Math.max(1,Math.round(pr)); } } camera.aspect=w/h;
+  focusT=focusC=(window.hallFocus?hallFocus():.4); applyFocus();
+  if(still) frame(); }
+let focusT=.4, focusC=.4, focusF=.4, focusStart=-1; const FOCUS_DUR=.8;
+function applyFocus(){ const w=innerWidth,h=innerHeight; if(w>1000){ const full=w*1.6; camera.setViewOffset(full,h, Math.max(0,Math.min(.6*w, full/2-focusC*w)),0, w,h); } else camera.clearViewOffset(); camera.updateProjectionMatrix(); }
+let mx=0,my=0,tx=0,ty=0, dirty=true;
+addEventListener("pointermove", e=>{ tx=e.clientX/innerWidth-.5; ty=e.clientY/innerHeight-.5; if(still) requestAnimationFrame(frame); });
+const clock=new THREE.Clock();
+let push=0, tripStart=-1; const TRIP=1.15;
+function frame(){
+  /* a still picture: nothing drifts, pulses or flickers. The camera only follows
+     the pointer, and when it has settled nothing is redrawn at all. */
+  const k=still?1:.06;
+  const dx=tx-mx, dy=ty-my, moving=Math.abs(dx)>1e-4 || Math.abs(dy)>1e-4;
+  mx+=dx*k; my+=dy*k;
+  const focusing = focusStart>=0; if(focusing){ const q=Math.min(1,(clock.getElapsedTime()-focusStart)/FOCUS_DUR), e=1-Math.pow(1-q,3); focusC=focusF+(focusT-focusF)*e; applyFocus(); if(q>=1) focusStart=-1; }
+  const travelling = tripStart>=0 || focusing;
+  if(tripStart>=0){ const p=Math.min(1,(clock.getElapsedTime()-tripStart)/TRIP); push=(1-Math.cos(Math.PI*Math.min(p,.62)/.62))/2*9; if(p>=1){ push=0; tripStart=-1; } }
+  if(moving || dirty || travelling){
+    camera.position.set(mx*2.4, 3.4-my*1.6, 16-push);
+    camera.lookAt(mx*1.2, 7.4-my*1.2, -60);
+    if(composer) composer.render(); else renderer.render(scene,camera);
+    dirty=false;
+  }
+  if(!still) requestAnimationFrame(frame);
+}
+addEventListener("resize", resize); resize();
+window.HALL={ accent:setAccent, travel(){ if(!still){ tripStart=clock.getElapsedTime(); } }, focus(){ focusT=window.hallFocus?hallFocus():.4; if(still){ focusC=focusT; applyFocus(); dirty=true; frame(); } else { focusF=focusC; focusStart=clock.getElapsedTime(); } } };
+if(typeof PEOPLE!=="undefined") setAccent(PEOPLE[cur].accent);
+frame();
+})();
+</script>
+</body>
+</html>
