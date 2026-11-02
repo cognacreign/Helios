@@ -230,6 +230,37 @@
   .sticker .key{ background:var(--fig-key); mix-blend-mode:soft-light }
   @media (prefers-reduced-motion: reduce){ .readout .in.entry, .sticker.pop{ animation:none } .sticker, .readout{ transition:none } }
 
+  /* ---------- skins ---------- */
+  .skins{ position:absolute; left:calc(100% + .9rem); top:0; display:flex; flex-direction:column; gap:.5rem; z-index:3 }
+  .skins[hidden]{ display:none }
+  .skins button{ all:unset; cursor:pointer; position:relative; width:2.75rem; height:2.75rem; border-radius:.55rem; overflow:hidden;
+    border:1px solid var(--faint); background:var(--panel); transition:border-color .3s }
+  .skins button img{ width:100%; height:100%; object-fit:cover; display:block }
+  .skins button[aria-pressed="true"]{ border-color:var(--ink) }
+  .skins button:focus-visible{ outline:1px solid var(--ink); outline-offset:3px }
+  .skinart{ position:absolute; inset:.55rem; width:calc(100% - 1.1rem); height:calc(100% - 1.1rem); object-fit:cover; border-radius:calc(var(--r) - .55rem);
+    opacity:0; transition:opacity .7s ease .25s; pointer-events:none }
+
+  /* the drape: night, the hall turned upside down, one warm light */
+  body.skin-drape{
+    --bg:#0c0a09; --ink:#efe5d5; --dim:#a8977f; --line:rgba(239,229,213,.45); --faint:rgba(239,229,213,.15);
+    --panel:rgba(14,12,11,.62); --chip:rgba(20,16,13,.5); --frame:rgba(239,229,213,.55); --glow:#e9a35f;
+    --fig-amb:none; --fig-key:none; --sat:1; --veil:radial-gradient(70% 70% at 50% 50%, rgba(0,0,0,0) 40%, rgba(0,0,0,.55) 100%); --veil-blend:multiply;
+  }
+  #c{ transition:transform 1.4s cubic-bezier(.6,0,.2,1) }
+  body.skin-drape #c{ transform:perspective(1600px) rotateX(180deg) }
+  body.skin-drape .skinart{ opacity:1 }
+  body.skin-drape .figure{ opacity:0 !important }
+  /* the readout keeps its words but turns its marks around */
+  body.skin-drape .readout::before{ left:auto; right:-.375rem; border-left:0; border-right:1px solid var(--glow); border-top-color:var(--glow);
+    border-top-left-radius:0; border-top-right-radius:calc(var(--r) + .375rem) }
+  body.skin-drape .readout::after{ right:auto; left:-.375rem; border-right:0; border-left:1px solid var(--glow); border-bottom-color:var(--glow);
+    border-bottom-right-radius:0; border-bottom-left-radius:calc(var(--r) + .375rem) }
+  body.skin-drape .tabs button[aria-selected="true"]{ color:var(--glow); border-bottom-color:var(--glow); text-shadow:0 0 .6rem rgba(233,163,95,.55) }
+  body.skin-drape .sheet h3, body.skin-drape .tale h3, body.skin-drape .entry .tag{ color:var(--glow) }
+  body.skin-drape .sheet ol b, body.skin-drape .tale .tl b{ color:var(--glow) }
+  @media (prefers-reduced-motion: reduce){ #c{ transition:none } }
+
   @media (max-width: 1000px){
     body{ overflow:auto }
     main{ display:flex; flex-direction:column; padding:5.25rem 1rem 1.75rem; gap:0 }
@@ -278,6 +309,8 @@
       </defs>
       <path id="framePath" filter="url(#dry)"/>
     </svg>
+    <img class="skinart" id="skinart" alt="">
+    <div class="skins" id="skins" aria-label="皮肤" hidden></div>
     <div class="figure" id="figure"><img id="art" alt=""><div class="lit amb" aria-hidden="true"></div><div class="lit key" aria-hidden="true"></div></div>
   </section>
 
@@ -532,6 +565,7 @@ function renderPlate(){
   document.querySelectorAll("#dots button").forEach((b,i)=>b.setAttribute("aria-current", i===cur));
   if(window.HALL) HALL.accent(p.accent);
   if(window.syncStickers) syncStickers();
+  if(window.renderSkins) renderSkins();
   try{ history.replaceState(null,"","#"+p.id) }catch(e){}
 }
 
@@ -726,6 +760,39 @@ syncStickers();
     if(hit){ e.preventDefault(); applyApple(); saveApple(); } });
 })();
 
+
+/* ============================================================
+   皮肤：每个人一组，换上后整页跟着变
+   ============================================================ */
+const SKINS = {
+  iris:[
+    { id:"base",  name:"常服", thumb:"images/iris-default-thumb.webp" },
+    { id:"drape", name:"古希腊白布", thumb:"images/iris-drape-thumb.webp", art:"images/iris-drape.webp", night:true }
+  ]
+};
+const skinOf={};
+const skinsEl=$("#skins"), skinart=$("#skinart");
+function applySkin(){
+  const list=SKINS[PEOPLE[cur].id], s=list && list.find(x=>x.id===(skinOf[PEOPLE[cur].id]||"base"));
+  const special = s && s.art ? s : null;
+  document.body.classList.toggle("skin-drape", !!special);
+  if(special){ skinart.src=special.art; skinart.alt=`${PEOPLE[cur].full}，${special.name}`; }
+  if(window.HALL && HALL.force) HALL.force(special && special.night ? "night" : null);
+}
+window.renderSkins=()=>{
+  const list=SKINS[PEOPLE[cur].id];
+  skinsEl.hidden=!list || list.length<2;
+  if(list) skinsEl.innerHTML=list.map(s=>`<button type="button" data-skin="${s.id}" aria-pressed="${(skinOf[PEOPLE[cur].id]||"base")===s.id}" title="${s.name}" aria-label="皮肤：${s.name}"><img src="${s.thumb}" alt=""></button>`).join("");
+  applySkin();
+};
+skinsEl.addEventListener("click",e=>{
+  const b=e.target.closest("[data-skin]"); if(!b) return;
+  e.stopPropagation();
+  skinOf[PEOPLE[cur].id]=b.dataset.skin; renderSkins();
+  skinsEl.querySelector(`[data-skin="${b.dataset.skin}"]`).focus({focusVisible:false});
+});
+(SKINS[PEOPLE[cur].id]||[]).forEach(s=>{ if(s.art){ const im=new Image(); im.src=s.art; } });
+renderSkins();
 </script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -1019,6 +1086,7 @@ for(let i=0;i<N-1;i++){
   s.position.set(0,7,-i*BAY-BAY/2-1); s.scale.set(26,20,1); scene.add(s); hazes.push(s);
 }
 const doorLight=new THREE.PointLight(0xffffff,3,90,1.4); doorLight.position.set(0,8,farZ+2); scene.add(doorLight);
+const lamp=new THREE.PointLight(0xffffff,0,34,2); lamp.position.set(0,6,2); scene.add(lamp);
 const sun=new THREE.DirectionalLight(0xffffff,3);
 sun.castShadow=true; const SM=renderer.capabilities.maxTextureSize>=8192?4096:2048; sun.shadow.mapSize.set(SM,SM);
 Object.assign(sun.shadow.camera,{left:-62,right:62,top:62,bottom:-62,near:1,far:240});
@@ -1149,10 +1217,18 @@ const MOODS={
     bloom:[.5,.85,.5], grain:.045
   }
 };
+MOODS.night=Object.assign({}, MOODS.dark, {
+  bg:0x0c0a09, air:0x0c0a09, fogNear:6, fogFar:78, exposure:.9,
+  dusk:[0xff7f48,0], hemi:[0x6a5544,0x0c0806,.6], hemiK:[.12,.04],
+  door:[0xffb070,1.4], glow:.28, haze:[0xe58753,0], dust:[0xffc890,.3],
+  sky:[0x15120f,false], bloom:[.45,.7,.62], grain:.05, lamp:[0xffa65c,1.1]
+});
+let forcedMood=null;
 const lin=(c,hex)=>c.setHex(hex).convertSRGBToLinear();
 let accentHex=null, curMood=null;
 function setAccent(h){ accentHex=h; if(!curMood||!curMood.door[1]) return; const c=new THREE.Color(h).lerp(new THREE.Color(curMood.door[0]),.35); doorLight.color.copy(c); glow.material.color.copy(c); dirty=true; }
 function applyMood(name){
+  if(forcedMood) name=forcedMood;
   const m=MOODS[name]; curMood=m; const col=(c,hex)=> m.raw ? c.setHex(hex) : lin(c,hex);
   /* fog and clear color land after the shader's own encoding; through the bloom chain that space is linear */
   const air=c=> composer ? lin(new THREE.Color(),c) : new THREE.Color(c);
@@ -1179,10 +1255,11 @@ function applyMood(name){
   col(dustMat.color,m.dust[0]); dustMat.opacity=m.dust[1];
   /* the far air: in the morning as the original drew it, at dusk an exact taupe */
   skyMat.toneMapped=m.sky[1]; (m.sky[1] ? col : lin)(skyMat.color,m.sky[0]); skyMat.needsUpdate=true;
-  skyBelow.visible = name==='dark';
+  skyBelow.visible = name!=='light';
+  { const L=m.lamp||[0xffffff,0]; col(lamp.color,L[0]); lamp.intensity=L[1]; lamp.visible=L[1]>0; }
   if(bloom){ bloom.strength=m.bloom[0]; bloom.radius=m.bloom[1]; bloom.threshold=m.bloom[2]; }
   if(frost) frost.uniforms.uGrain.value=m.grain;
-  forecourt.visible = name==='dark';
+  forecourt.visible = name!=='light';
   canopy.visible = name==='light'; placeCanopy();
   buildShafts(m.shaft[0], m.shaft[1], col);
   if(accentHex!==null) setAccent(accentHex);
@@ -1225,7 +1302,7 @@ function frame(){
   if(!still) requestAnimationFrame(frame);
 }
 addEventListener("resize", resize); resize();
-window.HALL={ accent:setAccent, travel(){ if(!still){ tripStart=clock.getElapsedTime(); } }, focus(){ focusT=window.hallFocus?hallFocus():.4; if(still){ focusC=focusT; applyFocus(); dirty=true; frame(); } else { focusF=focusC; focusStart=clock.getElapsedTime(); } } };
+window.HALL={ accent:setAccent, travel(){ if(!still){ tripStart=clock.getElapsedTime(); } }, force(n){ if(forcedMood===n) return; forcedMood=n; applyMood(n||current()); dirty=true; if(still) frame(); }, focus(){ focusT=window.hallFocus?hallFocus():.4; if(still){ focusC=focusT; applyFocus(); dirty=true; frame(); } else { focusF=focusC; focusStart=clock.getElapsedTime(); } } };
 if(typeof PEOPLE!=="undefined") setAccent(PEOPLE[cur].accent);
 frame();
 })();
