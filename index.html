@@ -103,7 +103,7 @@
 
   /* ---------- C: the readout, same height as the frame ---------- */
   .readout{
-    position:fixed; z-index:3; right:4vw; top:var(--top); max-height:calc(100vh - var(--top) - var(--bot)); width:clamp(22.5rem, 33vw, 25rem);
+    position:fixed; z-index:3; right:4vw; top:var(--top); max-height:calc(100vh - var(--top) - var(--bot) - 8.9rem - 1.1rem); width:clamp(22.5rem, 33vw, 25rem);
     display:flex; flex-direction:column; padding:1.125rem 1.375rem 0;
     border:1px solid var(--line); border-radius:var(--r);
     background:var(--panel); -webkit-backdrop-filter:blur(0.625rem) saturate(.9); backdrop-filter:blur(0.625rem) saturate(.9);
@@ -230,24 +230,46 @@
   .sticker .key{ background:var(--fig-key); mix-blend-mode:soft-light }
   @media (prefers-reduced-motion: reduce){ .readout .in.entry, .sticker.pop{ animation:none } .sticker, .readout{ transition:none } }
 
-  /* ---------- the inventory: bottom right, it shows itself when the pointer comes near ---------- */
-  .inv{ position:fixed; z-index:2; right:4vw; bottom:var(--bot); width:clamp(22.5rem, 33vw, 25rem); height:11.5rem }
-  .inv[hidden]{ display:none }
-  .inv-grid{ position:absolute; right:0; bottom:0; display:grid; grid-template-columns:repeat(4, 4.4rem); gap:1.1rem .7rem;
-    opacity:0; transform:translateY(.6rem); transition:opacity .35s ease, transform .45s cubic-bezier(.2,.7,.2,1); pointer-events:none }
-  .inv:hover .inv-grid, .inv:focus-within .inv-grid{ opacity:1; transform:none; pointer-events:auto }
+  /* ---------- 背包: one row, a block aligned under the readout; it shows itself on hover ---------- */
+  .inv{ position:fixed; z-index:3; right:4vw; bottom:var(--bot); width:clamp(22.5rem, 33vw, 25rem);
+    padding:.85rem 1.1rem 1rem; border:1px solid transparent; border-radius:var(--r);
+    transition:background .35s ease, border-color .35s ease, -webkit-backdrop-filter .35s, backdrop-filter .35s }
+  .inv .bagtag{ display:flex; align-items:center; gap:.55rem; font-family:var(--mono); font-size:.62rem; letter-spacing:.16em; color:var(--dim) }
+  .inv .bagtag svg{ width:1.05rem; height:1.05rem; color:var(--ink) }
+  .inv .bagtag span{ opacity:0; transition:opacity .3s }
+  .inv-grid{ display:grid; grid-template-columns:repeat(4, 1fr); gap:.7rem; margin-top:.7rem;
+    opacity:0; transform:translateY(.4rem); transition:opacity .35s ease, transform .45s cubic-bezier(.2,.7,.2,1); pointer-events:none }
+  .inv:hover, .inv:focus-within, body.dragging .inv{ background:var(--panel); border-color:var(--line); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px) }
+  .inv:hover .inv-grid, .inv:focus-within .inv-grid, body.dragging .inv .inv-grid{ opacity:1; transform:none; pointer-events:auto }
+  .inv:hover .bagtag span, .inv:focus-within .bagtag span, body.dragging .inv .bagtag span{ opacity:1 }
   body.bare .inv{ display:none }
-  .slot{ all:unset; position:relative; box-sizing:border-box; width:4.4rem; height:4.4rem; border:1px solid var(--faint); border-radius:.6rem;
-    background:var(--panel); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); display:grid; place-items:center; color:var(--dim) }
-  .slot.empty::before{ content:"+"; font-weight:200; font-size:1.1rem; opacity:.55 }
-  .slot.item{ cursor:pointer; transition:border-color .25s }
-  .slot.item:hover{ border-color:var(--line) }
-  .slot.item img{ width:84%; height:84%; object-fit:contain; filter:drop-shadow(0 .2rem .35rem rgba(30,20,12,.3)); transition:transform .25s }
-  .slot.item:hover img{ transform:rotate(-4deg) scale(1.06) }
-  .slot[aria-pressed="true"]{ border-color:var(--ink) }
-  .slot[aria-pressed="true"]::after{ content:""; position:absolute; right:.35rem; top:.35rem; width:.36rem; height:.36rem; border-radius:50%; background:var(--glow, var(--ink)) }
-  .slot .cap{ position:absolute; top:calc(100% + .3rem); left:-.4rem; right:-.4rem; text-align:center; font-family:var(--mono); font-size:.58rem; letter-spacing:.08em; color:var(--dim); white-space:nowrap }
+
+  .slot{ all:unset; position:relative; box-sizing:border-box; aspect-ratio:1; border:1px solid var(--faint); border-radius:.6rem;
+    background:var(--panel); display:grid; place-items:center; color:var(--dim); touch-action:none }
+  .slot.empty::before{ content:"+"; font-weight:200; font-size:1.05rem; opacity:.5 }
+  .slot.full{ cursor:grab }
+  .slot.full:hover{ border-color:var(--line) }
+  .slot img{ width:78%; height:78%; object-fit:contain; pointer-events:none; filter:drop-shadow(0 .2rem .35rem rgba(30,20,12,.3)); transition:transform .25s }
+  .slot.full:hover img{ transform:rotate(-4deg) scale(1.06) }
+  .slot.over{ border-color:var(--ink); box-shadow:inset 0 0 0 1px var(--ink) }
+  .slot.lifted img{ opacity:.25 }
   .slot:focus-visible{ outline:1px solid var(--ink); outline-offset:3px }
+
+  /* ---------- 穿戴: two slots on the frame's side, wired to its edge ---------- */
+  .equip{ position:absolute; left:calc(100% + 1.3rem); top:0; bottom:0; width:4.6rem; z-index:3; pointer-events:none }
+  .eq{ position:absolute; left:0; width:4.6rem; pointer-events:auto }
+  .eq .slot{ width:4.6rem }
+  .eq .fig{ display:block; margin-bottom:.35rem; font-family:var(--mono); font-size:.6rem; letter-spacing:.12em; color:var(--ink); white-space:nowrap }
+  .eq::before{ content:""; position:absolute; right:100%; top:calc(.95rem + 2.3rem); width:1.3rem; height:1px; background:var(--line) }
+  .eq::after{ content:""; position:absolute; right:calc(100% + 1.3rem - .22rem); top:calc(.95rem + 2.3rem - .22rem); width:.44rem; height:.44rem; box-sizing:border-box;
+    border:1px solid var(--line); border-radius:50%; background:var(--bg) }
+  .eq.top{ top:16% } .eq.bottom{ top:50% }
+
+  /* the thing in hand while dragging */
+  .ghost{ position:fixed; z-index:20; width:3.6rem; height:3.6rem; pointer-events:none; transform:translate(-50%,-50%) rotate(-6deg);
+    filter:drop-shadow(0 .5rem .8rem rgba(30,20,12,.35)) }
+  .ghost img{ width:100%; height:100%; object-fit:contain }
+  body.dragging, body.dragging *{ cursor:grabbing !important }
   .skinart{ position:absolute; inset:.55rem; width:calc(100% - 1.1rem); height:calc(100% - 1.1rem); object-fit:cover; border-radius:calc(var(--r) - .55rem);
     opacity:0; transition:opacity .7s ease .25s; pointer-events:none }
 
@@ -276,8 +298,10 @@
     .frame{ order:2; align-self:center; margin-top:0; width:min(84vw, 25rem); height:calc((min(84vw, 25rem) - 2 * var(--pad)) / var(--A) + 2 * var(--pad)) }
     .plate{ order:3; margin-top:1.5rem; bottom:auto; width:auto } .nav{ margin-top:1.375rem }
     .readout{ order:4; margin-top:3rem; max-height:none }
-    .inv{ position:relative; inset:auto; width:auto; height:auto; order:5; margin-top:28px }
-    .inv-grid{ position:static; opacity:1; transform:none; pointer-events:auto; grid-template-columns:repeat(4, 4.4rem); justify-content:start; padding-bottom:1.6rem }
+    .inv{ position:relative; inset:auto; width:auto; height:auto; order:5; margin:1.75rem 0 1.5rem; background:var(--panel); border-color:var(--line) }
+    .inv .bagtag span{ opacity:1 }
+    .inv-grid{ opacity:1; transform:none; pointer-events:auto }
+    .equip{ left:auto; right:.6rem; width:3.6rem } .eq, .eq .slot{ width:3.6rem } .eq::before, .eq::after, .eq .fig{ display:none }
     .body, .page{ overflow:visible }
   }
   @media (prefers-reduced-motion: reduce){
@@ -319,6 +343,10 @@
       <path id="framePath" filter="url(#dry)"/>
     </svg>
     <img class="skinart" id="skinart" alt="">
+    <div class="equip" id="equip" aria-label="穿戴">
+      <div class="eq top"><span class="fig">Fig.1 · 上衣</span><span class="slot empty" data-drop="worn" data-slot="top"></span></div>
+      <div class="eq bottom"><span class="fig">Fig.2 · 下衣</span><span class="slot empty" data-drop="worn" data-slot="bottom"></span></div>
+    </div>
     <div class="figure" id="figure"><img id="art" alt=""><div class="lit amb" aria-hidden="true"></div><div class="lit key" aria-hidden="true"></div></div>
   </section>
 
@@ -331,7 +359,10 @@
     </nav>
   </div>
 
-  <aside class="inv" id="inv" aria-label="物品栏" hidden><div class="inv-grid" id="invGrid"></div></aside>
+  <aside class="inv" id="inv" aria-label="背包">
+    <div class="bagtag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" aria-hidden="true"><path d="M5 9.5c0-2.2 1.8-4 4-4h6c2.2 0 4 1.8 4 4V19a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 5 19z"/><path d="M9 5.5V4.8a3 3 0 0 1 6 0v.7"/><path d="M8.5 12.5h7v3h-7z"/></svg><span>INVENTORY 背包</span></div>
+    <div class="inv-grid" id="invGrid"></div>
+  </aside>
 
   <section class="readout" id="readout">
     <div class="in" id="readin" aria-live="polite"></div>
@@ -627,7 +658,7 @@ addEventListener("resize", ()=>{ fitName(); fitRole(); });
 if(document.fonts) document.fonts.ready.then(()=>{ fitName(); fitRole(); });
 
 /* the hall's door stands behind the painting */
-window.hallFocus = ()=>{ if(document.body.classList.contains("bare")) return .5; const st=$("#stage"), f=(st.offsetLeft+st.offsetWidth/2)/innerWidth; return (typeof turned!=="undefined" && turned) ? 1-f : f; };
+window.hallFocus = ()=>{ if(document.body.classList.contains("bare")) return .5; const st=$("#stage"), f=(st.offsetLeft+st.offsetWidth/2)/innerWidth; return f; };
 
 /* the frame: a rounded rectangle, the same radius as the readout */
 function drawFrame(){
@@ -739,8 +770,8 @@ function revealApple(){
   store.set("helios-sticker-apple-found", true);
 }
 const APPLE_OWNER="iris";
-window.syncStickers=()=>{ const mine=PEOPLE[cur].id===APPLE_OWNER, found=store.get("helios-sticker-apple-found");
-  apple.classList.toggle("away", !mine); if(found && apple.hidden){ apple.hidden=false; placeApple(); } };
+window.syncStickers=()=>{ const mine=PEOPLE[cur].id===APPLE_OWNER, found=store.get("helios-sticker-apple-found"), bagged=store.get("helios-apple-in-bag");
+  apple.classList.toggle("away", !mine || !!bagged); if(found && apple.hidden){ apple.hidden=false; placeApple(); } };
 syncStickers();
 (function(){
   const handle=apple.querySelector(".handle");
@@ -757,7 +788,11 @@ syncStickers();
   apple.addEventListener("pointermove",e=>{ if(!down) return; const dx=e.clientX-sx, dy=e.clientY-sy;
     if(!moved && Math.hypot(dx,dy)>4){ moved=true; apple.classList.add("drag"); }
     if(moved){ apple.style.left=Math.max(-10,Math.min(innerWidth-40, ox+dx))+"px"; apple.style.top=Math.max(-10,Math.min(innerHeight-40, oy+dy))+"px"; } });
-  apple.addEventListener("pointerup",()=>{ if(!down) return; down=false; apple.classList.remove("drag"); if(moved) saveApple(); });
+  apple.addEventListener("pointermove",e=>{ if(down && moved){ document.body.classList.add("dragging"); markOver(e.clientX,e.clientY,"apple"); } });
+  apple.addEventListener("pointerup",e=>{ if(!down) return; down=false; apple.classList.remove("drag");
+    if(moved){ const t=dropAt(e.clientX,e.clientY); clearOver(); document.body.classList.remove("dragging");
+      if(t && t.dataset.drop==="bag"){ putInBag("apple", +t.dataset.i); return; }
+      saveApple(); } });
   apple.addEventListener("click",e=>{ if(moved){ e.preventDefault(); e.stopImmediatePropagation(); moved=false; return; } openEntry("apple"); });
   /* the wheel resizes; with Shift held it turns */
   apple.addEventListener("wheel",e=>{ e.preventDefault();
@@ -772,57 +807,101 @@ syncStickers();
 
 
 /* ============================================================
-   物品栏与皮肤：衣装是物品，穿上它，整页跟着变
+   背包与穿戴：东西可以拖。衣装拖到人物旁的卡槽里就穿上，苹果可以收进背包
    ============================================================ */
 const CLOTH_ICON="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><g fill="#faf7f0" stroke="#faf7f0" stroke-width="8" stroke-linejoin="round"><path d="M14 20 Q50 10 86 20 L88 66 Q84 76 76 70 L72 84 Q63 92 56 82 L50 92 Q41 86 39 78 L29 88 Q19 80 22 68 Z"/></g><path d="M14 20 Q50 10 86 20 L88 66 Q84 76 76 70 L72 84 Q63 92 56 82 L50 92 Q41 86 39 78 L29 88 Q19 80 22 68 Z" fill="#ece4d4"/><path d="M50 15 Q53 50 48 88 L56 82 Q60 50 60 17 Z" fill="#d5cab6"/><path d="M30 19 Q26 46 29 84 L35 80 Q34 48 36 18 Z" fill="#ddd3c1"/><path d="M70 18 Q74 46 72 82 L78 70 Q80 44 78 20 Z" fill="#d2c6b1"/><g fill="none" stroke="#a89b85" stroke-width="1.8" stroke-linecap="round"><path d="M34 22 Q30 50 32 82"/><path d="M50 16 Q53 50 48 88"/><path d="M66 20 Q71 48 68 80"/></g><path d="M14 20 Q50 10 86 20" fill="none" stroke="#c9b89c" stroke-width="2.4"/><path d="M60 30 l6 2 M24 40 l5 -1" stroke="#e8c7a6" stroke-width="2" stroke-linecap="round"/></svg>`);
 const ITEMS = {
-  iris:[ { id:"drape", name:"古希腊白布", icon:CLOTH_ICON, skin:{ art:"images/iris-drape.webp", mood:"dark", turn:true } } ]
+  drape:{ owner:"iris", name:"古希腊白布", icon:CLOTH_ICON, wear:"bottom", skin:{ art:"images/iris-drape.webp", mood:"dark", turn:true } },
+  apple:{ owner:"iris", name:"苹果", icon:APPLE_SRC, entry:"apple", sticker:true }
 };
-const SLOTS=8, worn={};
-const inv=$("#inv"), invGrid=$("#invGrid"), skinart=$("#skinart");
-let turned=false;
-function turnHall(on){
-  if(on===turned) return; turned=on;
-  const c=$("#c"), s=Math.max(innerWidth/innerHeight, innerHeight/innerWidth)*1.02;
-  const from=on?0:-180, to=on?-180:-360;
-  if(reduce || !c.animate){ c.style.transform=on?"rotate(-180deg)":""; }
-  else{
-    c.style.transform="";
-    const an=c.animate([{transform:`rotate(${from}deg) scale(1)`},{transform:`rotate(${from-90}deg) scale(${s})`},{transform:`rotate(${to}deg) scale(1)`}],
-      {duration:1500, easing:"cubic-bezier(.65,0,.35,1)", fill:"forwards"});
-    an.onfinish=()=>{ c.style.transform=on?"rotate(-180deg)":""; an.cancel(); };
-  }
-  if(window.HALL) HALL.focus();
-}
-function applySkin(){
-  const id=PEOPLE[cur].id, it=(ITEMS[id]||[]).find(x=>x.id===worn[id]);
-  const sk=it && it.skin;
-  document.body.classList.toggle("skin-drape", !!sk);
-  if(sk){ skinart.src=sk.art; skinart.alt=`${PEOPLE[cur].full}，${it.name}`; }
-  if(window.HALL && HALL.force) HALL.force(sk ? sk.mood : null);
-  turnHall(!!(sk && sk.turn));
+const BAG_N=4;
+const INV={ iris:{ bag:["drape",null,null,null], worn:{top:null,bottom:null} }, aurelia:{ bag:[null,null,null,null], worn:{top:null,bottom:null} } };
+if(store.get("helios-apple-in-bag")){ const b=INV.iris.bag, i=b.indexOf(null); if(i>=0) b[i]="apple"; }
+const inv=$("#inv"), invGrid=$("#invGrid"), skinart=$("#skinart"), equip=$("#equip");
+const me=()=>INV[PEOPLE[cur].id];
+
+function slotHTML(id, attrs){
+  const it=id && ITEMS[id];
+  return it ? `<span class="slot full" tabindex="0" role="button" ${attrs} data-item="${id}" aria-label="${it.name}"><img src="${it.icon}" alt="" draggable="false"></span>`
+            : `<span class="slot empty" ${attrs} aria-hidden="true"></span>`;
 }
 window.renderSkins=()=>{
-  const id=PEOPLE[cur].id, list=ITEMS[id]||[];
-  inv.hidden=!list.length;
-  let html="";
-  for(let i=0;i<SLOTS;i++){
-    const it=list[i];
-    html+= it ? `<button type="button" class="slot item" data-item="${it.id}" aria-pressed="${worn[id]===it.id}" aria-label="${it.name}，${worn[id]===it.id?"已穿戴，点击脱下":"点击穿上"}"><img src="${it.icon}" alt=""><span class="cap">${it.name}</span></button>`
-              : `<span class="slot empty" aria-hidden="true"></span>`;
-  }
-  invGrid.innerHTML=html;
+  const s=me();
+  invGrid.innerHTML=s.bag.map((id,i)=>slotHTML(id, `data-drop="bag" data-i="${i}"`)).join("");
+  ["top","bottom"].forEach(k=>{ const box=equip.querySelector(`.eq.${k}`);
+    box.querySelector(".slot").outerHTML=slotHTML(s.worn[k], `data-drop="worn" data-slot="${k}"`); });
   applySkin();
 };
-invGrid.addEventListener("click",e=>{
-  const b=e.target.closest("[data-item]"); if(!b) return;
-  e.stopPropagation();
-  const id=PEOPLE[cur].id; worn[id] = worn[id]===b.dataset.item ? null : b.dataset.item;
+function applySkin(){
+  const s=me(), sk=Object.values(s.worn).map(id=>id && ITEMS[id].skin).find(Boolean);
+  document.body.classList.toggle("skin-drape", !!sk);
+  if(sk){ skinart.src=sk.art; skinart.alt=`${PEOPLE[cur].full}，${ITEMS[s.worn.bottom||s.worn.top].name}`; }
+  if(window.HALL && HALL.force) HALL.force(sk ? sk.mood : null);
+  if(window.HALL && HALL.roll) HALL.roll(!!(sk && sk.turn));
+}
+
+/* moving things about */
+function takeOut(id){ const s=me(); s.bag=s.bag.map(x=>x===id?null:x); Object.keys(s.worn).forEach(k=>{ if(s.worn[k]===id) s.worn[k]=null; }); }
+function putInBag(id, i){
+  const s=me(); takeOut(id);
+  if(s.bag[i]!=null && s.bag[i]!==id){ const j=s.bag.indexOf(null); if(j<0) return renderSkins(); i=j; }
+  s.bag[i]=id;
+  if(id==="apple"){ store.set("helios-apple-in-bag", true); syncStickers(); }
   renderSkins();
-  /* a mouse click lets the inventory fold away; a keyboard press keeps focus on the slot */
-  if(e.detail===0){ const nb=invGrid.querySelector(`[data-item="${b.dataset.item}"]`); if(nb) nb.focus(); }
+}
+function wear(id, slot){
+  const s=me(), it=ITEMS[id]; if(it.wear!==slot) return false;
+  const prev=s.worn[slot]; takeOut(id);
+  if(prev && prev!==id){ const j=s.bag.indexOf(null); if(j>=0) s.bag[j]=prev; }
+  s.worn[slot]=id; renderSkins(); return true;
+}
+function unwear(id){ const s=me(), j=s.bag.indexOf(null); if(j<0) return; takeOut(id); s.bag[j]=id; renderSkins(); }
+function toBoard(id, x, y){
+  if(id!=="apple") return;
+  takeOut(id); store.set("helios-apple-in-bag", false);
+  const w=apple.offsetWidth||46; apple.style.left=(x-w/2)+"px"; apple.style.top=(y-w/2)+"px"; saveApple(); syncStickers(); renderSkins();
+}
+
+/* drag and drop, by pointer: works with a mouse, a pen or a finger */
+function dropAt(x,y){ for(const el of document.elementsFromPoint(x,y)){ const d=el.closest("[data-drop]"); if(d) return d; } return null; }
+function clearOver(){ document.querySelectorAll(".slot.over").forEach(el=>el.classList.remove("over")); }
+function markOver(x,y,id){ clearOver(); const t=dropAt(x,y); if(!t) return;
+  if(t.dataset.drop==="bag" || (t.dataset.drop==="worn" && ITEMS[id].wear===t.dataset.slot)) t.classList.add("over"); }
+let drag=null;
+document.addEventListener("pointerdown",e=>{
+  const sl=e.target.closest(".slot.full"); if(!sl || !e.isPrimary) return;
+  e.stopPropagation(); e.preventDefault();
+  drag={ id:sl.dataset.item, from:sl, x:e.clientX, y:e.clientY, moved:false, ghost:null };
+}, true);
+document.addEventListener("pointermove",e=>{
+  if(!drag) return;
+  if(!drag.moved && Math.hypot(e.clientX-drag.x, e.clientY-drag.y)>5){
+    drag.moved=true; document.body.classList.add("dragging"); drag.from.classList.add("lifted");
+    const g=document.createElement("div"); g.className="ghost"; g.innerHTML=`<img src="${ITEMS[drag.id].icon}" alt="">`; document.body.appendChild(g); drag.ghost=g;
+  }
+  if(drag.moved){ drag.ghost.style.left=e.clientX+"px"; drag.ghost.style.top=e.clientY+"px"; markOver(e.clientX,e.clientY,drag.id); }
 });
-Object.values(ITEMS).flat().forEach(it=>{ if(it.skin){ const im=new Image(); im.src=it.skin.art; } });
+document.addEventListener("pointerup",e=>{
+  if(!drag) return;
+  const d=drag; drag=null;
+  if(d.ghost) d.ghost.remove(); d.from.classList.remove("lifted"); document.body.classList.remove("dragging"); clearOver();
+  e.stopPropagation();
+  if(!d.moved){ activate(d.id, d.from); return; }
+  const t=dropAt(e.clientX,e.clientY);
+  if(t && t.dataset.drop==="bag") putInBag(d.id, +t.dataset.i);
+  else if(t && t.dataset.drop==="worn") wear(d.id, t.dataset.slot);
+  else if(ITEMS[d.id].sticker) toBoard(d.id, e.clientX, e.clientY);
+}, true);
+/* a tap, or Enter: wear it, take it off, or read it */
+function activate(id, el){
+  const it=ITEMS[id];
+  if(el.dataset.drop==="worn") unwear(id);
+  else if(it.wear) wear(id, it.wear);
+  else if(it.entry) openEntry(it.entry);
+}
+document.addEventListener("keydown",e=>{ const sl=e.target.closest && e.target.closest(".slot.full"); if(sl && (e.key==="Enter"||e.key===" ")){ e.preventDefault(); activate(sl.dataset.item, sl); } });
+document.addEventListener("click",e=>{ if(e.target.closest(".slot, .equip, .inv")) e.stopPropagation(); }, true);
+Object.values(ITEMS).forEach(it=>{ if(it.skin){ const im=new Image(); im.src=it.skin.art; } });
 renderSkins();
 </script>
 
@@ -1334,6 +1413,7 @@ function applyFocus(){ const w=innerWidth,h=innerHeight; if(w>1000){ const full=
 let mx=0,my=0,tx=0,ty=0, dirty=true;
 addEventListener("pointermove", e=>{ tx=e.clientX/innerWidth-.5; ty=e.clientY/innerHeight-.5; if(still) requestAnimationFrame(frame); });
 const clock=new THREE.Clock();
+let rollC=0, rollF=0, rollT=0, rollStart=-1; const ROLL_DUR=1.6;
 let push=0, tripStart=-1; const TRIP=1.15;
 function frame(){
   /* a still picture: nothing drifts, pulses or flickers. The camera only follows
@@ -1343,18 +1423,21 @@ function frame(){
   mx+=dx*k; my+=dy*k;
   const focusing = focusStart>=0; if(focusing){ const q=Math.min(1,(clock.getElapsedTime()-focusStart)/FOCUS_DUR), e=1-Math.pow(1-q,3); focusC=focusF+(focusT-focusF)*e; applyFocus(); if(q>=1) focusStart=-1; }
   const flowing = !still && WATER.uWater.value>0; if(flowing) WATER.uTime.value=clock.getElapsedTime();
-  const travelling = tripStart>=0 || focusing || flowing;
+  const rolling = rollStart>=0; if(rolling){ const q=Math.min(1,(clock.getElapsedTime()-rollStart)/ROLL_DUR), e=q<.5?4*q*q*q:1-Math.pow(-2*q+2,3)/2; rollC=rollF+(rollT-rollF)*e; if(q>=1) rollStart=-1; }
+  const travelling = tripStart>=0 || focusing || flowing || rolling;
   if(tripStart>=0){ const p=Math.min(1,(clock.getElapsedTime()-tripStart)/TRIP); push=(1-Math.cos(Math.PI*Math.min(p,.62)/.62))/2*9; if(p>=1){ push=0; tripStart=-1; } }
   if(moving || dirty || travelling){
-    camera.position.set(mx*2.4, 3.4-my*1.6, 16-push);
-    camera.lookAt(mx*1.2, 7.4-my*1.2, -60);
+    const rc=Math.cos(rollC), rs=Math.sin(rollC), px=mx*2.4, py=-my*1.6, lx=mx*1.2, ly=-my*1.2;
+    camera.up.set(rs, rc, 0);
+    camera.position.set(px*rc+py*rs, 3.4+(-px*rs+py*rc), 16-push);
+    camera.lookAt(lx*rc+ly*rs, 7.4+(-lx*rs+ly*rc), -60);
     if(composer) composer.render(); else renderer.render(scene,camera);
     dirty=false;
   }
   if(!still) requestAnimationFrame(frame);
 }
 addEventListener("resize", resize); resize();
-window.HALL={ accent:setAccent, travel(){ if(!still){ tripStart=clock.getElapsedTime(); } }, force(n){ if(forcedMood===n) return; forcedMood=n; applyMood(n||current()); dirty=true; if(still) frame(); }, focus(){ focusT=window.hallFocus?hallFocus():.4; if(still){ focusC=focusT; applyFocus(); dirty=true; frame(); } else { focusF=focusC; focusStart=clock.getElapsedTime(); } } };
+window.HALL={ accent:setAccent, travel(){ if(!still){ tripStart=clock.getElapsedTime(); } }, roll(on){ const tgt=on?Math.PI:0; if(Math.abs(tgt-rollT)<1e-6) return; rollT=tgt; if(still){ rollC=rollT; dirty=true; frame(); } else { rollF=rollC; rollStart=clock.getElapsedTime(); } }, force(n){ if(forcedMood===n) return; forcedMood=n; applyMood(n||current()); dirty=true; if(still) frame(); }, focus(){ focusT=window.hallFocus?hallFocus():.4; if(still){ focusC=focusT; applyFocus(); dirty=true; frame(); } else { focusF=focusC; focusStart=clock.getElapsedTime(); } } };
 if(typeof PEOPLE!=="undefined") setAccent(PEOPLE[cur].accent);
 frame();
 })();
