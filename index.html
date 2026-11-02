@@ -569,45 +569,9 @@ function rowsHTML(rows){
     return `<li>${key}${v}</li>`;
   }).join("")}</ul>`;
 }
-/* 资料：客观记录 */
-const SHEET = {
-  iris:{
-    role:["ex 情报部部长","首都学院哲学教授"], place:"Enore 省 · 背靠群山的小镇",
-    stats:[["172cm","45kg","清瘦"],["INTJ","混乱中立"]],
-    look:["白色长发，侧刘海遮住左眼；大而浅的灰色眼睛","偏爱白色衬衫、白皮衣；上班穿内阁制服，半编发"],
-    events:["<button class=\"term\" data-term=\"meta\">形而上学魔法</button>的作者，死后引发魔法范式革命","内阁最年轻的部长，时任 27 岁","38 岁因政治罪判刑，当众抗命展示魔法，当天被处死"],
-    likes:["读书雅俗不分","威士忌纯饮","草莓奶油蛋糕","Demisexual lesbian"]
-  },
-  aurelia:{
-    role:["王女","Helios 国王"], place:"首都",
-    stats:[["168cm","54kg","线条美型"],["ENTP","中立邪恶"]],
-    look:["金橙色头发，金色眼睛；Helios 家族标准的锋利容貌，笑起来明亮","偏爱中性的西裤、金色和繁复的装饰；收藏拜占庭式厚重织锦，私下穿丝绸衬衫和金丝纱外套"],
-    events:["14 岁，在哥哥 Julian 的<button class=\"term\" data-term=\"birthday\" data-sore>生日宴</button>上嫁祸准王妃，制造当众闹剧","24 岁，北方内战中与中央军一同率军支援前线，3 个月内平定内乱"],
-    likes:["Bisexual","???"]
-  },
-  /* worn with the North Academy uniform: who she was at eighteen */
-  iris_academy:{
-    role:["北方学院二年级学生"], place:"Enore 城教会学校出身（她只这么说）",
-    stats:[["172cm","清瘦"],["INTJ","混乱中立"]],
-    look:["白色长发随手一扎，侧刘海遮住左眼；大而浅的灰色眼睛","制服马甲是二手的，灰色针织洗得发白；整个冬天只有这一身"],
-    events:["19 岁发表了一篇论文，被学院老头们一顿批评。成了学院名人","和 Helios 的公主住同一间宿舍，公主身边的‘朋友’???"],
-    likes:["泡图书馆取暖","便宜的酒","用牌技打工"]
-  },
-  aurelia_academy:{
-    role:["北方学院学生","Helios王女"], place:"首都",
-    stats:[["168cm","线条美型"],["ENTP","中立邪恶"]],
-    look:["金橙色头发，金色眼睛；Helios 家族标准的锋利容貌","虽然穿着学院统一制服但领结从来不按校规系，菱格袜也不是学院发的"],
-    events:["16 岁被送来北方上学，是王室中的个例。理由众说纷纭...","和一个白色头发的穷学生住进了同一间宿舍"],
-    likes:["广交朋友","flirt","骑马","讨厌黄色的裙子"]
-  }
-};
-SHEET.iris_drape={
-  role:["一级政治犯","形而上学魔法的源头"], place:"首都 · 大教堂正门",
-  stats:[["38 岁","消瘦"],["INTJ","混乱中立"]],
-  look:["白发散着，身上只裹一块素净白布"],
-  events:"Iris在流放仪式上当众抗命，在大教堂展示了<button class=\"term\" data-term=\"meta\">形而上学魔法</button>。剥夺她魔法的那一击偏离了轨道，落在了行刑人身上。当天，被大教堂的钟绳吊死在正门口。死后她的理论改写了整个世界对魔法的理解",
-  likesLabel:"遗物", likes:["笔记本，留给 Kris","遗书，只写给 Liora"]
-};
+/* 资料、故事、词条、台词：全部来自 content/ 里的 Markdown，见文件末尾的 loadContent */
+const SHEET = {}, STORY = {}, ENTRIES = {};
+let contentReady=false;
 const sheetOver={};
 /* a secret's "read more" only surfaces once its hidden part has been looked at */
 const seenMore=new Set();
@@ -618,72 +582,24 @@ document.addEventListener("mouseover", unseal); document.addEventListener("focus
 document.addEventListener("click",e=>{ const s=e.target.closest(".spoil"); if(s) s.classList.toggle("open"); });
 document.addEventListener("keydown",e=>{ const s=e.target.closest && e.target.closest(".spoil"); if(s && (e.key==="Enter"||e.key===" ")){ e.preventDefault(); s.classList.toggle("open"); } });    /* person id -> the sheet an outfit swaps in */
 function sheetHTML(p){
-  const s=SHEET[sheetOver[p.id] || p.id];
+  const s=SHEET[sheetOver[p.id] || p.id]; if(!s) return "";
   return `<div class="sheet">
     <div><p class="role">${s.role.join("<i>·</i>")}</p>${s.place?`<p class="place">${s.place}</p>`:""}</div>
     <div class="stats">${s.stats.map(g=>g.map(x=>`<span>${x}</span>`).join("")).join("<em>｜</em>")}</div>
-    <div><h3>外貌</h3>${s.look.map(t=>`<p>${t}</p>`).join("")}</div>
-    <div><h3>知名事件</h3>${typeof s.events==="string" ? `<p class="told">${s.events}</p>` : `<ol>${s.events.map((t,i)=>`<li><b>${String(i+1).padStart(2,"0")}</b><span>${t}</span></li>`).join("")}</ol>`}</div>
-    <div><h3>${s.likesLabel||"习惯偏好"}</h3><div class="likes">${s.likes.map(t=>`<span>${t}</span>`).join("<i>·</i>")}</div></div>
+    ${s.sections.map(sec=>`<div><h3>${sec.h}</h3>${
+      sec.kind==="ol" ? `<ol>${sec.items.map((t,i)=>`<li><b>${pad(i+1)}</b><span>${spoil(t)}</span></li>`).join("")}</ol>`
+      : sec.kind==="dots" ? `<div class="likes">${sec.items.map(t=>`<span>${spoil(t)}</span>`).join("<i>·</i>")}</div>`
+      : sec.items.map(t=>`<p${sec.h==="知名事件"?' class="told"':""}>${spoil(t)}</p>`).join("")}</div>`).join("")}
   </div>`;
 }
-/* 故事：人物关系，然后事件 */
-const STORY = {
-  iris:{
-    rel:[["Aurelia","室友，政治伙伴，和 Iris 纠缠了大半辈子的人。本作的国王。","aurelia"],
-         ["Liora","损友，Iris 是她孩子的教母。唯一收到 Iris 遗书的挚友。"],
-         ["Cyrus","青年时代的研究搭档，后来闹掰了。最接近 Iris 真面目的人之一。"],
-         ["Kris","Iris 唯一亲自带过的学生，继承了她的魔法理论。Iris 的死改变了她。"]],
-    events:[["14 岁","离家出走到 Enore 城，进了 Varn 资助的教会学校，认识 Liora。从一本东方诗集里给自己取名 Lyren。"],
-            ["19 岁","北方学院二年级。发表<button class=\"term\" data-term=\"meta\">形而上学魔法</button>论文的上卷，读起来像哲学散文，引起学术圈热议。Aurelia 在图书馆“偶遇”她，两人成为室友。"],
-            ["25 岁","随 Aurelia 参与<button class=\"term\" data-term=\"civilwar\">北方内战</button>。内战后回到首都连升两级。她告诉 Cyrus 自己要放弃研究、专心从政，两人大吵一架。"],
-            ["27 岁","Aurelia 登基，她以情报副大臣身份入阁。疑似参与或主导了 Solonne 家族前王妃 Cordelia 的清算。后正式成为情报部部长。"],
-            ["34 岁","毫无征兆地辞职。后进入首都学院成为哲学教授。"],
-            ["38 岁","被捕、受审、判流放，在大教堂抗命，当天被绞死。"]]
-  },
-  aurelia:{
-    rel:[["Julian","哥哥。她最爱的人，也是最恨的人。死在北方内战。"],
-         ["Iris","室友，同窗，政治伙伴。喜欢她，却从没给过她名分。","iris"],
-         ["Gauvin","第二个哥哥，教她骑马。当上国王后还会去找他下棋。"],
-         ["Owen","从小互相看不顺眼，后来与她公开订婚。"]],
-    events:[["14 岁","嚷着不嫁人、只嫁哥哥，拉上 Lucian 和 Gav 一场场搅黄 Julian 的约会。"],
-            ["16 岁","因为生日宴那件事，Solonne 家提议、Julian 同意，她被送往北方学院。"],
-            ["18 岁","观察 Iris 一年后，在图书馆制造了一场偶遇，两人成为室友。"],
-            ["24 岁","北方内战，Julian 死在北方。"],
-            ["27 岁","加冕，以北方灾荒为由搁置与 Owen 的婚礼。清算 Cordelia。"],
-            ["38 岁","在大教堂下令剥夺 Iris 的魔法，最终下令当场处死。"]]
-  }
-};
-STORY.iris_drape={
-  secrets:[["关于遗书","唯一的遗书写给了 Liora。【Kris 什么都没有收到。】"],
-           ["关于那天","【那天是晴天。】"]]
-};
-/* the uniform turns the second page into 秘闻: who they were then, and what nobody saw.
-   【】 marks a hidden span, black until hovered */
-STORY.iris_academy={
-  rel:[["Aurelia","室友。在图书馆“偶遇”她的公主。","aurelia"],
-       ["Liora","教会学校时的朋友，Iris 的口音是学着她褪掉的。"]],
-  secrets:[["关于名字","Lyren 是她从一本东方诗集里挑的，她本姓 【Nord】。"],
-           ["关于爱情","【十六岁那年，有个女孩把她从酒馆门口带回家过了一夜。她没再见过她。】","winter"]]
-};
-STORY.aurelia_academy={
-  rel:[["Julian","哥哥。点头同意把她送去北方的人。"],
-       ["Cordelia","准嫂子，【!生日宴上被她嫁祸的人。】"],
-       ["Iris","观察了一整年的穷学生，后来的室友。","iris"]],
-  secrets:[["关于偶遇Iris","【图书馆那次不是偶然，她已经看了那个白头发的学生一整年。】"],
-           ["关于被送来北方","【!生日宴闹剧】后，她一直以为是哥哥Julian 的意思。提议的其实是 Solonne 家"]]
-};
 const spoil=t=>t.replace(/【(!?)(.*?)】/g,(m,sore,x)=>`<span class="spoil"${sore?" data-sore":""} tabindex="0" role="button" aria-label="隐藏内容，悬停或点按显示">${x}</span>`);
 function storyHTML(p){
-  const s=STORY[sheetOver[p.id] || p.id];
-  return `<div class="tale">
-    ${s.rel ? `<h3>人物关系</h3>
-    <dl class="rel">${s.rel.map(([n,t,go])=>`<dt>${go?`<button class="go" data-go="${go}">${n}</button>`:n}</dt><dd>${spoil(t)}</dd>`).join("")}</dl>` : ""}
-    ${s.secrets ? `<h3>秘闻</h3>
-    <dl class="secrets">${s.secrets.map(([h,t,more])=>`<dt>${h}</dt><dd${more && /【/.test(t) && !seenMore.has(more) ? ` class="sealed" data-more="${more}"` : ""}>${spoil(t)}${more?` <button class="more" type="button" data-term="${more}">阅读更多</button>`:""}</dd>`).join("")}</dl>`
-    : `<h3>事件</h3>
-    <ul class="tl">${s.events.map(([a,t])=>`<li><b>${a.replace(" 岁","")}</b>${t}</li>`).join("")}</ul>`}
-  </div>`;
+  const s=STORY[sheetOver[p.id] || p.id]; if(!s) return "";
+  return `<div class="tale">${s.sections.map(sec=>`<h3>${sec.h}</h3>${
+    sec.kind==="rel" ? `<dl class="rel">${sec.items.map(([n,t,go])=>`<dt>${go?`<button class="go" data-go="${go}">${n}</button>`:n}</dt><dd>${spoil(t)}</dd>`).join("")}</dl>`
+    : sec.kind==="tl" ? `<ul class="tl">${sec.items.map(([a,t])=>`<li><b>${a.replace(" 岁","")}</b>${spoil(t)}</li>`).join("")}</ul>`
+    : sec.kind==="secrets" ? `<dl class="secrets">${sec.items.map(([h,t,more])=>`<dt>${h}</dt><dd${more && /【/.test(t) && !seenMore.has(more) ? ` class="sealed" data-more="${more}"` : ""}>${spoil(t)}${more?` <button class="more" type="button" data-term="${more}">阅读更多</button>`:""}</dd>`).join("")}</dl>`
+    : sec.items.map(t=>`<p>${spoil(t)}</p>`).join("")}`).join("")}</div>`;
 }
 function fitRole(){
   const r=readin.querySelector(".role"); if(!r) return;
@@ -694,11 +610,12 @@ let view=null;   /* null: the person's own pages; otherwise the key of an open e
 function renderReadout(){
   const p=PEOPLE[cur];
   readin.classList.toggle("entry", !!view);
+  if(!contentReady){ readin.innerHTML=""; return; }
   if(view){ readin.innerHTML=entryHTML(view); return; }
   readin.innerHTML = `
     <div class="tabs" role="tablist">
       <button role="tab" aria-selected="${tab===0}" data-tab="0">Profile<small>资料</small></button>
-      <button role="tab" aria-selected="${tab===1}" data-tab="1">${(STORY[sheetOver[p.id]]||{}).secrets ? "Secrets<small>秘闻</small>" : "Story<small>故事</small>"}</button>
+      <button role="tab" aria-selected="${tab===1}" data-tab="1">${(STORY[sheetOver[p.id]]||{}).label==="秘闻" ? "Secrets<small>秘闻</small>" : "Story<small>故事</small>"}</button>
     </div>
     ${tab===0 ? `
       <div class="body">${sheetHTML(p)}</div>`
@@ -798,41 +715,8 @@ cur=start; renderPlate(); renderReadout(); drawFrame();
 /* ============================================================
    词条与物品：都在资料框里打开，替换它的内容
    ============================================================ */
-const ENTRIES = {
-  meta:{ tag:"词条 · 魔法理论", title:"形而上学魔法", sticker:"apple", body:[
-    ["",[
-      "元素魔法建立在一个几百年来没人怀疑过的前提上：世界由现成的东西组成，火有火的属性，水有水的属性，法师的天赋在于让自己成为介质，去操控这些本来就在那里的东西。学院的训练，教的都是把这种操控做得更精准、更细。Iris 的转向从这个前提底下开始。她问，一团火在被法师理解之前是什么？她的回答是，没有任何东西存在于关系之外。",
-      "火、光、护盾，这些名字是人与世界相遇时默认给出的解释，事物只在某一次相遇里，才成为它所是的样子。法师本来就是以自身为介质作用于现实的人，那么魔法真正发生的地方，就在法师与能量之间的那段关系里。"
-    ]],
-    ["论文",[
-      "Iris 的论文分上下两卷。上卷在她十九岁那年发表，只做了一件事：提出魔法应当从关系里去理解。它没有公式，没有咒式，也没有一条可以照着练的方法，通篇是哲学散文，追问一个东西如何成为它所是的东西，读起来像一篇哲学论文。学院里受过正统训练的法师大多读不进去，只当它是抽象的呓语；它在学界掀起过一阵争议，随后被搁在一边，人们记住的多半是作者的名字和“读不懂”三个字。",
-      "下卷讨论的是魔法的运用，是法师在施法那一刻的思考，分为创造、激活、毁灭、转化、维持和理解六个部分，理解是全卷的落点。下卷从未发表。在 Iris 活着的大部分时间里，形而上学魔法只是一篇有名却没人用得上的论文；它真正开始改写这个世界，是在她死去的那一年。"
-    ]]
-  ]},
-  birthday:{ tag:"事件 · 生日宴闹剧", title:"生日宴闹剧", scene:true, body:[
-    ["",["那天是Julian二十二岁的生辰宴，庭院里布置得极尽奢华，宾客们端着酒杯三三两两地寒暄，空气里飘着蛋糕和鲜花混在一起的甜香。Aurelia穿着一身淡黄色的裙子，被安排和Lucian Solenne的姐姐单独待在偏厅一角，说是让公主和未来的嫂子多亲近亲近。", "那位小姐维持着得体的微笑，端着茶盏，礼数周全却也带着几分心不在焉。她的注意力显然更多地落在庭院那头、被宾客们簇拥着的Julian身上。", "Aurelia就那么坐在她对面，晃着两条还够不到地面的腿，忽然状似天真地开了口，说这桩婚事听长辈们私下议论，办得挺仓促的,又说起了Lucian那桩没成的娃娃亲，说那门婚事说变就变了,压根没个准数。她顿了顿,又用一种毫不设防的、孩子式的坦率补了一句,说:", "> 不过姐姐也不必太担心,反正哥哥不缺首都的淑女追求,就算真的像Lucian那样“被退货”，也没什么大不了的。", "这话说得轻飘飘的，带着孩子特有的、毫无恶意包装的语气，可每一个字都精准地扎进了那位小姐心里最深处的不安。她端着茶盏的手骤然一颤，脸上那层维持了半晌的得体笑容彻底碎了。", "而Aurelia就在她情绪即将彻底失控的那个瞬间，猛地端起面前那杯还冒着热气的咖啡，径直泼向了自己的裙摆。", "滚烫的液体瞬间渗透进那层淡黄色的绸缎，褐色的痕迹丑陋地晕开一大片,她“啊”地一声惨叫，整个人像是被烫得站立不稳，往后一仰，重重地摔倒在铺着地毯的地面上。", "...", "偏厅的动静很快引来了外头的宾客，几个人涌了进来，交头接耳的议论声瞬间响成一片。而原本被众人簇拥着切蛋糕的Julian，一听见妹妹的哭喊，几乎是立刻丢开了手里的事情，几步冲了过来，脸色又急又白，追问着到底发生了什么。", "Aurelia埋在哥哥怀里，眼泪流得凶。那副被烫伤、被吓坏的可怜样子，落在所有涌进来的宾客眼里，几乎不需要更多解释——大家的目光，不约而同地落在了那位站在原地、手足无措的Solenne家小姐身上。"]]
-  ]},
-  civilwar:{ tag:"词条 · 前传", title:"北方内战", sticker:"rope", body:[["",["北方说得上话的只有三家：握着驻军的 M 家，掌着教会的 Varn，坐在情报大臣位置上的 K 家。M 家看王权脸色行事，Varn 和 K 积怨多年。", "内战的导火索是北方的穷。粮食生产税压得人喘不过气，教会还要向一无所有的平民征收物资。Iris 二十四岁那年秋天，平民成了流民，读过书的年轻人、退役军官和一些法师也加入进来。流民杀了主教，Varn 派私兵镇压，K 家却在暗中给流民送军火和魔法物资，让乱子越闹越大。", "王储 Julian 北上平乱。他调来 M 家的军队，一边给流民发粮，一边压住 Varn 和教会，想用谈判结束这件事。可入冬以后流民越来越多，M 家有人挟着他的军令开始镇压，内战就这样打了起来。Julian 被困在后方，落进流民手里。流民一半是押着他，一半也是护着他，因为他是北方唯一给他们发过粮的王室成员。来增援的是 Aurelia 叔父带领的中央军和公主本人。Aurelia 没有直奔前线，而是先进了北方首都，向 Varn 借道借人。", "Iris 跟着她，在北方首都的学院里用自己的理论速成训练法师。讲到第二个钟头，第一个战斗法术刚刚成功，O 出现了。Owen 认出她是祖母那位神秘的客人，Iris 推断出她来自 Order。O 要叫停训练，Iris 当场和她谈判：训练可以停，但 Order 要派法师帮军队。O 答应了。", "另一边，Julian 在营地里病得越来越重，却始终没停下谈判，最后几乎谈成了：减税，发粮，赦免放下武器的人，只交出杀主教的那几个。他写信请援军暂缓进攻，派 Gav 冒雪送出去。北方的路本就难走，信和 Aurelia 的军队擦身而过。Aurelia 的部队跟在叔父的中央军之后，终于到达 Julian 被困的流民区域，Order 的法师组成了强攻部队。营地被攻破，流民以为王子拿和谈出卖了他们，本就只剩一口气的 Julian 死在了混乱里。那是十一月，战争在次年一月初结束。", "战后 K 家倒台，情报部空了出来，Varn 趁乱削弱了北方的对手，Aurelia 成了第一顺位继承人。而 Iris 带着战争留下的创伤回到首都。她在这场战争里，在被绞死的人中认出了十六岁那年冬天救过她的女孩。"]]] },
-  winter:{ tag:"秘闻 · 关于爱情", title:"那个冬天", scene:true, body:[["",["那年冬天 Enore 城下了很大的雪。十六岁的 Iris 没有地方可去，在一家酒馆门口坐到了半夜，起初还觉得冷，后来就不觉得了。", "把她叫醒的是一个比她大三岁的女孩。女孩刚从酒馆里出来，看见门口的台阶上缩着一个人，蹲下来拍她的脸，拍了好几下她才睁开眼睛。女孩没问她是谁，也没问她为什么在这里，把她拽起来，半扶半拖地带回了家。", "那是一间顶楼的小屋，一只炉子，一张床，一条被子。女孩往炉子里添了柴，又把被子分了她一半。两个人挤在一起，女孩很快就睡着了，Iris 却醒了很久。她听着窗外的雪，听着身边那个人的呼吸，第一次觉得自己在这座城市里暖和了过来。", "天亮以后她就走了。她没有问女孩的名字。"]]] },
-  /* twenty-five, back in the capital: the dream */
-  rope:{ tag:"物品 · 绞索", title:"绞索", scene:true, body:[["",["春天的首都还是冷。", "新公寓的窗比阁楼的大，床比阁楼的宽。被褥是宫里送来的，又厚又软，带着一点陌生的熏香味。连升两级的任命书压在书桌上，墨迹早就干了，她一次都没再打开过。Iris躺在这张不属于她的床上，像躺在一个借来的壳里，盯着天花板，等天亮。", "天没有亮。", "她闭上了眼睛。", "·", "雪。", "北方的雪总是从下往上落的，至少在梦里是。广场上一排木架子，一根一根的绳子垂下来，绳子底下挂着一件一件的东西，风一吹，就轻轻地转。Iris从这一头走到那一头，她知道自己在找什么，在战报上看到那个名字的时候她就知道了，可她还是一根一根地看过去。", "然后她停下来。", "那个女孩挂在那里，比别人都高一点，头歪向一边。头发是黑的，被雪打湿了，贴在脸颊上。她在看她。", "死人不会看人。可她在看她。", "嘴唇微微张着。", "·", "今天挂在上面的，为什么是她，不是我。", "这句话在她脑子里嗡嗡地响，像一只撞在玻璃上的蜂。", "·", "是偶然。", "是偶然的。", "去北方学院读书，是偶然的。教会的嬷嬷那年恰好多了一个名额。被公主找到，是偶然的。图书馆里那么多张桌子，她恰好坐在那一张。还有后来的那些，后来的那些，后来的那些。一根一根的线，每一根都那么细，细得像那根绳子。剪掉任何一根——", "如果没有这些偶然，我会在……", "哪里。", "·", "她知道答案。答案就挂在她面前，在风里轻轻地转。", "·", "女孩的脸涨红了。从脖子开始，一点一点地往上漫，漫过下颌，漫过脸颊，红得发紫。那两片嘴唇在动，扭动着，不受控制地，像是想说什么，又像是在笑，又像是在喊她的名字。", "Iris看呆了。", "她站在雪地里，一动不动，看着那张脸，看着那张嘴。她身体里有个东西被惊醒了。在很深的地方，在冰层底下，那片Enore的海，那片冬天里永远黑着、永远冷着的海，忽然翻了一下身。", "然后又翻了一下。", "浪从底下往上涌，冰面开始裂，一道一道。有什么东西在烧，从小腹往上烧，烧得她喘不过气来。死亡在凌迟她，一刀，一刀，慢得要命，每一刀都落在一个她从来不知道自己有的地方。她在那片烧起来的海里翻滚，像一条被扔进滚水里的鱼，鳞片张开，弓起来，又落下去，弓起来，又落下去——", "·", "她醒了。", "热。全身都在烧。被褥被她踢到了床脚，衬衫贴在背上，湿透了。窗外是灰蓝色的，天还没亮，屋里冷得能看见自己的呼吸，可她在烧。", "身下一片湿热。", "她愣了很久。然后慢慢地伸出手，探下去，碰了一下。再拿到鼻子底下。", "是海的味道。潮的，腥的，咸的。Enore冬天退潮以后，礁石上留下来的那种味道。", "她倒回枕头上，盯着天花板，胸口一起一伏。", "·", "Iris把自己从床上撑起来。", "清晨的空气很凉，扑在她汗湿的皮肤上，激起一层细细的颤栗。光着的脚踩在地板上，地板是冰的。她站了一下，腿有些发抖，扶着床柱稳了稳，然后一步一步地，往洗手间走。", "路过壁炉的时候，她低头看了一眼。里面是冷的，灰都是上礼拜的。", "似乎要点壁炉了。", "她想。", "又忘了。"]]] },
-  apple:{ tag:"物品 · 苹果", title:"苹果", scene:true, desc:"Iris 客厅桌上的苹果，被咬过一口。", body:[
-    ["",[
-      "多年以后，已经是哲学教授的 Iris 用一个苹果，把这件事讲给她唯一的学生 Kris 听。",
-      "那是一个傍晚，在 Iris 的客厅里，Kris 正说着自己的新发现：把老师的原理拆进一个最基础的照明法术里，会发现它的能量结构和“制造光”其实无关。Iris 从厨房拿回两个苹果，咬了一口，问她看着这个苹果看见了什么。Kris 说了它的功用，说了它的象征，说它是“苹果”这一类东西里的一个，最后才慢慢想到：苹果本身没有意义，它的意义要等法师去理解它的时候才会显现。",
-      "“好多了，”Iris 说，“可你还是把自己和苹果分开了，观察者和被观察的东西。”",
-      "她把桌上另一个苹果拿起来，托在手里。",
-      "“没有独立于你的苹果。‘苹果’这个东西，本身就是你的头脑给一团还没分开的现实划出来的边界。”",
-      "她又咬了一口，很小的一口。",
-      "“我吃它的时候，打交道的从来不是‘一个苹果’，是一个正在成形的时刻。它显现为能吃的，因为我带来了吃的能力；显现为滋养，因为我需要滋养。画家看见的是颜色、形状和光。植物学家看见的是种子怎么散出去。小孩看见的是玩具、炮弹，或者一件礼物。”",
-      "“哪个是对的？”",
-      "“都对。它们都是苹果在不同关系里露出来的一面。”",
-      "Kris 轻声说：“所以没有一个真正的苹果。”",
-      "“没有关系之外的苹果。问它到底是什么，这个问题本身就没有意义，只能问它在这一次相遇里成为了什么。”Iris 把苹果放回桌上，“这就是形而上学魔法：靠理解，参与现实的成形。”",
-      "Kris 看着她，已经不在看苹果了。"
-    ]]
-  ]}
-};
+/* reading some entries for the first time drops a sticker */
+const ENTRY_DROP={ meta:"apple", civilwar:"rope" };
 function entryHTML(key){
   const e=ENTRIES[key];
   return `<div class="head">
@@ -840,7 +724,7 @@ function entryHTML(key){
       <h2>${e.title}</h2>
       <button class="close" type="button" data-close aria-label="返回资料"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"/></svg></button>
     </div>
-    <div class="ebody${e.scene?" scene":""}">${e.desc?`<p class="desc">${e.desc}</p>`:""}${e.body.map(([h,ps])=>(h?`<h3>${h}</h3>`:"")+ps.map(t=>t==="..." ? `<p class="gap">⋯</p>` : t==="·" ? `<p class="gap">·</p>` : t.startsWith("> ") ? `<blockquote>${t.slice(2)}</blockquote>` : `<p>${t}</p>`).join("")).join("")}</div>`;
+    <div class="ebody${e.scene?" scene":""}">${e.desc?`<p class="desc">${e.desc}</p>`:""}${e.body.map(([h,ps])=>(h?`<h3>${h}</h3>`:"")+ps.map(t=>t==="..." ? `<p class="gap">⋯</p>` : t==="·" ? `<p class="gap">·</p>` : t.startsWith("> ") ? `<blockquote>${spoil(t.slice(2))}</blockquote>` : `<p>${spoil(t)}</p>`).join("")).join("")}</div>`;
 }
 const store={ get(k){ try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; } },
               set(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} } };
@@ -848,7 +732,7 @@ let lastFocus=null;
 function openEntry(key){
   if(!view) lastFocus=document.activeElement;
   view=key; showPanel(); renderReadout();
-  if(ENTRIES[key].sticker) reveal(ENTRIES[key].sticker);
+  if(ENTRY_DROP[key]) reveal(ENTRY_DROP[key]);
   const c=readin.querySelector("[data-close]"); if(c) c.focus({focusVisible:false, preventScroll:true});
 }
 function closeEntry(){ if(!view) return; view=null; renderReadout(); if(lastFocus && document.contains(lastFocus)) lastFocus.focus(); }
@@ -910,7 +794,7 @@ function sayLine(t, owner){
   sayEl.classList.add("show"); clearTimeout(sayEl._t); sayEl._t=setTimeout(()=>sayEl.classList.remove("show"), 2200);
 }
 /* the birthday is her sore spot: go near it and she cuts in. first lightly, then not */
-const SORE_LINES=["你对我十四岁的事这么感兴趣？","那件事有什么好看的。"];
+let SORE_LINES=[];    /* from 台词.md */
 let soreTurn=0, soreLast=0, soreEl=null;
 function sore(el){
   if(PEOPLE[cur].id!=="aurelia") return;
@@ -993,7 +877,7 @@ const ITEMS = {
   apple:{ owner:"iris", name:"苹果", icon:APPLE_SRC, entry:"apple", sticker:true },
   deer:{ owner:"iris", name:"小鹿玩偶", icon:DEER_SRC, sticker:true },
   rope:{ owner:"iris", name:"绞索", icon:ROPE_SRC, entry:"rope", sticker:true },
-  deer_aurelia:{ owner:"aurelia", name:"小鹿玩偶", icon:DEER_SRC, sticker:true, says:{ move:"Iris 的新宠物？", stick:"我知道是谁送的。" } },
+  deer_aurelia:{ owner:"aurelia", name:"小鹿玩偶", icon:DEER_SRC, sticker:true, says:{} },
   /* outfits swap the standing portrait itself: same scale, same frame */
   uniform_iris:{ owner:"iris", name:"北方学院制服", icon:UNIFORM_ICON, wear:"top", fig:"images/iris-academy.webp", size:[886,1616], sheet:"iris_academy" },
   uniform_aurelia:{ owner:"aurelia", name:"北方学院制服", icon:UNIFORM_ICON, wear:"top", fig:"images/aurelia-academy.webp", size:[814,1616], sheet:"aurelia_academy" }
@@ -1092,11 +976,8 @@ function place(id, t){
 
 /* the wrong slot: she catches it, says something, and it goes back in the bag.
    each list runs in order and then stays on its last line */
-const JOKES={
-  apple:{ top:["苹果不能作为上衣，但……"], bottom:["……不。","Aurelia，把手拿开。"] },
-  deer: { top:["……这是 Kris 送的。"], bottom:["玩偶不是这么用的。","Kris，你的心思不要放到我这里。"] },
-  deer_aurelia:{ top:["挂在墙上比较好看。"] }     /* and it won't go in as a bottom at all */
-};
+const JOKES={};     /* from 台词.md: the wrong slot gets a line from its owner */
+let TAKEN_LINE="";
 const hasJoke=(id, slot)=>!!(JOKES[id] && JOKES[id][slot]);
 let joking=false; const turns={};
 function joke(id, where){
@@ -1106,7 +987,7 @@ function joke(id, where){
   const s=me(), box=equip.querySelector(`.eq.${where}`), quip=box.querySelector(".quip");
   const taken = !!s.worn[where];
   const L=JOKES[id][where], n=turns[id+where]||0;
-  const line = taken ? "这里已经有人了。" : L[Math.min(n, L.length-1)];
+  const line = taken ? TAKEN_LINE : L[Math.min(n, L.length-1)];
   if(!taken) turns[id+where]=n+1;
   const who=PEOPLE.find(p=>p.id===ITEMS[id].owner).name.toUpperCase();
   takeOut(id); renderSkins(); if(STK[id]) STK[id].el.classList.add("away");
@@ -1193,6 +1074,101 @@ document.addEventListener("keydown",e=>{ const sl=e.target.closest && e.target.c
 document.addEventListener("click",e=>{ if(e.target.closest(".slot, .equip, .inv")) e.stopPropagation(); }, true);
 Object.values(ITEMS).forEach(it=>{ const s=it.skin?it.skin.art:it.fig; if(s){ const im=new Image(); im.src=s; } }); { const im=new Image(); im.src="images/iris-apple.webp"; }
 Object.keys(STK).forEach(bindSticker);
+/* ============================================================
+   内容：所有文字都写在 content/ 文件夹的 Markdown 里，页面打开时读进来。
+   新增一个词条：把 .md 放进 content/词条/，再在下面 entries 里加一行。
+   ============================================================ */
+const CONTENT={
+  sheets:{ iris:"iris/资料.md", aurelia:"aurelia/资料.md" },
+  stories:{ iris:"iris/故事.md", aurelia:"aurelia/故事.md" },
+  outfits:{ iris_academy:"iris/学院制服.md", iris_drape:"iris/倒吊人.md", aurelia_academy:"aurelia/学院制服.md" },
+  entries:{ meta:"词条/形而上学魔法.md", civilwar:"词条/北方内战.md", birthday:"词条/生日宴闹剧.md",
+            apple:"物品/苹果.md", rope:"物品/绞索.md", winter:"秘闻/那个冬天.md" },
+  lines:"台词.md"
+};
+const SORE_KEYS=new Set(["birthday"]);     /* links to these sting Aurelia */
+const TITLE2KEY={};
+Object.entries(CONTENT.entries).forEach(([k,f])=>{ TITLE2KEY[f.split("/").pop().replace(/\.md$/,"")]=k; });
+const getMD=f=>fetch("content/"+f.split("/").map(encodeURIComponent).join("/"), {cache:"no-cache"})
+  .then(r=>{ if(!r.ok) throw new Error(f+" "+r.status); return r.text(); });
+function splitFront(md){
+  md=md.replace(/\r/g,""); const fm={}, m=md.match(/^---\n([\s\S]*?)\n---\n?/);
+  if(m){ m[1].split("\n").forEach(l=>{ const i=l.indexOf(":"); if(i>0) fm[l.slice(0,i).trim()]=l.slice(i+1).trim(); }); md=md.slice(m[0].length); }
+  return [fm, md];
+}
+/* split text at headings of one level: [{h, text}], text before the first heading has h "" */
+function sectionsOf(text, level){
+  const out=[{h:"", lines:[]}], mark="#".repeat(level)+" ";
+  text.split("\n").forEach(l=>{ if(l.startsWith(mark)) out.push({h:l.slice(mark.length).trim(), lines:[]}); else out[out.length-1].lines.push(l); });
+  return out.map(s=>({h:s.h, text:s.lines.join("\n")}));
+}
+const linesOf=t=>t.split("\n").map(x=>x.trim()).filter(Boolean);
+const bullets=t=>linesOf(t).filter(l=>/^[-*]\s/.test(l)).map(l=>l.replace(/^[-*]\s+/,""));
+const personByName=n=>PEOPLE.find(p=>p.name===n);
+/* [[词条]] / [[词条|显示的字]] become links; [[人名]] jumps to that person */
+function inline(t){
+  return t.replace(/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g,(m,target,label)=>{
+    label=label||target;
+    const p=personByName(target); if(p) return `<button class="go" data-go="${p.id}">${label}</button>`;
+    const k=TITLE2KEY[target]; if(k) return `<button class="term" data-term="${k}"${SORE_KEYS.has(k)?" data-sore":""}>${label}</button>`;
+    return label;
+  });
+}
+function parseSheet(fm, body){
+  return {
+    role:(fm.role||"").split(/\s+·\s+/).filter(Boolean), place:fm.place||"",
+    stats:(fm.stats||"").split("|").map(g=>g.split("/").map(x=>x.trim()).filter(Boolean)).filter(g=>g.length),
+    sections:sectionsOf(body,2).filter(s=>s.h).map(s=>{ const L=linesOf(s.text);
+      if(L.length && L.every(l=>/^\d+\.\s/.test(l))) return {h:s.h, kind:"ol", items:L.map(l=>inline(l.replace(/^\d+\.\s+/,"")))};
+      if(L.length && L.every(l=>/^[-*]\s/.test(l))) return {h:s.h, kind:"dots", items:L.map(l=>inline(l.replace(/^[-*]\s+/,"")))};
+      return {h:s.h, kind:"p", items:L.map(inline)}; })
+  };
+}
+const splitColon=l=>{ const i=l.indexOf("："); return i<0 ? [l,""] : [l.slice(0,i), l.slice(i+1)]; };
+function parseStory(body, label){
+  return { label, sections:sectionsOf(body,2).filter(s=>s.h).map(s=>{
+    if(s.h==="人物关系") return {h:s.h, kind:"rel", items:bullets(s.text).map(l=>{ const [n,t]=splitColon(l), m=n.match(/^\[\[(.+?)\]\]$/), p=m && personByName(m[1]);
+      return [m?m[1]:n, inline(t), p?p.id:null]; })};
+    if(s.h==="事件") return {h:s.h, kind:"tl", items:bullets(s.text).map(l=>{ const [a,t]=splitColon(l); return [a, inline(t)]; })};
+    if(s.h==="秘闻") return {h:s.h, kind:"secrets", items:bullets(s.text).map(l=>{ let more=null;
+      l=l.replace(/\s*→\s*\[\[(.+?)\]\]\s*$/,(m,x)=>{ more=TITLE2KEY[x]||null; return ""; });
+      const [h,t]=splitColon(l); return [h, inline(t), more]; })};
+    return {h:s.h, kind:"p", items:linesOf(s.text).map(inline)};
+  })};
+}
+function parseEntry(key, fm, body){
+  const title=CONTENT.entries[key].split("/").pop().replace(/\.md$/,"");
+  const out=[];
+  sectionsOf(body,2).forEach(s=>{ const ps=linesOf(s.text).map(l=>l==="·"||l==="..." ? l : l.startsWith("> ") ? "> "+inline(l.slice(2)) : inline(l));
+    if(ps.length || s.h) out.push([s.h, ps]); });
+  return { tag:fm.tag||"", title, desc:fm.desc||"", scene:fm.style==="scene", body:out };
+}
+const LINE_SLOTS={ "苹果 · TOP":["apple","top"], "苹果 · BOTTOM":["apple","bottom"],
+  "小鹿 · TOP":["deer","top"], "小鹿 · BOTTOM":["deer","bottom"], "Aurelia 的小鹿 · TOP":["deer_aurelia","top"] };
+function parseLines(md){
+  sectionsOf(splitFront(md)[1],2).filter(s=>s.h).forEach(s=>{ const L=bullets(s.text); if(!L.length) return;
+    const slot=LINE_SLOTS[s.h];
+    if(slot){ (JOKES[slot[0]]=JOKES[slot[0]]||{})[slot[1]]=L; return; }
+    if(s.h==="Aurelia 的小鹿 · 拿起") ITEMS.deer_aurelia.says.move=L[0];
+    else if(s.h==="Aurelia 的小鹿 · 贴上") ITEMS.deer_aurelia.says.stick=L[0];
+    else if(s.h==="Aurelia · 生日宴") SORE_LINES=L;
+    else if(s.h==="卡槽已占用") TAKEN_LINE=L[0];
+  });
+}
+async function loadContent(){
+  const jobs=[];
+  Object.entries(CONTENT.sheets).forEach(([k,f])=>jobs.push(getMD(f).then(md=>{ const [fm,b]=splitFront(md); SHEET[k]=parseSheet(fm,b); })));
+  Object.entries(CONTENT.stories).forEach(([k,f])=>jobs.push(getMD(f).then(md=>{ STORY[k]=parseStory(splitFront(md)[1],"故事"); })));
+  Object.entries(CONTENT.outfits).forEach(([k,f])=>jobs.push(getMD(f).then(md=>{ const [fm,b]=splitFront(md), top=sectionsOf(b,1);
+    const prof=top.find(s=>s.h==="资料"), sec=top.find(s=>s.h==="秘闻");
+    if(prof) SHEET[k]=parseSheet(fm, prof.text); if(sec) STORY[k]=parseStory(sec.text,"秘闻"); })));
+  Object.entries(CONTENT.entries).forEach(([k,f])=>jobs.push(getMD(f).then(md=>{ const [fm,b]=splitFront(md); ENTRIES[k]=parseEntry(k,fm,b); })));
+  jobs.push(getMD(CONTENT.lines).then(parseLines));
+  await Promise.all(jobs);
+}
+loadContent().then(()=>{ contentReady=true; renderReadout(); renderSkins(); })
+  .catch(err=>{ readin.innerHTML=`<p style="font-size:.75rem;color:var(--dim)">内容没有加载出来：${err.message}</p>`; console.error(err); });
+
 renderSkins();
 </script>
 
