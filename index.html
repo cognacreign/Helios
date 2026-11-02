@@ -991,7 +991,9 @@ function putInBag(id, i){
   const s=me(); takeOut(id);
   if(s.bag[i]!=null && s.bag[i]!==id){ const j=s.bag.indexOf(null); if(j<0) return renderSkins(); i=j; }
   s.bag[i]=id;
-  if(STK[id]){ store.set(STK[id].bagKey, true); syncStickers(); }
+  /* the bag is a reset: a sticker that goes in comes back out in its own colours */
+  if(STK[id]){ const k=STK[id]; store.set(k.bagKey, true); k.h=0; applySt(id);
+    const p=store.get(k.posKey); if(p){ p[4]=0; store.set(k.posKey, p); } syncStickers(); }
   renderSkins();
 }
 function canWear(id, slot){ const s=me(); return ITEMS[id].wear===slot || ((id==="apple" || id==="rope") && slot==="top" && s.worn.bottom==="drape"); }
