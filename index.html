@@ -835,8 +835,8 @@ const ITEMS = {
   drape:{ owner:"iris", name:"古希腊白布", icon:CLOTH_ICON, wear:"bottom", skin:{ art:"images/iris-drape.webp", mood:"dark", turn:true } },
   apple:{ owner:"iris", name:"苹果", icon:APPLE_SRC, entry:"apple", sticker:true },
   /* outfits swap the standing portrait itself: same scale, same frame */
-  uniform_iris:{ owner:"iris", name:"北方学院制服", icon:UNIFORM_ICON, wear:"top", fig:"images/iris-academy.webp" },
-  uniform_aurelia:{ owner:"aurelia", name:"北方学院制服", icon:UNIFORM_ICON, wear:"top", fig:"images/aurelia-academy.webp" }
+  uniform_iris:{ owner:"iris", name:"北方学院制服", icon:UNIFORM_ICON, wear:"top", fig:"images/iris-academy.webp", size:[886,1616] },
+  uniform_aurelia:{ owner:"aurelia", name:"北方学院制服", icon:UNIFORM_ICON, wear:"top", fig:"images/aurelia-academy.webp", size:[814,1616] }
 };
 const BAG_N=4;
 const INV={ iris:{ bag:["drape","uniform_iris",null,null], worn:{top:null,bottom:null} }, aurelia:{ bag:["uniform_aurelia",null,null,null], worn:{top:null,bottom:null} } };
@@ -870,6 +870,8 @@ function applySkin(){
   /* an outfit: the standing portrait changes, the scene stays as it is */
   const outfit=Object.values(s.worn).map(id=>id && ITEMS[id].fig ? ITEMS[id] : null).find(Boolean);
   const src=outfit ? outfit.fig : PEOPLE[cur].img;
+  const sz=outfit ? outfit.size : PEOPLE[cur].fig;
+  figure.style.setProperty('--ar', `${sz[0]}/${sz[1]}`); figure.style.setProperty('--hs', sz[1]/1616);
   if(art.getAttribute("src")!==src){ art.src=src; art.alt=`${PEOPLE[cur].full}，${outfit?outfit.name:"作者绘"}`;
     figure.querySelectorAll('.lit').forEach(el=>{ el.style.webkitMaskImage=el.style.maskImage=`url(${src})`; }); }
   if(window.HALL && HALL.force) HALL.force(sk ? sk.mood : null);
