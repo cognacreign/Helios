@@ -1271,7 +1271,7 @@ const canvas=document.getElementById("c");
 let renderer;
 try{ renderer=new THREE.WebGLRenderer({canvas, antialias:true}); }catch(e){ return; }
 
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setPixelRatio(Math.min(devicePixelRatio, 1)*.75);
 renderer.shadowMap.enabled=true;
 renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 renderer.toneMapping=THREE.ACESFilmicToneMapping;
@@ -1545,7 +1545,7 @@ function waterNormals(seed){
 let water=null;
 const WT={ value:0 };
 if(THREE.Water && THREE.Reflector && THREE.Refractor){ try{
-  const RT=Math.min(1024, renderer.capabilities.maxTextureSize);
+  const RT=512;
   water=new THREE.Water(new THREE.PlaneGeometry(400,400), {
     color:0xeef3ee, scale:120, flowDirection:new THREE.Vector2(.3,1), flowSpeed:.055, reflectivity:.02,
     textureWidth:RT, textureHeight:RT, normalMap0:waterNormals(7), normalMap1:waterNormals(4211) });
@@ -1603,7 +1603,7 @@ for(let i=0;i<N-1;i++){
 const doorLight=new THREE.PointLight(0xffffff,3,90,1.4); doorLight.position.set(0,8,farZ+2); scene.add(doorLight);
 const lamp=new THREE.PointLight(0xffffff,0,34,2); lamp.position.set(0,6,2); scene.add(lamp);
 const sun=new THREE.DirectionalLight(0xffffff,3);
-sun.castShadow=true; const SM=renderer.capabilities.maxTextureSize>=8192?4096:2048; sun.shadow.mapSize.set(SM,SM);
+sun.castShadow=true; const SM=2048; sun.shadow.mapSize.set(SM,SM);
 Object.assign(sun.shadow.camera,{left:-62,right:62,top:62,bottom:-62,near:1,far:240});
 sun.shadow.bias=-.0005; sun.shadow.normalBias=.02;
 scene.add(sun, sun.target);
