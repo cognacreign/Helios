@@ -290,16 +290,21 @@
     --panel:rgba(30,25,21,.58); --chip:rgba(30,24,20,.45); --frame:rgba(239,229,213,.55); --glow:#e58753;
     --fig-amb:none; --fig-key:none; --sat:1; --veil:radial-gradient(90% 80% at 50% 46%, rgba(95,83,72,0) 45%, rgba(55,51,36,.35) 100%); --veil-blend:multiply;
   }
-  body.skin-drape .skinart{ opacity:1 }
-  body.skin-drape .figure{ opacity:0 !important }
+  body.skin-day{
+    --bg:#ece2d5; --ink:#3a322a; --dim:#7a6c5c; --line:rgba(58,50,42,.5); --faint:rgba(58,50,42,.18);
+    --panel:rgba(250,244,234,.6); --chip:rgba(255,250,242,.5); --frame:rgba(58,50,42,.55); --glow:#c2563c;
+    --fig-amb:none; --fig-key:none; --sat:.82; --veil:radial-gradient(110% 90% at 10% -10%, rgba(240,246,196,.3), rgba(240,246,196,0) 60%); --veil-blend:screen;
+  }
+  body.skinned .skinart{ opacity:1 }
+  body.skinned .figure{ opacity:0 !important }
   /* the readout keeps its words but turns its marks around */
-  body.skin-drape .readout::before{ left:auto; right:-.375rem; border-left:0; border-right:1px solid var(--glow); border-top-color:var(--glow);
+  body.skinned .readout::before{ left:auto; right:-.375rem; border-left:0; border-right:1px solid var(--glow); border-top-color:var(--glow);
     border-top-left-radius:0; border-top-right-radius:calc(var(--r) + .375rem) }
-  body.skin-drape .readout::after{ right:auto; left:-.375rem; border-right:0; border-left:1px solid var(--glow); border-bottom-color:var(--glow);
+  body.skinned .readout::after{ right:auto; left:-.375rem; border-right:0; border-left:1px solid var(--glow); border-bottom-color:var(--glow);
     border-bottom-right-radius:0; border-bottom-left-radius:calc(var(--r) + .375rem) }
-  body.skin-drape .tabs button[aria-selected="true"]{ color:var(--glow); border-bottom-color:var(--glow) }
-  body.skin-drape .sheet h3, body.skin-drape .tale h3, body.skin-drape .entry .tag{ color:var(--glow) }
-  body.skin-drape .sheet ol b, body.skin-drape .tale .tl b{ color:var(--glow) }
+  body.skinned .tabs button[aria-selected="true"]{ color:var(--glow); border-bottom-color:var(--glow) }
+  body.skinned .sheet h3, body.skinned .tale h3, body.skinned .entry .tag{ color:var(--glow) }
+  body.skinned .sheet ol b, body.skinned .tale .tl b{ color:var(--glow) }
 
   @media (max-width: 1000px){
     body{ overflow:auto }
@@ -803,7 +808,7 @@ syncStickers();
   apple.addEventListener("pointerup",e=>{ if(!down) return; down=false; apple.classList.remove("drag");
     if(moved){ const t=dropAt(e.clientX,e.clientY); clearOver(); document.body.classList.remove("dragging");
       if(t && t.dataset.drop==="bag"){ putInBag("apple", +t.dataset.i); return; }
-      if(t && t.dataset.drop==="worn" && t.dataset.slot==="top"){ appleJoke(); return; }
+      if(t && t.dataset.drop==="worn" && t.dataset.slot==="top"){ if(!wear("apple","top")) appleJoke(); return; }
       saveApple(); } });
   apple.addEventListener("click",e=>{ if(moved){ e.preventDefault(); e.stopImmediatePropagation(); moved=false; return; } openEntry("apple"); });
   /* the wheel resizes; with Shift held it turns */
@@ -839,15 +844,22 @@ function slotHTML(id, attrs){
 }
 window.renderSkins=()=>{
   const s=me();
+  if(s.worn.top==="apple" && s.worn.bottom!=="drape"){ s.worn.top=null; const j=s.bag.indexOf(null); if(j>=0) s.bag[j]="apple"; }
   invGrid.innerHTML=s.bag.map((id,i)=>slotHTML(id, `data-drop="bag" data-i="${i}"`)).join("");
   ["top","bottom"].forEach(k=>{ const box=equip.querySelector(`.eq.${k}`);
     box.querySelector(".slot").outerHTML=slotHTML(s.worn[k], `data-drop="worn" data-slot="${k}"`); });
   applySkin();
 };
 function applySkin(){
-  const s=me(), sk=Object.values(s.worn).map(id=>id && ITEMS[id].skin).find(Boolean);
-  document.body.classList.toggle("skin-drape", !!sk);
-  if(sk){ skinart.src=sk.art; skinart.alt=`${PEOPLE[cur].full}，${ITEMS[s.worn.bottom||s.worn.top].name}`; }
+  const s=me();
+  /* the white cloth with the apple: she tried it on, and the apple rolled away */
+  const combo = s.worn.bottom==="drape" && s.worn.top==="apple";
+  const sk = combo ? { art:"images/iris-apple.webp", mood:"light", turn:true, name:"古希腊白布与苹果" }
+                   : Object.values(s.worn).map(id=>id && ITEMS[id].skin && Object.assign({name:ITEMS[id].name}, ITEMS[id].skin)).find(Boolean);
+  document.body.classList.toggle("skinned", !!sk);
+  document.body.classList.toggle("skin-drape", !!sk && sk.mood==="dark");
+  document.body.classList.toggle("skin-day", !!sk && sk.mood==="light");
+  if(sk){ skinart.src=sk.art; skinart.alt=`${PEOPLE[cur].full}，${sk.name}`; }
   if(window.HALL && HALL.force) HALL.force(sk ? sk.mood : null);
   if(window.HALL && HALL.roll) HALL.roll(!!(sk && sk.turn));
 }
@@ -861,11 +873,14 @@ function putInBag(id, i){
   if(id==="apple"){ store.set("helios-apple-in-bag", true); syncStickers(); }
   renderSkins();
 }
+function canWear(id, slot){ const s=me(); return ITEMS[id].wear===slot || (id==="apple" && slot==="top" && s.worn.bottom==="drape"); }
 function wear(id, slot){
-  const s=me(), it=ITEMS[id]; if(it.wear!==slot) return false;
+  const s=me(); if(!canWear(id, slot)) return false;
   const prev=s.worn[slot]; takeOut(id);
   if(prev && prev!==id){ const j=s.bag.indexOf(null); if(j>=0) s.bag[j]=prev; }
-  s.worn[slot]=id; renderSkins(); return true;
+  s.worn[slot]=id;
+  if(id==="apple"){ store.set("helios-apple-in-bag", true); syncStickers(); }
+  renderSkins(); return true;
 }
 function unwear(id){ const s=me(), j=s.bag.indexOf(null); if(j<0) return; takeOut(id); s.bag[j]=id; renderSkins(); }
 function toBoard(id, x, y){
@@ -889,7 +904,7 @@ function appleJoke(){
 function dropAt(x,y){ for(const el of document.elementsFromPoint(x,y)){ const d=el.closest("[data-drop]"); if(d) return d; } return null; }
 function clearOver(){ document.querySelectorAll(".slot.over").forEach(el=>el.classList.remove("over")); }
 function markOver(x,y,id){ clearOver(); const t=dropAt(x,y); if(!t) return;
-  if(t.dataset.drop==="bag" || (t.dataset.drop==="worn" && (ITEMS[id].wear===t.dataset.slot || (id==="apple" && t.dataset.slot==="top")))) t.classList.add("over"); }
+  if(t.dataset.drop==="bag" || (t.dataset.drop==="worn" && (canWear(id, t.dataset.slot) || (id==="apple" && t.dataset.slot==="top")))) t.classList.add("over"); }
 let drag=null;
 document.addEventListener("pointerdown",e=>{
   const sl=e.target.closest(".slot.full"); if(!sl || !e.isPrimary) return;
@@ -924,7 +939,7 @@ function activate(id, el){
 }
 document.addEventListener("keydown",e=>{ const sl=e.target.closest && e.target.closest(".slot.full"); if(sl && (e.key==="Enter"||e.key===" ")){ e.preventDefault(); activate(sl.dataset.item, sl); } });
 document.addEventListener("click",e=>{ if(e.target.closest(".slot, .equip, .inv")) e.stopPropagation(); }, true);
-Object.values(ITEMS).forEach(it=>{ if(it.skin){ const im=new Image(); im.src=it.skin.art; } });
+Object.values(ITEMS).forEach(it=>{ if(it.skin){ const im=new Image(); im.src=it.skin.art; } }); { const im=new Image(); im.src="images/iris-apple.webp"; }
 renderSkins();
 </script>
 
