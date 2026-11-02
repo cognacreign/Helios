@@ -256,12 +256,13 @@
   .slot:focus-visible{ outline:1px solid var(--ink); outline-offset:3px }
 
   /* ---------- 穿戴: two slots on the frame's side, wired to its edge ---------- */
-  .equip{ position:absolute; left:calc(100% + 1.3rem); top:0; bottom:0; width:4.6rem; z-index:3; pointer-events:none }
+  .equip{ position:absolute; right:calc(100% + 1.3rem); top:0; bottom:0; width:4.6rem; z-index:3; pointer-events:none; transition:opacity .45s ease }
+  body.bare .equip{ opacity:0; visibility:hidden; transition:opacity .45s ease, visibility 0s .45s }
   .eq{ position:absolute; left:0; width:4.6rem; pointer-events:auto }
   .eq .slot{ width:4.6rem }
-  .eq .fig{ display:block; margin-bottom:.35rem; font-family:var(--mono); font-size:.6rem; letter-spacing:.12em; color:var(--ink); white-space:nowrap }
-  .eq::before{ content:""; position:absolute; right:100%; top:calc(.95rem + 2.3rem); width:1.3rem; height:1px; background:var(--line) }
-  .eq::after{ content:""; position:absolute; right:calc(100% + 1.3rem - .22rem); top:calc(.95rem + 2.3rem - .22rem); width:.44rem; height:.44rem; box-sizing:border-box;
+  .eq .fig{ display:block; text-align:right; margin-bottom:.35rem; font-family:var(--mono); font-size:.6rem; letter-spacing:.12em; color:var(--ink); white-space:nowrap }
+  .eq::before{ content:""; position:absolute; left:100%; top:calc(.95rem + 2.3rem); width:1.3rem; height:1px; background:var(--line) }
+  .eq::after{ content:""; position:absolute; left:calc(100% + 1.3rem - .22rem); top:calc(.95rem + 2.3rem - .22rem); width:.44rem; height:.44rem; box-sizing:border-box;
     border:1px solid var(--line); border-radius:50%; background:var(--bg) }
   .eq.top{ top:16% } .eq.bottom{ top:50% }
 
@@ -301,7 +302,7 @@
     .inv{ position:relative; inset:auto; width:auto; height:auto; order:5; margin:1.75rem 0 1.5rem; background:var(--panel); border-color:var(--line) }
     .inv .bagtag span{ opacity:1 }
     .inv-grid{ opacity:1; transform:none; pointer-events:auto }
-    .equip{ left:auto; right:.6rem; width:3.6rem } .eq, .eq .slot{ width:3.6rem } .eq::before, .eq::after, .eq .fig{ display:none }
+    .equip{ right:auto; left:.6rem; width:3.6rem } .eq, .eq .slot{ width:3.6rem } .eq::before, .eq::after, .eq .fig{ display:none }
     .body, .page{ overflow:visible }
   }
   @media (prefers-reduced-motion: reduce){
@@ -344,8 +345,8 @@
     </svg>
     <img class="skinart" id="skinart" alt="">
     <div class="equip" id="equip" aria-label="穿戴">
-      <div class="eq top"><span class="fig">Fig.1 · 上衣</span><span class="slot empty" data-drop="worn" data-slot="top"></span></div>
-      <div class="eq bottom"><span class="fig">Fig.2 · 下衣</span><span class="slot empty" data-drop="worn" data-slot="bottom"></span></div>
+      <div class="eq top"><span class="fig">TOP</span><span class="slot empty" data-drop="worn" data-slot="top"></span></div>
+      <div class="eq bottom"><span class="fig">BOTTOM</span><span class="slot empty" data-drop="worn" data-slot="bottom"></span></div>
     </div>
     <div class="figure" id="figure"><img id="art" alt=""><div class="lit amb" aria-hidden="true"></div><div class="lit key" aria-hidden="true"></div></div>
   </section>
