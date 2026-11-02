@@ -1534,7 +1534,7 @@ function waterNormals(seed){
   for(let j=0;j<N;j++) for(let i=0;i<N;i++){ let h=0; const u=i/N, v=j/N;
     for(const [fx,fy,ph,a] of waves) h+=a*Math.sin(6.2832*(fx*u+fy*v)+ph);
     H[j*N+i]=h; }
-  const img=x.createImageData(N,N), K=2.2;
+  const img=x.createImageData(N,N), K=1.6;
   for(let j=0;j<N;j++) for(let i=0;i<N;i++){
     const dx=(H[j*N+(i+1)%N]-H[j*N+(i+N-1)%N])*K, dy=(H[((j+1)%N)*N+i]-H[((j+N-1)%N)*N+i])*K;
     const l=Math.hypot(dx,dy,1), o=(j*N+i)*4;
@@ -1546,7 +1546,7 @@ let water=null;
 if(THREE.Water && THREE.Reflector && THREE.Refractor){ try{
   const RT=Math.min(1024, renderer.capabilities.maxTextureSize);
   water=new THREE.Water(new THREE.PlaneGeometry(400,400), {
-    color:0xe4ece6, scale:46, flowDirection:new THREE.Vector2(.3,1), flowSpeed:.018, reflectivity:.06,
+    color:0xeef3ee, scale:120, flowDirection:new THREE.Vector2(.3,1), flowSpeed:.018, reflectivity:.06,
     textureWidth:RT, textureHeight:RT, normalMap0:waterNormals(7), normalMap1:waterNormals(4211) });
   water.rotation.x=-Math.PI/2; water.position.y=.06; water.visible=false; scene.add(water);
   /* the reflection and refraction are drawn already toned and encoded: read them back as linear, tone once */
@@ -1554,7 +1554,9 @@ if(THREE.Water && THREE.Reflector && THREE.Refractor){ try{
   wm.fragmentShader=wm.fragmentShader
     .replace("vec4 reflectColor = texture2D( tReflectionMap, vec2( 1.0 - uv.x, uv.y ) );","vec4 reflectColor = sRGBToLinear( texture2D( tReflectionMap, vec2( 1.0 - uv.x, uv.y ) ) );")
     .replace("vec4 refractColor = texture2D( tRefractionMap, uv );","vec4 refractColor = sRGBToLinear( texture2D( tRefractionMap, uv ) );")
-    .replace("vec2 uv = coord.xy + coord.z * normal.xz * 0.05;","vec2 uv = coord.xy + coord.z * normal.xz * 0.028;");
+    .replace("vec2 uv = coord.xy + coord.z * normal.xz * 0.05;","vec2 uv = coord.xy + coord.z * normal.xz * 0.014;")
+    /* clearer: the mirror only takes over far down the hall */
+    .replace("float reflectance = reflectivity + ( 1.0 - reflectivity ) * pow( ( 1.0 - theta ), 5.0 );","float reflectance = reflectivity + ( 1.0 - reflectivity ) * pow( ( 1.0 - theta ), 7.0 ) * 0.85;");
 }catch(e){ water=null; } }
 
 /* ============================================================
