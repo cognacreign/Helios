@@ -214,6 +214,8 @@
     --s:1; --rot:-8deg; filter:drop-shadow(0 0.375rem 0.625rem rgba(30,20,12,.28));
     transform:rotate(var(--rot)) scale(var(--s)); transition:transform .2s ease }
   .sticker[hidden]{ display:none }
+  .readout .in.swap .sheet{ animation:swapIn .5s ease }
+  @keyframes swapIn{ from{ opacity:0; transform:translateY(.3rem) } }
   #deer, #deer2{ width:3.6rem }
   /* a line said beside a sticker or the thing in hand */
   .say{ position:fixed; z-index:6; transform:translate(-50%, calc(-100% + .3rem)); text-align:center; white-space:nowrap; pointer-events:none;
@@ -555,10 +557,19 @@ const SHEET = {
     look:["金橙色头发，金色眼睛；Helios 家族标准的锋利容貌，笑起来明亮","偏爱中性的西裤、金色和繁复的装饰；收藏拜占庭式厚重织锦，私下穿丝绸衬衫和金丝纱外套"],
     events:["14 岁，在哥哥 Julian 的生日宴上嫁祸准王妃，制造当众闹剧","24 岁，北方内战中与中央军一同率军支援前线，3 个月内平定内乱"],
     likes:["Bisexual","???"]
+  },
+  /* worn with the North Academy uniform: who she was at eighteen */
+  iris_academy:{
+    role:["北方学院二年级学生"], place:"Enore 城教会学校出身（她只这么说）",
+    stats:[["172cm","清瘦"],["INTJ","混乱中立"]],
+    look:["白色长发随手一扎，侧刘海遮住左眼；大而浅的灰色眼睛","制服马甲是二手的，灰色针织洗得发白；整个冬天只有这一身"],
+    events:["19 岁发表了一篇论文，被学院老头们一顿批评。成了学院名人","和 Helios 的公主住同一间宿舍，公主身边的‘朋友’???"],
+    likes:["泡图书馆取暖","便宜的酒","用牌技打工"]
   }
 };
+const sheetOver={};    /* person id -> the sheet an outfit swaps in */
 function sheetHTML(p){
-  const s=SHEET[p.id];
+  const s=SHEET[sheetOver[p.id] || p.id];
   return `<div class="sheet">
     <div><p class="role">${s.role.join("<i>·</i>")}</p>${s.place?`<p class="place">${s.place}</p>`:""}</div>
     <div class="stats">${s.stats.map(g=>g.map(x=>`<span>${x}</span>`).join("")).join("<em>｜</em>")}</div>
@@ -876,7 +887,7 @@ const ITEMS = {
   deer:{ owner:"iris", name:"小鹿玩偶", icon:DEER_SRC, sticker:true },
   deer_aurelia:{ owner:"aurelia", name:"小鹿玩偶", icon:DEER_SRC, sticker:true, says:{ move:"Iris 的新宠物？", stick:"我知道是谁送的。" } },
   /* outfits swap the standing portrait itself: same scale, same frame */
-  uniform_iris:{ owner:"iris", name:"北方学院制服", icon:UNIFORM_ICON, wear:"top", fig:"images/iris-academy.webp", size:[886,1616] },
+  uniform_iris:{ owner:"iris", name:"北方学院制服", icon:UNIFORM_ICON, wear:"top", fig:"images/iris-academy.webp", size:[886,1616], sheet:"iris_academy" },
   uniform_aurelia:{ owner:"aurelia", name:"北方学院制服", icon:UNIFORM_ICON, wear:"top", fig:"images/aurelia-academy.webp", size:[814,1616] }
 };
 const BAG_N=4;
@@ -921,6 +932,9 @@ function applySkin(){
   const outfit=Object.values(s.worn).map(id=>id && ITEMS[id].fig ? ITEMS[id] : null).find(Boolean);
   const src=outfit ? outfit.fig : PEOPLE[cur].img;
   const sz=outfit ? outfit.size : PEOPLE[cur].fig;
+  /* some outfits bring their own profile */
+  const sh=Object.values(s.worn).map(id=>id && ITEMS[id].sheet).find(Boolean) || null, pid=PEOPLE[cur].id;
+  if((sheetOver[pid]||null)!==sh){ sheetOver[pid]=sh; if(tab===0 && !view){ renderReadout(); readin.classList.remove("swap"); void readin.offsetWidth; readin.classList.add("swap"); } }
   figure.style.setProperty('--ar', `${sz[0]}/${sz[1]}`); figure.style.setProperty('--hs', sz[1]/1616);
   if(art.getAttribute("src")!==src){ art.src=src; art.alt=`${PEOPLE[cur].full}，${outfit?outfit.name:"作者绘"}`;
     figure.querySelectorAll('.lit').forEach(el=>{ el.style.webkitMaskImage=el.style.maskImage=`url(${src})`; }); }
