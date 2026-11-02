@@ -564,7 +564,7 @@ const SHEET = {
     role:["王女","Helios 国王"], place:"首都",
     stats:[["168cm","54kg","线条美型"],["ENTP","中立邪恶"]],
     look:["金橙色头发，金色眼睛；Helios 家族标准的锋利容貌，笑起来明亮","偏爱中性的西裤、金色和繁复的装饰；收藏拜占庭式厚重织锦，私下穿丝绸衬衫和金丝纱外套"],
-    events:["14 岁，在哥哥 Julian 的生日宴上嫁祸准王妃，制造当众闹剧","24 岁，北方内战中与中央军一同率军支援前线，3 个月内平定内乱"],
+    events:["<span class=\"sore\" data-sore>14 岁，在哥哥 Julian 的生日宴上嫁祸准王妃，制造当众闹剧</span>","24 岁，北方内战中与中央军一同率军支援前线，3 个月内平定内乱"],
     likes:["Bisexual","???"]
   },
   /* worn with the North Academy uniform: who she was at eighteen */
@@ -634,17 +634,17 @@ STORY.iris_academy={
 };
 STORY.aurelia_academy={
   rel:[["Julian","哥哥。点头同意把她送去北方的人。"],
-       ["Cordelia","准嫂子，生日宴上被她嫁祸的人。"],
+       ["Cordelia","准嫂子，【!生日宴上被她嫁祸的人。】"],
        ["Iris","观察了一整年的穷学生，后来的室友。","iris"]],
   secrets:[["关于偶遇Iris","【图书馆那次不是偶然，她已经看了那个白头发的学生一整年。】"],
-           ["关于被送来北方","【生日宴闹剧】后，她一直以为是哥哥Julian 的意思。提议的其实是 Solonne 家"]]
+           ["关于被送来北方","【!生日宴闹剧】后，她一直以为是哥哥Julian 的意思。提议的其实是 Solonne 家"]]
 };
-const spoil=t=>t.replace(/【(.*?)】/g,'<span class="spoil" tabindex="0" role="button" aria-label="隐藏内容，悬停或点按显示">$1</span>');
+const spoil=t=>t.replace(/【(!?)(.*?)】/g,(m,sore,x)=>`<span class="spoil"${sore?" data-sore":""} tabindex="0" role="button" aria-label="隐藏内容，悬停或点按显示">${x}</span>`);
 function storyHTML(p){
   const s=STORY[sheetOver[p.id] || p.id];
   return `<div class="tale">
     <h3>人物关系</h3>
-    <dl class="rel">${s.rel.map(([n,t,go])=>`<dt>${go?`<button class="go" data-go="${go}">${n}</button>`:n}</dt><dd>${t}</dd>`).join("")}</dl>
+    <dl class="rel">${s.rel.map(([n,t,go])=>`<dt>${go?`<button class="go" data-go="${go}">${n}</button>`:n}</dt><dd>${spoil(t)}</dd>`).join("")}</dl>
     ${s.secrets ? `<h3>秘闻</h3>
     <dl class="secrets">${s.secrets.map(([h,t])=>`<dt>${h}</dt><dd>${spoil(t)}</dd>`).join("")}</dl>`
     : `<h3>事件</h3>
@@ -849,11 +849,27 @@ const sayEl=$("#say");
 function speak(id, kind, x, y){
   const t=ITEMS[id] && ITEMS[id].says && ITEMS[id].says[kind]; if(!t) return;
   if(x===undefined){ const el=STK[id] && STK[id].el; if(!el) return; x=el.offsetLeft+el.offsetWidth/2; y=el.offsetTop-4; }
-  const who=PEOPLE.find(p=>p.id===ITEMS[id].owner).name.toUpperCase();
+  sayLine(t, ITEMS[id].owner, x, y);
+}
+function sayLine(t, owner, x, y){
+  const who=PEOPLE.find(p=>p.id===owner).name.toUpperCase();
   sayEl.innerHTML=`${t}<small>—— ${who}</small>`;
   sayEl.style.left=Math.max(90, Math.min(innerWidth-90, x))+"px"; sayEl.style.top=Math.max(56, y)+"px";
   sayEl.classList.add("show"); clearTimeout(sayEl._t); sayEl._t=setTimeout(()=>sayEl.classList.remove("show"), 2200);
 }
+/* the birthday is her sore spot: go near it and she cuts in. first lightly, then not */
+const SORE_LINES=["你对我十四岁的事这么感兴趣？","那件事有什么好看的。"];
+let soreTurn=0, soreLast=0, soreEl=null;
+function sore(el){
+  if(PEOPLE[cur].id!=="aurelia") return;
+  const now=Date.now(); if(el===soreEl && now-soreLast<2600) return;
+  soreEl=el; soreLast=now;
+  const r=el.getClientRects()[0] || el.getBoundingClientRect();
+  sayLine(SORE_LINES[Math.min(soreTurn++, SORE_LINES.length-1)], "aurelia", r.left+Math.min(r.width/2, 140), r.top-4);
+}
+document.addEventListener("mouseover",e=>{ const s=e.target.closest && e.target.closest("[data-sore]"); if(s && !s.contains(e.relatedTarget)) sore(s); });
+document.addEventListener("focusin",e=>{ const s=e.target.closest && e.target.closest("[data-sore]"); if(s) sore(s); });
+document.addEventListener("click",e=>{ const s=e.target.closest("[data-sore]"); if(s) sore(s); });
 const inBag=id=>{ const v=store.get(STK[id].bagKey); return v===null ? !!STK[id].startInBag : !!v; };
 function applySt(id){ const k=STK[id]; k.el.style.setProperty("--s", k.s); k.el.style.setProperty("--rot", k.r+"deg"); }
 function saveSt(id){ const k=STK[id]; store.set(k.posKey,[k.el.offsetLeft, k.el.offsetTop, k.s, k.r]); }
