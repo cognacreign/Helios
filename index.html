@@ -241,9 +241,14 @@
   #rope{ width:3.4rem }
   #ydress{ width:3.3rem }
   /* the yellow dress gets you slapped: the whole page takes the hit */
-  html.slap body{ animation:slap .5s cubic-bezier(.2,.7,.3,1) }
-  @keyframes slap{ 0%{ transform:none } 10%{ transform:translate(-1.6rem,.25rem) rotate(-.7deg) } 28%{ transform:translate(1rem,-.1rem) rotate(.45deg) }
-    48%{ transform:translate(-.5rem,0) rotate(-.2deg) } 68%{ transform:translate(.22rem,0) } 100%{ transform:none } }
+  html.slap body{ animation:slap .75s cubic-bezier(.15,.8,.3,1) }
+  @keyframes slap{ 0%{ transform:none } 7%{ transform:translate(-4.4rem,.7rem) rotate(-2.6deg) scale(1.015) }
+    19%{ transform:translate(3rem,-.35rem) rotate(1.7deg) } 31%{ transform:translate(-2rem,.25rem) rotate(-1deg) }
+    45%{ transform:translate(1.2rem,-.1rem) rotate(.6deg) } 60%{ transform:translate(-.6rem,0) rotate(-.25deg) }
+    76%{ transform:translate(.25rem,0) } 100%{ transform:none } }
+  /* and a sting of light on impact */
+  html.slap::after{ content:""; position:fixed; inset:0; z-index:200; pointer-events:none; background:rgba(255,236,224,.5); animation:sting .4s ease-out forwards }
+  @keyframes sting{ to{ opacity:0 } }
   /* the rope falls in from above and swings itself still */
   .sticker.drop{ transform-origin:50% 0; animation:ropeDrop 1.6s cubic-bezier(.3,.7,.4,1) }
   @keyframes ropeDrop{
@@ -1161,7 +1166,7 @@ function joke(id, where){
   if(!taken) turns[id+where]=n+1;
   const who=PEOPLE.find(p=>p.id===ITEMS[id].owner).name.toUpperCase();
   /* the yellow dress: she doesn't argue, she hits you */
-  if(id==="ydress" && !reduce){ const h=document.documentElement; h.classList.remove("slap"); void h.offsetWidth; h.classList.add("slap"); setTimeout(()=>h.classList.remove("slap"), 600); }
+  if(id==="ydress" && !reduce){ const h=document.documentElement; h.classList.remove("slap"); void h.offsetWidth; h.classList.add("slap"); setTimeout(()=>h.classList.remove("slap"), 800); }
   takeOut(id); renderSkins(); if(STK[id]) STK[id].el.classList.add("away");
   const slotNow=box.querySelector(".slot");
   if(!taken){ slotNow.classList.remove("empty"); slotNow.classList.add("full","caught"); slotNow.innerHTML=`<img src="${ITEMS[id].icon}" alt=""${tint(id)}>`; }
