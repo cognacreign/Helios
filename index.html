@@ -299,6 +299,9 @@
   .inv .bagtag span{ opacity:0; transition:opacity .3s }
   .inv-grid{ display:grid; grid-template-columns:repeat(4, 1fr); gap:.7rem; margin-top:.7rem;
     opacity:0; transform:translateY(.4rem); transition:opacity .35s ease, transform .45s cubic-bezier(.2,.7,.2,1); pointer-events:none }
+  .inv.peek{ background:var(--panel); border-color:var(--line) }
+  .inv.peek .inv-grid{ opacity:1; transform:none; pointer-events:auto }
+  .inv.peek .bagtag span{ opacity:1 }
   .inv:hover, .inv:focus-within, body.dragging .inv{ background:var(--panel); border-color:var(--line); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px) }
   .inv:hover .inv-grid, .inv:focus-within .inv-grid, body.dragging .inv .inv-grid{ opacity:1; transform:none; pointer-events:auto }
   .inv:hover .bagtag span, .inv:focus-within .bagtag span, body.dragging .inv .bagtag span{ opacity:1 }
@@ -543,7 +546,6 @@ window.__lp=(function(){
 
 <button class="sticker" id="apple" type="button" aria-label="苹果贴纸：打开物品。可拖动；拖角上的圆点或滚轮缩放旋转；键盘 + − 缩放，[ ] 旋转" hidden><img alt=""><span class="lit amb" aria-hidden="true"></span><span class="lit key" aria-hidden="true"></span><span class="handle" aria-hidden="true"></span></button>
 <button class="sticker" id="deer2" type="button" aria-label="Aurelia 的小鹿玩偶贴纸。可拖动，也可以拖回背包；拖角上的圆点或滚轮缩放旋转；键盘 + − 缩放，[ ] 旋转" hidden><img alt=""><span class="lit amb" aria-hidden="true"></span><span class="lit key" aria-hidden="true"></span><span class="handle" aria-hidden="true"></span></button>
-<button class="sticker" id="ydress" type="button" aria-label="黄色礼裙贴纸。可拖动，也可以拖回背包；拖角上的圆点或滚轮缩放旋转；键盘 + − 缩放，[ ] 旋转" hidden><img alt=""><span class="lit amb" aria-hidden="true"></span><span class="lit key" aria-hidden="true"></span><span class="handle" aria-hidden="true"></span></button>
 <div class="say" id="say" aria-live="polite"></div>
 <div class="stk-tools" id="stkTools" hidden><input type="range" min="0" max="360" step="1" value="0" aria-label="贴纸色相"></div>
 <button class="sticker" id="rope" type="button" aria-label="绞索贴纸：打开物品。可拖动，也可以拖回背包；拖角上的圆点或滚轮缩放旋转；键盘 + − 缩放，[ ] 旋转" hidden><img alt=""><span class="lit amb" aria-hidden="true"></span><span class="lit key" aria-hidden="true"></span><span class="handle" aria-hidden="true"></span></button>
@@ -843,7 +845,7 @@ let lastFocus=null;
 function openEntry(key){
   if(!view) lastFocus=document.activeElement;
   view=key; showPanel(); renderReadout();
-  if(ENTRY_DROP[key]) reveal(ENTRY_DROP[key]);
+  if(ENTRY_DROP[key]){ const d=ENTRY_DROP[key]; STK[d] ? reveal(d) : gain(d); }
   const c=readin.querySelector("[data-close]"); if(c) c.focus({focusVisible:false, preventScroll:true});
 }
 function closeEntry(){ if(!view) return; view=null; renderReadout(); if(lastFocus && document.contains(lastFocus)) lastFocus.focus(); }
@@ -886,11 +888,7 @@ const STK={
             return p.width && p.left>s.right+60 ? [(s.right+p.left)/2-24, p.top+30] : [s.right-70, s.top+40]; } },
   deer: { el:$("#deer"),  src:DEER_SRC,  owner:"iris", s:1, r:6,  bagKey:"helios-deer-in-bag",  posKey:"helios-sticker-deer", startInBag:true },
   /* Aurelia has one too. she knows where it came from */
-  deer_aurelia:{ el:$("#deer2"), src:DEER_SRC, owner:"aurelia", s:1, r:-6, bagKey:"helios-deer-aurelia-in-bag", posKey:"helios-sticker-deer-aurelia", startInBag:true },
-  /* and the dress she will not wear */
-  ydress:{ el:$("#ydress"), src:DRESS_SRC, owner:"aurelia", s:1, r:5, bagKey:"helios-ydress-in-bag", posKey:"helios-sticker-ydress", untilFound:"helios-sticker-ydress-found", drop:true,
-            spot:()=>{ const s=$("#stage").getBoundingClientRect(), p=$("#readout").getBoundingClientRect();
-              return p.width && p.left>s.right+60 ? [(s.right+p.left)/2-24, p.top+30] : [s.right-70, s.top+40]; } }
+  deer_aurelia:{ el:$("#deer2"), src:DEER_SRC, owner:"aurelia", s:1, r:-6, bagKey:"helios-deer-aurelia-in-bag", posKey:"helios-sticker-deer-aurelia", startInBag:true }
 };
 /* a line from the owner, said beside the thing in hand */
 const sayEl=$("#say");
@@ -1022,7 +1020,8 @@ const ITEMS = {
   deer:{ owner:"iris", name:"小鹿玩偶", icon:DEER_SRC, sticker:true },
   rope:{ owner:"iris", name:"绞索", icon:ROPE_SRC, entry:"rope", sticker:true },
   deer_aurelia:{ owner:"aurelia", name:"小鹿玩偶", icon:DEER_SRC, sticker:true, says:{} },
-  ydress:{ owner:"aurelia", name:"黄色礼裙", icon:DRESS_SRC, entry:"ydress", sticker:true, sore:true, says:{} },
+  /* a dress, not a sticker: it lives in her bag, and she will not put it on */
+  ydress:{ owner:"aurelia", name:"黄色礼裙", icon:DRESS_SRC, entry:"ydress", sore:true, found:"helios-ydress-found", says:{} },
   /* outfits swap the standing portrait itself: same scale, same frame */
   uniform_iris:{ owner:"iris", name:"北方学院制服", icon:UNIFORM_ICON, wear:"top", fig:"images/iris-academy.webp", size:[886,1616], sheet:"iris_academy" },
   uniform_aurelia:{ owner:"aurelia", name:"北方学院制服", icon:UNIFORM_ICON, wear:"top", fig:"images/aurelia-academy.webp", size:[814,1616], sheet:"aurelia_academy" }
@@ -1031,6 +1030,17 @@ const BAG_N=8;    /* two rows of four */
 const fillBag=b=>b.concat(Array(BAG_N-b.length).fill(null));
 const INV={ iris:{ bag:fillBag(["drape","uniform_iris"]), worn:{top:null,bottom:null} }, aurelia:{ bag:fillBag(["uniform_aurelia"]), worn:{top:null,bottom:null} } };
 Object.keys(STK).forEach(id=>{ if(inBag(id)){ const b=INV[STK[id].owner].bag, i=b.indexOf(null); if(i>=0) b[i]=id; } });
+/* things an entry hands over go straight into the bag, once found */
+Object.entries(ITEMS).forEach(([id,it])=>{ if(it.found && store.get(it.found)){ const b=INV[it.owner].bag, i=b.indexOf(null); if(i>=0) b[i]=id; } });
+function gain(id){
+  const it=ITEMS[id]; if(!it || !it.found || store.get(it.found) || PEOPLE[cur].id!==it.owner) return;
+  const b=INV[it.owner].bag, i=b.indexOf(null); if(i<0) return;
+  store.set(it.found, true); b[i]=id; renderSkins();
+  /* the bag opens for a moment to show what fell into it */
+  inv.classList.add("peek"); bagname.textContent=`获得 · ${it.name}`; bagname.classList.add("named");
+  const sl=invGrid.querySelector(`[data-item="${id}"]`); if(sl){ sl.classList.add("caught"); }
+  clearTimeout(inv._t); inv._t=setTimeout(()=>{ inv.classList.remove("peek"); bagName(null); }, 2600);
+}
 const inv=$("#inv"), invGrid=$("#invGrid"), skinart=$("#skinart"), equip=$("#equip");
 const me=()=>INV[PEOPLE[cur].id];
 
@@ -1218,7 +1228,7 @@ function activate(id, el){
   const it=ITEMS[id];
   if(el.dataset.drop==="worn") unwear(id);
   else if(it.wear) wear(id, it.wear);
-  else if(it.entry) openEntry(it.entry);
+  else if(it.entry){ openEntry(it.entry); if(it.sore) sore(el); }
   else if(it.sticker){ const r=$("#stage").getBoundingClientRect();
     toBoard(id, Math.min(innerWidth-40, r.right+30), Math.max(60, Math.min(innerHeight-60, r.bottom-150))); }
 }
