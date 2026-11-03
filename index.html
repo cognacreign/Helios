@@ -239,6 +239,11 @@
   @keyframes swapIn{ from{ opacity:0; transform:translateY(.3rem) } }
   #deer, #deer2{ width:3.6rem }
   #rope{ width:3.4rem }
+  #ydress{ width:3.3rem }
+  /* the yellow dress gets you slapped: the whole page takes the hit */
+  html.slap body{ animation:slap .5s cubic-bezier(.2,.7,.3,1) }
+  @keyframes slap{ 0%{ transform:none } 10%{ transform:translate(-1.6rem,.25rem) rotate(-.7deg) } 28%{ transform:translate(1rem,-.1rem) rotate(.45deg) }
+    48%{ transform:translate(-.5rem,0) rotate(-.2deg) } 68%{ transform:translate(.22rem,0) } 100%{ transform:none } }
   /* the rope falls in from above and swings itself still */
   .sticker.drop{ transform-origin:50% 0; animation:ropeDrop 1.6s cubic-bezier(.3,.7,.4,1) }
   @keyframes ropeDrop{
@@ -533,6 +538,7 @@ window.__lp=(function(){
 
 <button class="sticker" id="apple" type="button" aria-label="苹果贴纸：打开物品。可拖动；拖角上的圆点或滚轮缩放旋转；键盘 + − 缩放，[ ] 旋转" hidden><img alt=""><span class="lit amb" aria-hidden="true"></span><span class="lit key" aria-hidden="true"></span><span class="handle" aria-hidden="true"></span></button>
 <button class="sticker" id="deer2" type="button" aria-label="Aurelia 的小鹿玩偶贴纸。可拖动，也可以拖回背包；拖角上的圆点或滚轮缩放旋转；键盘 + − 缩放，[ ] 旋转" hidden><img alt=""><span class="lit amb" aria-hidden="true"></span><span class="lit key" aria-hidden="true"></span><span class="handle" aria-hidden="true"></span></button>
+<button class="sticker" id="ydress" type="button" aria-label="黄色礼裙贴纸。可拖动，也可以拖回背包；拖角上的圆点或滚轮缩放旋转；键盘 + − 缩放，[ ] 旋转" hidden><img alt=""><span class="lit amb" aria-hidden="true"></span><span class="lit key" aria-hidden="true"></span><span class="handle" aria-hidden="true"></span></button>
 <div class="say" id="say" aria-live="polite"></div>
 <div class="stk-tools" id="stkTools" hidden><input type="range" min="0" max="360" step="1" value="0" aria-label="贴纸色相"></div>
 <button class="sticker" id="rope" type="button" aria-label="绞索贴纸：打开物品。可拖动，也可以拖回背包；拖角上的圆点或滚轮缩放旋转；键盘 + − 缩放，[ ] 旋转" hidden><img alt=""><span class="lit amb" aria-hidden="true"></span><span class="lit key" aria-hidden="true"></span><span class="handle" aria-hidden="true"></span></button>
@@ -863,6 +869,8 @@ const APPLE_SRC="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(`<svg xml
 /* a hangman's rope, from the war */
 const ROPE_SRC="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="20 2 160 216"> <g fill="none" stroke="#faf7f0" stroke-linecap="round" stroke-width="30"> <path d="M100 14 L100 80"/><path d="M93 124 C 48 142 44 200 100 206 C 156 200 152 142 107 124"/> </g> <g fill="#faf7f0"><ellipse cx="100" cy="74" rx="27" ry="15"/><ellipse cx="100" cy="88" rx="28" ry="15"/><ellipse cx="100" cy="102" rx="28" ry="15"/><ellipse cx="100" cy="116" rx="27" ry="15"/></g> <g fill="none" stroke-linecap="round"> <path d="M100 14 L100 80" stroke="#a9845a" stroke-width="13"/> <path d="M93 124 C 48 142 44 200 100 206 C 156 200 152 142 107 124" stroke="#a9845a" stroke-width="13"/> <path d="M96 14 L96 80" stroke="#7f6142" stroke-width="3" opacity=".55"/> <path d="M93 124 C 52 142 50 196 100 200" stroke="#7f6142" stroke-width="4" opacity=".45"/> <path d="M104 132 C 140 148 146 192 112 202" stroke="#d6b98d" stroke-width="3" opacity=".8"/> <path d="M100 16 L100 80" stroke="#5e4630" stroke-width="13" stroke-dasharray="2 7" opacity=".35"/> <path d="M93 124 C 48 142 44 200 100 206 C 156 200 152 142 107 124" stroke="#5e4630" stroke-width="13" stroke-dasharray="2 8" opacity=".3"/> </g> <g> <ellipse cx="100" cy="74" rx="19" ry="8" fill="#b9946a"/><ellipse cx="100" cy="88" rx="20" ry="8" fill="#a9845a"/> <ellipse cx="100" cy="102" rx="20" ry="8" fill="#b9946a"/><ellipse cx="100" cy="116" rx="19" ry="8" fill="#a07b52"/> <g fill="none" stroke="#6e5238" stroke-width="2" opacity=".6"><path d="M82 77 Q100 83 118 77"/><path d="M81 91 Q100 97 119 91"/><path d="M81 105 Q100 111 119 105"/><path d="M82 119 Q100 125 118 119"/></g> <g fill="none" stroke="#e2c79c" stroke-width="2" opacity=".8"><path d="M86 71 Q96 69 104 70"/><path d="M85 85 Q95 83 103 84"/><path d="M85 99 Q95 97 103 98"/></g> </g> </svg>`);
 const DEER_SRC="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="12 28 176 104"> <defs><clipPath id="dh"><path d="M100 40 Q136 40 142 76 Q146 106 122 118 Q100 128 78 118 Q54 106 58 76 Q64 40 100 40 Z"/></clipPath></defs> <g fill="#faf7f0" stroke="#faf7f0" stroke-width="16" stroke-linejoin="round"> <path d="M100 40 Q136 40 142 76 Q146 106 122 118 Q100 128 78 118 Q54 106 58 76 Q64 40 100 40 Z"/> <path d="M66 64 Q36 62 22 44 Q46 36 72 52 Z"/><path d="M134 64 Q164 62 178 44 Q154 36 128 52 Z"/> </g> <path d="M66 64 Q36 62 22 44 Q46 36 72 52 Z" fill="#a8743f"/><path d="M62 58 Q42 56 32 46 Q50 44 68 54 Z" fill="#e9b3a2"/> <path d="M134 64 Q164 62 178 44 Q154 36 128 52 Z" fill="#9a6838"/><path d="M138 58 Q158 56 168 46 Q150 44 132 54 Z" fill="#e3a796"/> <g clip-path="url(#dh)"> <rect width="200" height="220" fill="#c08b56"/> <polygon points="50,40 86,40 72,130 50,130" fill="#94623b" opacity=".75"/> <rect x="110" y="46" width="40" height="26" fill="#ddaa72" opacity=".8" transform="rotate(16 130 60)"/> <ellipse cx="100" cy="104" rx="22" ry="16" fill="#f1dfc2"/> <ellipse cx="88" cy="56" rx="4.2" ry="3" fill="#f6ead6"/><ellipse cx="112" cy="54" rx="3.6" ry="2.6" fill="#f6ead6"/> <polygon points="50,112 150,108 150,130 50,130" fill="#5d4a66" opacity=".25"/> </g> <ellipse cx="82" cy="84" rx="6.5" ry="7.5" fill="#2e2420"/><ellipse cx="118" cy="84" rx="6.5" ry="7.5" fill="#2e2420"/> <circle cx="84.5" cy="81" r="2.2" fill="#fbf6ec"/><circle cx="120.5" cy="81" r="2.2" fill="#fbf6ec"/> <ellipse cx="100" cy="98" rx="6" ry="4.2" fill="#3a2b24"/> <path d="M96 106 Q100 110 104 106" fill="none" stroke="#7a4d33" stroke-width="2" stroke-linecap="round"/> <ellipse cx="70" cy="98" rx="7" ry="4" fill="#e89a86" opacity=".55"/><ellipse cx="130" cy="98" rx="7" ry="4" fill="#e89a86" opacity=".55"/> </svg>`);
+/* the pale yellow dress from Julian's birthday, coffee still on the skirt */
+const DRESS_SRC="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="22 14 156 204"> <defs><clipPath id="yd"><path d="M70 40 Q85 33 100 45 Q115 33 130 40 Q128 66 116 90 Q128 112 146 150 Q160 178 160 190 Q150 200 138 194 Q128 204 116 196 Q104 206 92 196 Q80 204 70 194 Q56 200 44 190 Q42 178 54 150 Q72 112 84 90 Q72 66 70 40 Z"/></clipPath></defs> <g fill="#faf7f0" stroke="#faf7f0" stroke-width="16" stroke-linejoin="round"> <path d="M70 40 Q85 33 100 45 Q115 33 130 40 Q128 66 116 90 Q128 112 146 150 Q160 178 160 190 Q150 200 138 194 Q128 204 116 196 Q104 206 92 196 Q80 204 70 194 Q56 200 44 190 Q42 178 54 150 Q72 112 84 90 Q72 66 70 40 Z"/> <ellipse cx="62" cy="48" rx="13" ry="10" transform="rotate(-20 62 48)"/><ellipse cx="138" cy="48" rx="13" ry="10" transform="rotate(20 138 48)"/> </g> <ellipse cx="62" cy="48" rx="13" ry="10" transform="rotate(-20 62 48)" fill="#f3df98"/><ellipse cx="138" cy="48" rx="13" ry="10" transform="rotate(20 138 48)" fill="#e2c46c"/> <path d="M53 47 Q60 40 70 42" fill="none" stroke="#fbf0c6" stroke-width="3" stroke-linecap="round"/> <g clip-path="url(#yd)"> <rect width="200" height="220" fill="#f1da8c"/> <polygon points="30,96 84,90 66,210 26,210" fill="#d9b75f" opacity=".75"/> <polygon points="136,120 176,150 176,210 130,210" fill="#c9a24e" opacity=".5"/> <rect x="86" y="44" width="11" height="44" fill="#fbefc2" opacity=".85" transform="rotate(-6 92 66)"/> <rect x="94" y="104" width="13" height="96" fill="#fbf0c8" opacity=".7" transform="rotate(4 100 150)"/> <rect x="116" y="104" width="8" height="94" fill="#e1bf66" opacity=".8" transform="rotate(-16 120 150)"/> <rect x="72" y="106" width="8" height="94" fill="#d6b35c" opacity=".7" transform="rotate(16 76 150)"/> <rect x="60" y="86" width="80" height="10" fill="#e0bc5e"/> <rect x="66" y="88" width="30" height="3.5" fill="#f6e3a4"/> <polygon points="30,182 170,174 170,212 30,212" fill="#5d4a66" opacity=".2"/> <path d="M110 132 Q124 122 137 132 Q146 144 139 155 Q142 165 132 166 Q126 177 118 168 Q107 172 107 160 Q98 152 105 143 Q102 135 110 132 Z" fill="#8b5a35" opacity=".9"/> <path d="M116 137 Q125 131 132 139 Q136 148 128 154 Q120 159 114 152 Q110 144 116 137 Z" fill="#a8744a" opacity=".85"/> <path d="M129 166 Q131 177 128 186" fill="none" stroke="#8b5a35" stroke-width="4" stroke-linecap="round" opacity=".85"/> <path d="M113 168 Q112 173 114 178" fill="none" stroke="#8b5a35" stroke-width="3" stroke-linecap="round" opacity=".8"/> <circle cx="147" cy="124" r="3" fill="#8b5a35" opacity=".8"/><circle cx="101" cy="124" r="2.2" fill="#8b5a35" opacity=".7"/> </g> <path d="M100 91 L88 84 L88 98 Z M100 91 L112 84 L112 98 Z" fill="#e8c86c" stroke="#c9a24e" stroke-width="1.4" stroke-linejoin="round"/> <circle cx="100" cy="91" r="3.2" fill="#f6e3a4" stroke="#c9a24e" stroke-width="1.2"/> </svg>`);
 const S_MIN=.6, S_MAX=2.4;      /* a sticker stays between about 28px and 110px across */
 const clampS=s=>Math.max(S_MIN, Math.min(S_MAX, s));
 const STK={
@@ -873,7 +881,9 @@ const STK={
             return p.width && p.left>s.right+60 ? [(s.right+p.left)/2-24, p.top+30] : [s.right-70, s.top+40]; } },
   deer: { el:$("#deer"),  src:DEER_SRC,  owner:"iris", s:1, r:6,  bagKey:"helios-deer-in-bag",  posKey:"helios-sticker-deer", startInBag:true },
   /* Aurelia has one too. she knows where it came from */
-  deer_aurelia:{ el:$("#deer2"), src:DEER_SRC, owner:"aurelia", s:1, r:-6, bagKey:"helios-deer-aurelia-in-bag", posKey:"helios-sticker-deer-aurelia", startInBag:true }
+  deer_aurelia:{ el:$("#deer2"), src:DEER_SRC, owner:"aurelia", s:1, r:-6, bagKey:"helios-deer-aurelia-in-bag", posKey:"helios-sticker-deer-aurelia", startInBag:true },
+  /* and the dress she will not wear */
+  ydress:{ el:$("#ydress"), src:DRESS_SRC, owner:"aurelia", s:1, r:5, bagKey:"helios-ydress-in-bag", posKey:"helios-sticker-ydress", startInBag:true }
 };
 /* a line from the owner, said beside the thing in hand */
 const sayEl=$("#say");
@@ -980,6 +990,7 @@ function bindSticker(id){
       saveSt(id); speak(id,"stick"); } });
   el.addEventListener("click",e=>{ if(moved){ e.preventDefault(); e.stopImmediatePropagation(); moved=false; return; }
     if(ITEMS[id].entry) openEntry(ITEMS[id].entry);
+    else if(ITEMS[id].sore){ el.classList.remove("boop"); void el.offsetWidth; el.classList.add("boop"); sore(el); }
     else { el.classList.remove("boop"); void el.offsetWidth; el.classList.add("boop"); speak(id,"move"); } });
   /* the wheel resizes; with Shift held it turns */
   el.addEventListener("wheel",e=>{ e.preventDefault();
@@ -1004,6 +1015,7 @@ const ITEMS = {
   deer:{ owner:"iris", name:"小鹿玩偶", icon:DEER_SRC, sticker:true },
   rope:{ owner:"iris", name:"绞索", icon:ROPE_SRC, entry:"rope", sticker:true },
   deer_aurelia:{ owner:"aurelia", name:"小鹿玩偶", icon:DEER_SRC, sticker:true, says:{} },
+  ydress:{ owner:"aurelia", name:"黄色礼裙", icon:DRESS_SRC, sticker:true, sore:true, says:{} },
   /* outfits swap the standing portrait itself: same scale, same frame */
   uniform_iris:{ owner:"iris", name:"北方学院制服", icon:UNIFORM_ICON, wear:"top", fig:"images/iris-academy.webp", size:[886,1616], sheet:"iris_academy" },
   uniform_aurelia:{ owner:"aurelia", name:"北方学院制服", icon:UNIFORM_ICON, wear:"top", fig:"images/aurelia-academy.webp", size:[814,1616], sheet:"aurelia_academy" }
@@ -1148,6 +1160,8 @@ function joke(id, where){
   const line = taken ? TAKEN_LINE : L[Math.min(n, L.length-1)];
   if(!taken) turns[id+where]=n+1;
   const who=PEOPLE.find(p=>p.id===ITEMS[id].owner).name.toUpperCase();
+  /* the yellow dress: she doesn't argue, she hits you */
+  if(id==="ydress" && !reduce){ const h=document.documentElement; h.classList.remove("slap"); void h.offsetWidth; h.classList.add("slap"); setTimeout(()=>h.classList.remove("slap"), 600); }
   takeOut(id); renderSkins(); if(STK[id]) STK[id].el.classList.add("away");
   const slotNow=box.querySelector(".slot");
   if(!taken){ slotNow.classList.remove("empty"); slotNow.classList.add("full","caught"); slotNow.innerHTML=`<img src="${ITEMS[id].icon}" alt=""${tint(id)}>`; }
@@ -1303,13 +1317,16 @@ function parseEntry(key, fm, body){
 }
 const LINE_SLOTS={ "苹果 · TOP":["apple","top"], "苹果 · BOTTOM":["apple","bottom"],
   "小鹿 · TOP":["deer","top"], "小鹿 · BOTTOM":["deer","bottom"], "Aurelia 的小鹿 · TOP":["deer_aurelia","top"],
-  "绞索 · TOP":["rope","top"], "绞索 · BOTTOM":["rope","bottom"] };
+  "绞索 · TOP":["rope","top"], "绞索 · BOTTOM":["rope","bottom"],
+  "黄色礼裙 · TOP":["ydress","top"], "黄色礼裙 · BOTTOM":["ydress","bottom"] };
 function parseLines(md){
   sectionsOf(splitFront(md)[1],2).filter(s=>s.h).forEach(s=>{ const L=bullets(s.text); if(!L.length) return;
     const slot=LINE_SLOTS[s.h];
     if(slot){ (JOKES[slot[0]]=JOKES[slot[0]]||{})[slot[1]]=L; return; }
     if(s.h==="Aurelia 的小鹿 · 拿起") ITEMS.deer_aurelia.says.move=L[0];
     else if(s.h==="Aurelia 的小鹿 · 贴上") ITEMS.deer_aurelia.says.stick=L[0];
+    else if(s.h==="黄色礼裙 · 拿起") ITEMS.ydress.says.move=L[0];
+    else if(s.h==="黄色礼裙 · 贴上") ITEMS.ydress.says.stick=L[0];
     else if(s.h==="Aurelia · 生日宴") SORE_LINES=L;
     else if(s.h==="卡槽已占用") TAKEN_LINE=L[0];
   });
