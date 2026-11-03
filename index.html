@@ -1483,36 +1483,6 @@ renderSkins();
       setTimeout(drop, 5000+Math.random()*11000); };
     setTimeout(drop, 3000);
 
-    /* a harp somewhere far down the hall: plucked strings (Karplus-Strong), a few notes at a time, then a long silence */
-    const harpBus=filt("lowpass",2400,.5), harpP=pan(), harpG=gain(1);
-    harpBus.connect(harpG); if(harpP){ harpG.connect(harpP); send(harpP, .22, 1.25); } else send(harpG, .22, 1.25);
-    const NOTE={}; const sr=ctx.sampleRate;
-    function string(f){
-      if(NOTE[f]) return NOTE[f];
-      const len=Math.round(sr*5), b=ctx.createBuffer(1,len,sr), d=b.getChannelData(0), N=Math.max(2, Math.round(sr/f));
-      let prev=0; for(let i=0;i<N;i++){ const w=Math.random()*2-1; prev=prev*.55+w*.45; d[i]=prev; }        /* a soft pluck: the finger, not a pick */
-      const keep=Math.pow(.001, 1/(f*(2.2+260/f)));                                                           /* the loss is taken once per period: -60 dB over 2.2 s plus a little more for low strings */
-      d[N]=keep*.5*d[0]; for(let i=N+1;i<len;i++) d[i]=keep*.5*(d[i-N]+d[i-N-1]);
-      return NOTE[f]=b;
-    }
-    const hz=m=>440*Math.pow(2,(m-69)/12);
-    /* D dorian, low to high; phrases wander mostly by step and come to rest on D or A */
-    const SCALE=[50,57,60,62,64,65,67,69,71,72,74,76].map(hz), REST=[0,1,3,7,10];
-    function pluck(i, at, v){ const s=ctx.createBufferSource(), g=gain(v); s.buffer=string(SCALE[i]); s.connect(g); g.connect(harpBus); s.start(at); }
-    function phrase(){
-      if(on){ let t=ctx.currentTime+.1, i=3+Math.floor(Math.random()*6); const n=3+Math.floor(Math.random()*5);
-        if(harpP) harpP.pan.setValueAtTime(Math.random()*1.3-.65, t);
-        if(Math.random()<.5) pluck(0, t, .16);                                           /* sometimes a low D underneath */
-        for(let k=0;k<n;k++){
-          if(k===n-1){ i=REST.reduce((a,b)=>Math.abs(b-i)<Math.abs(a-i)?b:a, REST[0]); }
-          pluck(i, t, .1+Math.random()*.07);
-          if(Math.random()<.18) pluck(Math.min(SCALE.length-1, i+2), t+.02, .07);       /* now and then a third above */
-          t+=.42+Math.random()*.75 + (k===n-2 ? .35 : 0);
-          i=Math.max(1, Math.min(SCALE.length-1, i+[-2,-1,-1,1,1,2][Math.floor(Math.random()*6)]));
-        } }
-      setTimeout(phrase, 14000+Math.random()*22000);
-    }
-    setTimeout(phrase, 5000);
   }
   function set(v){
     on=v; btn.classList.toggle("on", v); btn.setAttribute("aria-pressed", v); btn.setAttribute("aria-label", v?"关闭声音":"打开声音");
