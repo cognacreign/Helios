@@ -246,9 +246,6 @@
     19%{ transform:translate(3rem,-.35rem) rotate(1.7deg) } 31%{ transform:translate(-2rem,.25rem) rotate(-1deg) }
     45%{ transform:translate(1.2rem,-.1rem) rotate(.6deg) } 60%{ transform:translate(-.6rem,0) rotate(-.25deg) }
     76%{ transform:translate(.25rem,0) } 100%{ transform:none } }
-  /* and a sting of light on impact */
-  html.slap::after{ content:""; position:fixed; inset:0; z-index:200; pointer-events:none; background:rgba(255,236,224,.5); animation:sting .4s ease-out forwards }
-  @keyframes sting{ to{ opacity:0 } }
   /* the rope falls in from above and swings itself still */
   .sticker.drop{ transform-origin:50% 0; animation:ropeDrop 1.6s cubic-bezier(.3,.7,.4,1) }
   @keyframes ropeDrop{
