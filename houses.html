@@ -1,0 +1,1118 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Great Houses</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200..500&family=IBM+Plex+Mono:wght@400;500&family=Noto+Serif+SC:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* layout: the houses hang like medallions on a dusk wall; one readout card on the right, as on the character pages */
+  :root{
+    --bg:#ece2d5; --ink:#3a322a; --dim:#7a6c5c; --line:rgba(58,50,42,.45); --faint:rgba(58,50,42,.16);
+    --panel:rgba(250,244,234,.62); --gold:#94703f; --gold-soft:rgba(148,112,63,.35); --fallen:rgba(58,50,42,.38);
+    --wide:"Inter","Helvetica Neue",Arial,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+    --serif:"Noto Serif SC","Songti SC",serif;
+    --veil:radial-gradient(110% 90% at 10% -10%, rgba(240,246,196,.35), rgba(240,246,196,0) 60%);
+  }
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+    --bg:#5f5348; --ink:#efe5d5; --dim:#c2b29c; --line:rgba(239,229,213,.42); --faint:rgba(239,229,213,.15);
+    --panel:rgba(38,31,26,.55); --gold:#e4a96d; --gold-soft:rgba(228,169,109,.35); --fallen:rgba(239,229,213,.32);
+    --veil:radial-gradient(90% 80% at 50% 40%, rgba(95,83,72,0) 45%, rgba(40,34,26,.45) 100%); color-scheme:dark } }
+  :root[data-theme="dark"]{
+    --bg:#5f5348; --ink:#efe5d5; --dim:#c2b29c; --line:rgba(239,229,213,.42); --faint:rgba(239,229,213,.15);
+    --panel:rgba(38,31,26,.55); --gold:#e4a96d; --gold-soft:rgba(228,169,109,.35); --fallen:rgba(239,229,213,.32);
+    --veil:radial-gradient(90% 80% at 50% 40%, rgba(95,83,72,0) 45%, rgba(40,34,26,.45) 100%); color-scheme:dark }
+
+  html,body{ background:var(--bg); color:var(--ink) }
+  /* everything is sized in rem, and rem follows the window, so the whole page fits one screen */
+  html{ font-size:clamp(11px, min(1.05vw, 1.75vh), 22px) }
+  body{ font-family:var(--serif); position:relative; overflow-x:hidden }
+  body::before{ content:""; position:fixed; inset:0; pointer-events:none; background:var(--veil); z-index:0 }
+  body::after{ content:""; position:fixed; inset:0; pointer-events:none; z-index:0; opacity:.2; mix-blend-mode:soft-light;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>") }
+  .wrap{ position:relative; z-index:1; box-sizing:border-box; height:100vh; display:flex; flex-direction:column; padding-block:1.5rem 1.4rem;
+    padding-left:max(16px, env(safe-area-inset-left, 0px), 3vw); padding-right:max(16px, env(safe-area-inset-right, 0px), 3vw) }
+
+  header{ display:flex; align-items:center; gap:1.4rem; margin-bottom:.9rem }
+  .mark{ font-family:var(--wide); letter-spacing:.34em; font-size:.9rem }
+  a.mark{ color:inherit; text-decoration:none; border-bottom:1px solid transparent; padding-bottom:.15rem; transition:border-color .3s }
+  a.mark:hover, a.mark:focus-visible{ border-bottom-color:currentColor; outline:none }
+  header .spacer{ flex:1 }
+  header, .title{ position:relative; z-index:8 }
+  .modes{ display:flex; gap:.25rem; padding:.2rem; border:.5px solid var(--line); border-radius:999px }
+  .modes button{ all:unset; cursor:pointer; font-family:var(--mono); font-size:.72rem; letter-spacing:.16em; padding:.38rem .8rem; border-radius:999px; color:var(--dim) }
+  .modes button[aria-pressed="true"]{ background:var(--faint); color:var(--ink) }
+  /* light: dusk (the violet evening, the haze on the table) or afternoon (clear) */
+  .mood{ all:unset; cursor:pointer; width:2.1rem; height:2.1rem; display:grid; place-items:center; border-radius:50%; border:.5px solid var(--line); color:var(--ink) }
+  .mood:hover{ background:var(--faint) } .mood:focus-visible{ outline:1px solid var(--ink); outline-offset:2px }
+  .mood svg{ width:1.05rem; height:1.05rem }
+  :root.noon .v-grade{ opacity:.25 } :root.noon .v-shade{ opacity:.7 }
+  .modes button:focus-visible{ outline:1px solid var(--ink); outline-offset:2px }
+
+  .title{ display:flex; align-items:baseline; gap:1.1rem; flex-wrap:wrap; margin:0 0 .4rem }
+  .title h1{ margin:0; font-family:var(--wide); font-weight:200; font-size:2.5rem; letter-spacing:.04em; line-height:1 }
+  .title span{ font-family:var(--mono); font-size:.7rem; letter-spacing:.2em; color:var(--dim) }
+
+  .grid{ flex:1; min-height:0; display:grid; grid-template-columns:minmax(0,1fr) 25rem; gap:2.2rem }
+  @media (max-width: 900px){ .wrap{ height:auto } .grid{ grid-template-columns:1fr } .stage{ height:72vh; min-height:440px } }
+
+  /* the wall the medallions hang on */
+  .stage{ position:relative; min-width:0; min-height:0 }
+  .stage svg.links{ position:absolute; inset:0; width:100%; height:100%; overflow:visible; pointer-events:none }
+  .layer{ position:absolute; inset:0; pointer-events:none; transition:opacity .8s ease }
+  .layer.off{ opacity:0 }
+  .axis{ position:absolute; left:4%; right:4%; top:91%; height:1px; background:var(--line) }
+  .axis::before,.axis::after{ content:""; position:absolute; top:-3px; width:7px; height:7px; border-top:1px solid var(--line); border-left:1px solid var(--line) }
+  .axis::before{ left:-1px; transform:rotate(-45deg) } .axis::after{ right:-1px; transform:rotate(135deg) }
+  .tick{ position:absolute; transform:translateX(-50%); font-family:var(--mono); font-size:.66rem; letter-spacing:.18em; color:var(--dim); white-space:nowrap }
+  .compass{ position:absolute; inset:0 }
+  .compass i{ position:absolute; background:var(--faint) }
+  .compass .ns{ left:50%; top:4%; bottom:4%; width:1px } .compass .ew{ top:50%; left:2%; right:2%; height:1px }
+
+  /* 关系 / 地域: a small switch inside the structure view */
+  .sub{ position:absolute; left:0; top:0; z-index:3; display:flex; gap:.2rem; padding:.16rem; border:.5px solid var(--faint); border-radius:999px }
+  .sub button{ all:unset; cursor:pointer; font-family:var(--mono); font-size:.64rem; letter-spacing:.16em; padding:.26rem .66rem; border-radius:999px; color:var(--dim) }
+  .sub button[aria-pressed="true"]{ background:var(--faint); color:var(--ink) }
+  .sub button:focus-visible{ outline:1px solid var(--ink); outline-offset:2px }
+  .vault-on .sub{ display:none }
+
+  /* the matrix under the chart: one row per layer of information, one column per house, read across to compare */
+  .matrix{ position:absolute; left:0; right:0; top:var(--mtop); bottom:0; display:grid; grid-template-columns:var(--gut) repeat(6,minmax(0,1fr));
+    grid-auto-rows:minmax(0,auto); align-content:start; pointer-events:auto }
+  .matrix > *{ padding:.55rem .3rem; text-align:center; font-size:.8rem; line-height:1.45; min-width:0; overflow-wrap:anywhere; transition:color .3s }
+  .matrix .t{ display:inline-block; padding:0 .2rem }
+  .matrix .lab{ text-align:left; padding-left:0; font-family:var(--mono); font-size:.62rem; letter-spacing:.14em; color:var(--dim); line-height:1.5 }
+  .matrix .lab b{ display:block; font-family:var(--serif); font-weight:500; font-size:.78rem; letter-spacing:.1em; color:var(--ink) }
+  .matrix .lab[data-g]::before{ content:attr(data-g); display:block; font-size:.54rem; letter-spacing:.3em; color:var(--gold); margin-bottom:.1rem }
+  .layer.off .matrix{ pointer-events:none }
+  .matrix .c{ color:var(--dim); cursor:pointer }
+  .matrix .c.on{ color:var(--ink) }
+  .matrix .c.tbd{ font-family:var(--mono); font-size:.66rem; letter-spacing:.14em; opacity:.6 }
+  .matrix .c small{ display:block; font-family:var(--mono); font-size:.6rem; letter-spacing:.06em; opacity:.8 }
+  .matrix .c.gold{ color:var(--gold) }
+  /* party: one bracket over every house in it */
+  .matrix .party .t{ padding:0 .5rem }
+  .matrix .sep{ grid-column:1 / -1; padding:0; border:none; height:.5rem }
+  @media (max-width: 640px){ .matrix > *{ font-size:9.5px; padding:.4rem .15rem } .matrix .lab b{ font-size:10px } .matrix .c small{ display:none } }
+
+  .house{ all:unset; position:absolute; left:var(--x); top:var(--y); transform:translate(-50%,-50%); width:7.6rem;
+    display:flex; flex-direction:column; align-items:center; gap:.4rem; cursor:pointer; text-align:center;
+    transition:left .9s cubic-bezier(.3,.7,.2,1), top .9s cubic-bezier(.3,.7,.2,1) }
+  .house .crest{ width:4.6rem; height:4.6rem; color:var(--gold); transition:transform .4s ease, color .3s }
+  .house .crest svg{ width:100%; height:100%; overflow:visible }
+  .house b{ font-family:var(--wide); font-weight:400; font-size:.76rem; letter-spacing:.24em; text-transform:uppercase }
+  .house small:empty{ display:none }
+  .house small{ font-family:var(--mono); font-size:.64rem; letter-spacing:.12em; color:var(--dim) }
+  .house:hover .crest{ transform:scale(1.06) }
+  .house:focus-visible{ outline:1px solid var(--ink); outline-offset:6px; border-radius:12px }
+  .house[aria-pressed="true"] .ring-o{ animation:spin 60s linear infinite }
+  .house[aria-pressed="true"] .crest{ transform:scale(1.1) }
+  .house.fallen .crest{ color:var(--fallen) } .house.fallen b{ text-decoration:line-through; text-decoration-thickness:1px }
+  .house.crown{ width:9rem } .house.crown .crest{ width:6.2rem; height:6.2rem }
+  @media (max-width: 640px){ .house{ width:54px } .house .crest{ width:46px; height:46px } .house b{ font-size:7.5px; letter-spacing:.02em; white-space:nowrap } .house small{ display:none }
+    .house.crown{ width:90px } .house.crown .crest{ width:78px; height:78px } }
+  @keyframes spin{ to{ transform:rotate(360deg) } }
+  .ring-o{ transform-origin:0 0 }
+  @media (prefers-reduced-motion: reduce){ .house,.house .crest{ transition:none } .house[aria-pressed="true"] .ring-o{ animation:none } }
+
+  /* map: an engraved disc, the capital at its heart */
+  #disc{ position:absolute; inset:0; width:100%; height:100%; overflow:visible }
+
+  :root.vault .title span{ visibility:hidden }
+  /* the structure laid on the sand: the html chart steps aside, its houses stay as invisible hit targets over the runes */
+  :root.sand #spec, :root.sand #map, :root.sand.rune-on .links{ visibility:hidden }
+  .house.ghost{ opacity:0; transition:none }
+  :root.sand .title h1, :root.sand header .mark, :root.sand .sub{ text-shadow:0 1px 14px rgba(30,16,30,.75) } .house.ghost:focus-visible{ opacity:1 }
+  :root.vault, :root.sand{ --bg:#3a3446; --ink:#ebe3d5; --dim:#8f8576; --line:rgba(235,227,213,.3); --faint:rgba(235,227,213,.1); --gold:#d8b98c;
+    --panel:rgba(20,16,13,.6); --veil:radial-gradient(70% 70% at 50% 45%, rgba(40,32,26,.55), rgba(0,0,0,0) 70%); color-scheme:dark }
+  html,body{ transition:background-color .8s ease, color .8s ease }
+  /* vault: the crests as paper seals lying in a dark box; the chosen one lifts toward you and takes its colour */
+  #vault{ pointer-events:none } #vault:not(.off){ pointer-events:auto }
+  .grid.solo{ grid-template-columns:minmax(0,1fr) } .grid.solo .card{ display:none }
+  .v-shade{ position:fixed; inset:0; z-index:0; pointer-events:none;
+    background:radial-gradient(38% 32% at 12% 8%, rgba(24,20,34,.6), rgba(24,20,34,0)), linear-gradient(to bottom, rgba(24,20,34,.5) 0%, rgba(24,20,34,.18) 18%, rgba(24,20,34,0) 34%, rgba(24,20,34,0) 64%, rgba(20,17,30,.7) 86%, rgba(18,15,26,.86) 100%) }
+  .v-grade{ position:fixed; inset:0; z-index:0; pointer-events:none; mix-blend-mode:multiply; background:radial-gradient(90% 80% at 55% 48%, rgba(255,255,255,0) 40%, rgba(30,24,44,.55) 100%) }
+  .v-glow{ position:fixed; inset:0; z-index:0; pointer-events:none; mix-blend-mode:screen; background:linear-gradient(118deg, rgba(255,245,200,0) 38%, rgba(255,170,90,.05) 50%, rgba(255,245,200,0) 64%) }
+  .v-ask{ position:absolute; top:.2rem; left:0; right:0; text-align:center; font-family:var(--wide); font-size:.78rem; letter-spacing:.3em; z-index:2 }
+  .v-ask span{ font-family:var(--serif); letter-spacing:.2em; color:var(--dim); margin-left:.6rem }
+  .v-quote{ position:absolute; top:1.9rem; left:50%; z-index:2; width:18rem; margin:0; padding:.6rem 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+    font-family:var(--mono); font-style:italic; font-size:.8rem; line-height:1.7; transform:translateX(-50%); transition:left .6s cubic-bezier(.3,.7,.2,1); text-shadow:0 1px 8px rgba(0,0,0,.6) }
+  .v-scene{ position:fixed; inset:0; z-index:-1 }
+  .v-scene canvas{ display:block; width:100%; height:100%; cursor:default; filter:saturate(1.08) contrast(1.05);
+    }
+  .v-scene.hot canvas{ cursor:pointer }
+  .v-scene .fallback{ position:absolute; inset:0; display:grid; place-items:center; font-family:var(--mono); font-size:.72rem; color:var(--dim) }
+  /* the turned card: the card itself stands at the left, its sheet opens on the right */
+  /* the turned card's sheet: the whole screen in three columns, like a character dossier.
+     left: the house and its card · centre: three framed faculties · right: the writing, the lineage */
+  /* the turned card's sheet: two fifths for the card, three for a frosted panel (the character pages' frame) */
+  .v-sheet{ position:fixed; inset:0; z-index:3; box-sizing:border-box; padding:7.4rem 3.2vw 2.6rem;
+    display:grid; grid-template-columns:2fr 3fr; column-gap:2.4rem; align-items:center; opacity:0; pointer-events:none; transition:opacity .5s ease .15s;
+    background:radial-gradient(60% 80% at 20% 55%, rgba(18,14,26,0), rgba(18,14,26,.35)); }
+  .sh-panel{ position:relative; grid-column:2; box-sizing:border-box; max-height:100%; overflow:auto; display:grid; grid-template-columns:2fr 1fr; grid-template-rows:auto auto auto;
+    column-gap:1.4rem; row-gap:1.4rem; padding:0 .2rem }
+  /* each part stands in its own frame: the character pages' rounded glass, the room showing through */
+  .pane{ position:relative; box-sizing:border-box; border-radius:1.3rem; border:.5px solid var(--line); background:rgba(34,28,44,.5);
+    -webkit-backdrop-filter:blur(14px) saturate(1.05); backdrop-filter:blur(14px) saturate(1.05) }
+  .pane.talents{ padding:2rem 1.8rem 2.2rem }
+  /* the writing: a card of its own, with an inner keyline like a printed dossier */
+  .pane.dossier{ padding:1.7rem 1.6rem 1.5rem }
+  .pane.dossier::before{ content:""; position:absolute; inset:.45rem; border:.5px solid var(--faint); border-radius:.95rem; pointer-events:none }
+  .pane.hist{ grid-column:1 / -1; padding:1.1rem 1.8rem 1.3rem }
+  :root.flipped .v-sheet{ opacity:1; pointer-events:auto }
+  :root.flipped .sub{ opacity:0; pointer-events:none } :root.vault .sub{ display:none } .title{ transition:opacity .35s }
+  :root.flipped .v-cols, :root.flipped .v-quote, :root.flipped .v-ask{ opacity:0; pointer-events:none }
+  .v-cols, .v-quote, .v-ask{ transition:opacity .35s ease }
+  .v-sheet .close{ all:unset; cursor:pointer; position:absolute; right:.2rem; top:-.3rem; width:2.2rem; height:2.2rem; display:grid; place-items:center; border-radius:50%; border:.5px solid var(--line); color:var(--ink); font-size:.9rem; line-height:1 }
+  .v-sheet .close:focus-visible{ outline:1px solid var(--ink); outline-offset:2px }
+  .v-sheet .close:hover{ background:var(--faint) }
+  .sh-col{ min-height:0; display:flex; flex-direction:column }
+  .sh-top{ grid-column:1 / -1; display:flex; align-items:baseline; gap:1.2rem; padding:0 3.4rem 0 .4rem }
+  .sh-head h2{ margin:0; font-family:var(--wide); font-weight:200; font-size:2.2rem; letter-spacing:.2em; line-height:1 }
+  .sh-sub{ font-family:var(--mono); font-size:.62rem; letter-spacing:.2em; color:var(--ink); opacity:.8; text-shadow:0 1px 10px rgba(20,14,26,.9) }
+  .sh-head h2{ text-shadow:0 2px 16px rgba(20,14,26,.6) }
+  .draft{ margin-left:.5rem; padding:.05rem .4rem; border:1px solid var(--gold); border-radius:2px; color:var(--gold) }
+  /* centre: three faculties of equal height */
+  .sh-mid{ display:grid; grid-template-rows:repeat(3,auto); row-gap:2.5rem; align-content:start }
+  .fac{ position:relative; display:grid; grid-template-rows:1fr auto; border:1px solid var(--line); border-top:none; border-bottom:none; padding:1.5rem 0 .2rem }
+  .fac-h{ position:absolute; left:-1px; right:-1px; top:-.62rem; display:flex; align-items:center; gap:.7rem }
+  .fac-h::before, .fac-h::after{ content:""; width:1.1rem; height:1px; background:var(--line) } .fac-h .rule{ flex:1; height:1px; background:var(--line) }
+  .fac-n{ display:flex; align-items:center; gap:.55rem; font-family:var(--wide); font-size:.8rem; letter-spacing:.28em }
+  .fac-n em{ font-style:normal; font-family:var(--mono); font-size:.54rem; letter-spacing:.2em; color:var(--dim) }
+  .fac-n .bd{ width:.85rem; color:var(--gold) }
+  .meter{ display:flex; align-items:stretch; border:1px solid var(--line); border-radius:2px; font-family:var(--mono); font-size:.68rem }
+  .meter > *{ display:flex; align-items:center; padding:.12rem .55rem } .meter > *+*{ border-left:1px solid var(--line) }
+  .meter i{ gap:2px; padding-right:1.4rem } .meter s{ width:3px; height:.72rem; background:var(--faint) } .meter s.on{ background:var(--gold) }
+  .fac-row{ display:grid; grid-template-columns:repeat(var(--n,3),1fr); align-items:center }
+  .tal{ all:unset; cursor:default; display:grid; justify-items:center; gap:.55rem; color:var(--dim) }
+  .tal .bd{ width:3.1rem; transition:transform .25s } .tal:hover .bd{ transform:translateY(-2px) }
+  .tal .bd.lit{ color:var(--gold) }
+  .tal span{ font-family:var(--serif); font-size:.74rem; letter-spacing:.32em; color:var(--ink); margin-right:-.32em }
+  .tal.st .cr{ width:2.7rem; height:2.7rem; opacity:.5 } .tal.st .cr svg{ width:100%; height:100% }
+  .tal.st span{ font-family:var(--wide); font-size:.58rem; letter-spacing:.16em; margin-right:-.16em; color:var(--dim) }
+  .tal.st.ally .cr, .tal.st.blood .cr, .tal.st.foe .cr{ opacity:1 } .tal.st.ally, .tal.st.blood{ color:var(--gold) } .tal.st.foe{ color:#e39aa8 }
+  /* the numbers (or words) hang on the frame's bottom edge, a line strung between them */
+  .fac-num{ display:flex; align-items:center; margin:.55rem -1px -.72rem }
+  .fac-num .sp, .fac-num i{ height:1px; background:var(--line) } .fac-num .sp{ flex:.5 } .fac-num i{ flex:1 }
+  .fac-num b{ width:3rem; text-align:center; font-family:var(--wide); font-weight:300; font-size:1.15rem; line-height:1.3 }
+  .fac-num b.w{ font-family:var(--serif); font-weight:500; font-size:.86rem; color:var(--dim) }
+  .fac-num b.w.ally, .fac-num b.w.blood{ color:var(--gold) } .fac-num b.w.foe{ color:#e39aa8 }
+  /* right: the dossier's writing, top aligned with the faculties, the lineage on the bottom line */
+  .sh-right{ gap:1.2rem }
+  .sh-right .sh-desc{ margin-top:auto; padding-top:1rem; border-top:.5px solid var(--faint) }
+  .sh-motto{ margin:0; padding:0; font-family:var(--mono); font-style:italic; font-size:.92rem; line-height:1.6 }
+  .sh-text{ display:grid; gap:1.1rem }
+  .sh-text h4{ margin:0 0 .35rem; display:flex; align-items:center; gap:.5rem; font-family:var(--wide); font-weight:400; font-size:.66rem; letter-spacing:.26em; color:var(--gold) }
+  
+  .sh-text p{ margin:0; font-family:var(--mono); font-style:italic; font-size:.76rem; line-height:1.8; color:var(--ink); text-align:left }
+  .sh-desc{ margin:0; min-height:3.4em; font-family:var(--mono); font-style:italic; font-size:.76rem; line-height:1.7; color:var(--dim) }
+  .sh-desc.on{ color:var(--ink) }
+  .sh-desc b{ font-style:normal; font-family:var(--wide); font-weight:400; letter-spacing:.2em; color:var(--gold); margin-right:.7rem }
+  .sh-lab{ font-family:var(--wide); font-size:.6rem; letter-spacing:.26em; color:var(--gold) }
+  .sh-lab em{ font-style:normal; font-family:var(--mono); color:var(--dim); margin-left:.6rem; letter-spacing:.1em }
+  .sh-eras{ position:relative; display:flex; height:2rem; margin-top:1.3rem; border-top:1px solid var(--line) }
+  .sh-eras div{ position:relative; border-left:1px solid var(--faint); padding:.4rem .35rem 0; font-family:var(--mono); font-size:.6rem; letter-spacing:.1em; color:var(--dim); white-space:nowrap; overflow:hidden }
+  .sh-eras .run{ position:absolute; top:-2px; height:3px; background:var(--gold); box-shadow:0 0 10px rgba(216,185,140,.6) }
+  .sh-eras .mk{ position:absolute; top:-1.2rem; transform:translateX(-50%); font-family:var(--mono); font-size:.54rem; letter-spacing:.1em; color:var(--gold); white-space:nowrap }
+  .sh-eras .mk.now{ transform:translateX(-100%) }
+  .sh-empty{ font-family:var(--mono); font-style:italic; font-size:.8rem; color:var(--dim) }
+  .v-quote small.hint{ color:var(--gold); letter-spacing:.2em; margin-top:.5rem }
+  .v-quote small{ display:block; margin-top:.35rem; font-style:normal; font-size:.66rem; letter-spacing:.16em; color:var(--dim) }
+  /* under the cards: one column per card, following it as the row parts */
+  .v-cols{ position:absolute; left:0; right:0; bottom:0; height:8.4rem; z-index:2 }
+  .v-col{ position:absolute; top:0; width:8rem; transform:translateX(-50%); display:grid; gap:.5rem; justify-items:start; padding-top:.7rem;
+    border-top:1px solid var(--line); opacity:.5; transition:opacity .4s, border-color .4s; cursor:pointer }
+  .v-col.on{ opacity:1; border-color:var(--gold) }
+  .v-col b{ position:absolute; bottom:calc(100% + .55rem); left:0; white-space:nowrap; display:flex; align-items:center; gap:.55rem;
+    text-transform:uppercase; font-family:var(--wide); font-weight:300; font-size:1.5rem; letter-spacing:.2em; opacity:0; transform:translateY(.4rem); transition:opacity .4s, transform .4s }
+  .v-col b svg{ width:1.5rem; height:1.7rem; color:var(--gold) }
+  .v-col.on b{ opacity:1; transform:none }
+  .v-col span{ display:flex; align-items:center; gap:.55rem; font-family:var(--mono); font-style:italic; font-size:.72rem; letter-spacing:.06em; white-space:nowrap }
+  .v-col span i{ position:relative; display:grid; place-items:center; width:1.3rem; height:1.45rem; flex:none; font-style:normal; font-family:var(--wide); font-size:.66rem; color:var(--gold) }
+  .v-col span i svg{ position:absolute; inset:0; width:100%; height:100%; color:var(--line) }
+  .v-col.on span i svg{ color:var(--gold) }
+  .v-col.fallen{ opacity:.32 }
+  @media (max-width: 640px){ .v-cols span{ font-size:9px; letter-spacing:0 } .v-col b{ font-size:9px; letter-spacing:.06em } .v-quote{ width:13rem; font-size:11px } }
+  @media (prefers-reduced-motion: reduce){ .v-quote{ transition:none } }
+
+  /* the readout: the same card as on the character pages; it scrolls inside itself, the page never does */
+  .card{ position:relative; align-self:start; max-height:100%; overflow:auto; box-sizing:border-box; background:var(--panel); border:.5px solid var(--line); border-radius:1.6rem;
+    padding:1.5rem 1.6rem 1.6rem; min-width:0; -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px) }
+  .card .big{ display:flex; gap:1.1rem; align-items:center; padding-bottom:1.1rem; border-bottom:.5px solid var(--line) }
+  .card .big .crest{ width:4.6rem; height:4.6rem; flex:none; color:var(--gold) } .card .big .crest svg{ width:100%; height:100% }
+  .card h2{ margin:0; font-family:var(--wide); font-weight:300; font-size:1.85rem; letter-spacing:.08em; line-height:1.1 }
+  .card .tag{ margin-top:.35rem; font-family:var(--mono); font-size:.68rem; letter-spacing:.14em; color:var(--dim) }
+  .card dl{ margin:1.1rem 0 0; display:grid; gap:1rem }
+  .card dl.pol{ grid-template-columns:3.4rem 1fr; gap:.5rem .9rem; padding-bottom:1.1rem; border-bottom:.5px solid var(--line) }
+  .card dl.pol > div{ display:contents }
+  .card dl.pol dt{ margin:0; padding-top:.2rem } .card dl.pol dd{ text-align:left; line-height:1.6 }
+  .card dl.pol dd.tbd{ font-family:var(--mono); font-size:.7rem; letter-spacing:.14em; color:var(--dim) }
+  .card dt{ font-family:var(--mono); font-size:.66rem; letter-spacing:.22em; color:var(--dim); margin-bottom:.35rem }
+  .card dd{ margin:0; font-size:.86rem; line-height:1.85; text-align:justify }
+  .card .people{ display:flex; flex-wrap:wrap; gap:.35rem .9rem }
+  .card .people span{ white-space:nowrap }
+  .card .people em{ font-style:normal; font-family:var(--mono); font-size:.66rem; letter-spacing:.08em; color:var(--dim); margin-left:.35rem }
+  .spoil{ background:var(--ink); color:transparent; border-radius:3px; padding:1px 2px; cursor:help; transition:background .25s, color .25s }
+  .spoil::selection{ color:transparent }
+  .spoil:hover,.spoil:focus-visible{ background:var(--faint); color:var(--ink); outline:none }
+  .card .in{ animation:in .45s ease }
+  @keyframes in{ from{ opacity:0; transform:translateY(6px) } }
+  .fallback-msg{ position:absolute; inset:0; display:grid; place-items:center; font-family:var(--mono); font-size:.75rem; color:var(--dim) }
+  .note{ margin-top:.9rem; font-family:var(--mono); font-size:.66rem; letter-spacing:.1em; color:var(--dim) }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="mark" href="index.html" title="回到人物">HELIOS</a><span class="spacer"></span>
+    <div class="modes" role="group" aria-label="排列方式">
+      <button type="button" id="mSpec" aria-pressed="true">结构</button>
+      <button type="button" id="mVault" aria-pressed="false">家徽</button>
+    </div>
+    <button type="button" class="mood" id="mood" aria-label="切换光影：黄昏 / 午后" title="黄昏 / 午后"></button>
+  </header>
+  <div class="title"><h1>The Great Houses</h1></div>
+
+  <div class="grid">
+    <section class="stage" id="stage" aria-label="Helios and Houses">
+      <div class="sub" role="group" aria-label="结构视图" id="sub">
+        <button type="button" id="sRel" aria-pressed="true">关系</button><button type="button" id="sMap" aria-pressed="false">地域</button>
+      </div>
+      <div class="layer" id="spec"><div class="matrix" id="matrix"></div></div>
+      <div class="layer off" id="map"><svg id="disc" aria-hidden="true"></svg></div>
+      <div class="layer off" id="vault">
+        <div class="v-shade"></div><div class="v-grade"></div><div class="v-glow"></div>
+        <div class="v-ask">WHICH HOUSE DO YOU SERVE?</div>
+        <p class="v-quote" id="vQuote"></p>
+        <section class="v-sheet" id="vSheet" aria-live="polite"></section>
+        <div class="v-scene" id="vScene"></div>
+        <div class="v-cols" id="vCols"></div>
+      </div>
+      <svg class="links" id="links" aria-hidden="true"></svg>
+    </section>
+
+    <aside class="card" id="card" aria-live="polite"></aside>
+  </div>
+</div>
+
+<script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.149.0/examples/jsm/" } }</script>
+<script>
+/* ---------- crests: engraved line work in one gold, a dial ring around each, like the sun on the loading page ---------- */
+const T=Math.PI*2, f=n=>n.toFixed(2), P=(a,r)=>[Math.sin(a)*r,-Math.cos(a)*r];
+function ring(big){
+  let d=""; for(let i=0;i<72;i++){ const a=i/72*T, [x1,y1]=P(a,43), [x2,y2]=P(a, i%6===0?46.5:45); d+=`M${f(x1)} ${f(y1)}L${f(x2)} ${f(y2)}`; }
+  return `<g class="ring-o"><circle r="47.5" stroke-width=".7"/><circle r="43" stroke-width=".35"/><path d="${d}" stroke-width=".35"/></g>`;
+}
+const SIGIL={
+  helios:()=>{ let d=""; for(let i=0;i<16;i++){ const a=i/16*T, L=i%2?24:32, w=.09, [ax,ay]=P(a-w,14),[bx,by]=P(a+w,14),[tx,ty]=P(a,L); d+=`M${f(ax)} ${f(ay)}L${f(tx)} ${f(ty)}L${f(bx)} ${f(by)}`; }
+    return `<path d="${d}" stroke-width=".8" stroke-linejoin="round"/><circle r="11" stroke-width="1"/><circle r="7.5" stroke-width=".4"/><circle r="2.4" fill="currentColor" stroke="none"/>`; },
+  daeris:()=>`<path d="M0 -24V22M-11 24H11M-24 -13H24" stroke-width="1.2"/><circle cy="-27" r="2.4" stroke-width="1"/>
+    <path d="M-22 -13L-28 5M-22 -13L-16 5M22 -13L16 5M22 -13L28 5" stroke-width=".6"/>
+    <path d="M-31 5Q-22 15 -13 5ZM13 5Q22 15 31 5Z" stroke-width="1"/>
+    <path d="M-8 30Q-20 26 -27 17M8 30Q20 26 27 17" stroke-width=".6" stroke-dasharray="2 2.5"/>`,
+  solenne:()=>`<ellipse cy="-17" rx="24" ry="4" stroke-width="1"/><ellipse cy="9" rx="24" ry="4" stroke-width="1"/><path d="M-24 -17V9M24 -17V9" stroke-width="1"/>
+    <path d="M-15 -9H15M-15 -4H11M-15 1H14" stroke-width=".5"/>
+    <path d="M-28 22q7 -5 14 0t14 0t14 0t14 0" stroke-width=".9"/><path d="M-22 28q5.5 -4 11 0t11 0t11 0t11 0" stroke-width=".5"/>`,
+  varn:()=>`<path d="M-25 6L0 13L25 6V-14L0 -7L-25 -14Z" stroke-width="1"/><path d="M0 -7V13" stroke-width=".6"/>
+    <path d="M-20 -6L-4 -1.5M-20 0L-4 4.5M20 -6L4 -1.5M20 0L4 4.5" stroke-width=".4"/>
+    <circle cy="-24" r="6" stroke-width="1.1"/><circle cy="-24" r="2.2" stroke-width=".5"/><path d="M0 -18V28M0 20H7M0 25H5" stroke-width="1.3"/>`,
+  k:()=>`<path d="M-28 0Q0 -20 28 0Q0 20 -28 0Z" stroke-width="1"/><circle r="8" stroke-width=".9"/><circle r="3" fill="currentColor" stroke="none"/>
+    <path d="M-18 -26L-6 -7L1 1L9 6L20 26" stroke-width="1.1"/>`,
+  south:()=>`<path d="M-30 8H30" stroke-width="1"/><path d="M-17 8A17 17 0 0 1 17 8" stroke-width="1" stroke-dasharray="3 3"/>
+    <path d="M0 -14V-22M-12 -9L-17 -15M12 -9L17 -15M-17 1L-24 -2M17 1L24 -2" stroke-width=".7" stroke-dasharray="2 2"/>
+    <path d="M-26 17q6.5 -4.5 13 0t13 0t13 0t13 0" stroke-width=".8"/><path d="M-20 24q5 -3.5 10 0t10 0t10 0t10 0" stroke-width=".5"/>
+    <text y="1" text-anchor="middle" font-size="11" fill="currentColor" stroke="none" font-family="var(--serif)">？</text>`,
+  filippou:()=>`<path d="M0 -31L4 -25V11H-4V-25Z" stroke-width="1" stroke-linejoin="round"/><path d="M0 -25V8" stroke-width=".4"/>
+    <path d="M-13 11H13M0 11V22" stroke-width="1.3"/><circle cy="25" r="2.6" stroke-width="1"/>
+    <ellipse cx="-12" cy="-4" rx="9" ry="5.5" transform="rotate(-24 -12 -4)" stroke-width="1"/><ellipse cx="12" cy="-4" rx="9" ry="5.5" transform="rotate(24 12 -4)" stroke-width="1"/>`
+};
+const crest=id=>`<svg viewBox="-50 -50 100 100" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-linecap="round">${ring()}${SIGIL[id]()}</g></svg>`;
+
+/* ---------- the houses: what the setting already says; 【】 hides a secret until you hover it ---------- */
+/* the houses: words live in content/家族/<name>.md (see loadHouses); here only what the design needs:
+   which file, the crown, and the bearing/distance on the map disc */
+const H=[
+  { id:"helios", file:"Helios", crown:true, polar:[0,0] },
+  { id:"varn", file:"Varn", polar:[-24,.72] },
+  { id:"k", file:"K", polar:[24,.72] },
+  { id:"daeris", file:"Daeris", polar:[84,.66] },
+  { id:"solenne", file:"Solenne", polar:[238,.5] },
+  { id:"filippou", file:"Filippou", polar:[122,.5] },
+  { id:"south", file:"南方家族", polar:[168,.68] }
+];
+/* ---------- the house as a character: talent points, perks, a flaw, how far back it goes, who it loves and hates ----------
+   Every house has the same 18 points to spend over six talents (0–5 each). Drafted from the setting; Crystal edits. */
+/* two groups of three talents, 0–5 each, 18 points to spend in all */
+const FAC=[["门第","STANDING",[["血统","姓氏有多古老、多正统。","blood"],["王眷","离王座有多近，历代王室待它如何。","crown"],["财富","钱从哪里来，有多少。","coin"]]],
+           ["手段","MEANS",[["兵戈","私兵、军械、护卫。","sword"],["学识","学问与魔法。","book"],["暗面","情报，和见不得光的办法。","eye"]]]];
+const ERAS=[["Solenar",1],["Ostrium",1.2],["第一王朝",1.6],["第二王朝",.8],["家族时代",1.4],["Helios",.8]];
+/* pts: 血统 王眷 财富 · 兵戈 学识 暗面 — 18 points each.  since: index into ERAS where the house begins */
+const SHEET={};      /* filled from the files by loadHouses */
+/* blood and marriage ties to the crown */
+let TIES=[];
+
+/* ---------- loading content/家族/ : the same Markdown conventions as the character pages ---------- */
+const getMD=f=>fetch("content/"+f.split("/").map(encodeURIComponent).join("/"), {cache:"no-cache"}).then(r=>{ if(!r.ok) throw new Error(f+" "+r.status); return r.text(); });
+function splitFront(md){ md=md.replace(/\r/g,""); const fm={}, m=md.match(/^---\n([\s\S]*?)\n---\n?/);
+  if(m){ m[1].split("\n").forEach(l=>{ const i=l.indexOf(":"); if(i>0) fm[l.slice(0,i).trim()]=l.slice(i+1).trim(); }); md=md.slice(m[0].length); } return [fm, md]; }
+function sectionsOf(text){ const out={}; let cur=null; text.split("\n").forEach(l=>{ if(l.startsWith("## ")){ cur=l.slice(3).trim(); out[cur]=[]; } else if(cur) out[cur].push(l); });
+  Object.keys(out).forEach(k=>{ out[k]=out[k].join("\n").trim(); }); return out; }
+const pairOf=v=>{ v=(v||"").trim(); const i=v.indexOf(" · "); return i<0 ? [v,""] : [v.slice(0,i).trim(), v.slice(i+3).trim()]; };
+const listOf=t=>(t||"").split("\n").map(x=>x.trim()).filter(x=>/^[-*]\s/.test(x)).map(x=>{ x=x.replace(/^[-*]\s+/,""); const i=x.indexOf("："); return i<0?[x,""]:[x.slice(0,i).trim(), x.slice(i+1).trim()]; });
+const STANCE={ "血亲":"blood", "盟":"ally", "仇":"foe", "和":"peace" };
+const TIE_WORDS=["母族","联姻","血缘"];          /* these ties are drawn in gold, as blood and marriage */
+function loadHouses(){
+  return Promise.all(H.map(h=>getMD("家族/"+h.file+".md").then(md=>({h, md})))).then(all=>{
+    all.forEach(({h,md})=>{ const [fm,body]=splitFront(md), sec=sectionsOf(body);
+      const [rg,rgN]=pairOf(fm.region), [pt,ptN]=pairOf(fm.party), [cb,cbN]=pairOf(fm.cabinet), [ti,tiN]=pairOf(fm.crown), hd=(fm.head||"").trim();
+      Object.assign(h,{ name:fm.name||h.file, zh:fm.zh||"", badge:fm.badge||"", fallen:/^(是|yes|true)$/i.test(fm.fallen||""),
+        region:fm.region||"", party:pt, partyNote:ptN, cab:fm.cabinet||"", head:hd==="待定"?"":hd,
+        tie:sec["与王室"]||sec["继承"]||"", quote:sec["一句话"]||"", culture:sec["家族与文化"]||"", secret:sec["秘闻"]||"",
+        people:listOf(sec["人物"]),
+        m:{ region:rg, sub:rgN, cab:cb, csub:cbN, tie:ti||"—", tsub:tiN, head:hd==="待定"?"":hd.split(/（| · /)[0].trim() } });
+      if(fm.talents){ const nameToId={}; H.forEach(x=>{ nameToId[x.name||x.file]=x.id; nameToId[x.file]=x.id; });
+        const rel={}; listOf(sec["立场"]).forEach(([n,w])=>{ const id=nameToId[n]; if(id) rel[id]=STANCE[w]||"peace"; });
+        SHEET[h.id]={ motto:sec["家训"]||"", blurb:sec["简介"]||"", pts:fm.talents.split("/").map(x=>+x.trim()||0),
+          text:["起源","家风"].filter(k=>sec[k]).map(k=>[k,sec[k]]), since:Math.max(0,ERAS.findIndex(e=>e[0]===(fm.since||"").trim())),
+          origin:fm.lineage||"", rel }; } });
+    /* stance names may refer to houses read later: resolve once everything is in */
+    all.forEach(({h,md})=>{ if(!SHEET[h.id]) return; const sec=sectionsOf(splitFront(md)[1]), rel={};
+      listOf(sec["立场"]).forEach(([n,w])=>{ const x=H.find(q=>q.name===n||q.file===n); if(x) rel[x.id]=STANCE[w]||"peace"; }); SHEET[h.id].rel=rel; });
+    TIES=H.filter(h=>!h.crown && TIE_WORDS.includes(h.m.tie)).map(h=>["helios",h.id]);
+    Object.keys(TIE_LABEL).forEach(k=>delete TIE_LABEL[k]); TIES.forEach(([,id])=>{ TIE_LABEL[id]=H.find(h=>h.id===id).m.tie; });
+    PARTIES=[]; VH0.forEach(h=>{ let P=PARTIES.find(p=>p[0]===h.party); if(!P) PARTIES.push(P=[h.party,[],h.partyNote]); P[1].push(h.id); if(!P[2]) P[2]=h.partyNote; });
+  });
+}
+
+const stage=document.getElementById("stage"), card=document.getElementById("card"), links=document.getElementById("links");
+let mode="spec", current="helios";
+function makeButtons(){ H.forEach(h=>{
+  const b=document.createElement("button"); b.type="button"; b.className="house"+(h.crown?" crown":"")+(h.fallen?" fallen":"");
+  b.dataset.id=h.id; b.setAttribute("aria-pressed","false"); b.setAttribute("aria-label",`${h.name}，${h.zh}`);
+  b.innerHTML=`<span class="crest">${crest(h.id)}</span><b>${h.name}</b><small>${h.badge||""}</small>`;
+  b.addEventListener("click",()=>show(h.id));
+  stage.appendChild(b); h.el=b;
+}); }
+/* columns: a gutter for the row names, then one column per house, left to right from the north's conservatives to the free south */
+const GUT=13, MTOP=47, colX=i=>GUT+(i+.5)*(100-GUT)/6;
+const VH0=H.filter(h=>!h.crown);
+H.forEach(h=>{ h.spec = h.crown ? [GUT+(100-GUT)/2, 10] : [colX(VH0.indexOf(h)), 33]; });
+let PARTIES=[];      /* grouped from each house's party by loadHouses */
+function buildMatrix(){
+  const M=document.getElementById("matrix"); M.style.setProperty("--gut",GUT+"%"); document.getElementById("spec").style.setProperty("--mtop",MTOP+"%");
+  const lab=(zh,en,g)=>`<div class="lab"${g?` data-g="${g}"`:""}><b>${zh}</b>${en}</div>`;
+  const cell=(h,main,sub,cls="")=>`<div class="c${main?"":" tbd"}${cls}" data-ids="${h.id}"><span class="t">${main||"待定"}${sub?`<small>${sub}</small>`:""}</span></div>`;
+  let x=lab("地域","REGION","政治")+VH0.map(h=>cell(h,h.m.region,h.m.sub)).join("");
+  x+=lab("党派","PARTY")+PARTIES.map(([n,ids,sub])=>`<div class="c party" data-ids="${ids.join(" ")}" style="grid-column:span ${ids.length}"><span class="t">${n}${sub?`<small>${sub}</small>`:""}</span></div>`).join("");
+  x+=lab("内阁","CABINET")+VH0.map(h=>cell(h,h.m.cab,h.m.csub)).join("");
+  x+=lab("与王室","CROWN")+VH0.map(h=>cell(h,h.m.tie,h.m.tsub, h.m.tie&&h.m.tie!=="—"?" gold":"")).join("");
+  x+=lab("家主","HEAD","家族")+VH0.map(h=>cell(h,h.m.head,"")).join("");
+  M.innerHTML=x;
+  M.querySelectorAll(".c").forEach(c=>c.addEventListener("click",()=>{ const ids=c.dataset.ids.split(" "); show(ids.includes(current)?current:ids[0]); }));
+}
+const spoil=s=>s.replace(/【([^】]+)】/g,'<span class="spoil" tabindex="0">$1</span>');
+function show(id){
+  current=id; const h=H.find(x=>x.id===id);
+  H.forEach(x=>x.el.setAttribute("aria-pressed", x.id===id));
+  document.querySelectorAll("#matrix .c").forEach(c=>c.classList.toggle("on", c.dataset.ids.split(" ").includes(id)));
+  if(typeof draw==="function" && mode==="spec") requestAnimationFrame(draw);
+  if(V.chartDraw) V.chartDraw();
+  card.innerHTML=`<div class="in">
+    <div class="big"><span class="crest">${crest(h.id)}</span><div><h2>${h.name}</h2><div class="tag">${h.region} · ${h.party}</div></div></div>
+    <dl class="pol">
+      <div><dt>地域</dt><dd>${h.region}</dd></div>
+      <div><dt>党派</dt><dd>${h.party}</dd></div>
+      <div><dt>内阁</dt><dd>${h.cab}</dd></div>
+      <div><dt>${h.crown?"继承":"与王室"}</dt><dd>${h.tie}</dd></div>
+      <div><dt>家主</dt><dd${h.head?"":' class="tbd"'}>${h.head||"待定"}</dd></div>
+    </dl>
+    <dl>
+      <div><dt>家族与文化</dt><dd>${spoil(h.culture)}</dd></div>
+      ${h.people.length?`<div><dt>人物</dt><dd class="people">${h.people.map(([n,r])=>`<span>${n}<em>${r}</em></span>`).join("")}</dd></div>`:""}
+      ${h.secret?`<div><dt>秘闻</dt><dd>${spoil(h.secret)}</dd></div>`:""}
+    </dl>
+    ${h.id==="south"?`<p class="note">这一家的姓氏、家徽和人物都还空着。</p>`:""}
+  </div>`;
+}
+/* the disc: its size follows the stage; houses sit at an angle and a distance from the capital */
+function geo(){ const R=stage.getBoundingClientRect(); return { w:R.width, h:R.height, cx:R.width/2, cy:R.height/2, rad:Math.min(R.width*.36, R.height*.47) }; }
+function drawDisc(){
+  const g=geo(), {cx,cy,rad}=g, el=document.getElementById("disc"); el.setAttribute("viewBox",`0 0 ${f(g.w)} ${f(g.h)}`);
+  const at=(deg,r)=>[cx+Math.sin(deg*Math.PI/180)*r, cy-Math.cos(deg*Math.PI/180)*r];
+  let t=""; for(let i=0;i<120;i++){ const [x1,y1]=at(i*3,rad-6), [x2,y2]=at(i*3, rad-(i%10===0?14:9)); t+=`M${f(x1)} ${f(y1)}L${f(x2)} ${f(y2)}`; }
+  let q=""; [45,135,225,315].forEach(d=>{ const [x1,y1]=at(d,rad*.62), [x2,y2]=at(d,rad-16); q+=`M${f(x1)} ${f(y1)}L${f(x2)} ${f(y2)}`; });
+  const lab=(deg,r,txt,anchor,op)=>{ const [x,y]=at(deg,r); return `<text x="${f(x)}" y="${f(y+4)}" text-anchor="${anchor}" font-family="IBM Plex Mono, monospace" font-size="10.5" letter-spacing="2" fill="var(--dim)"${op?` opacity="${op}"`:""}>${txt}</text>`; };
+  el.innerHTML=`<g fill="none" stroke="var(--line)"><circle cx="${f(cx)}" cy="${f(cy)}" r="${f(rad)}" stroke-width=".8"/><circle cx="${f(cx)}" cy="${f(cy)}" r="${f(rad-6)}" stroke-width=".4"/>
+      <path d="${t}" stroke-width=".5"/><path d="${q}" stroke-width=".5" stroke-dasharray="2 4"/>
+      <circle cx="${f(cx)}" cy="${f(cy)}" r="${f(rad*.62)}" stroke-width=".5" stroke-dasharray="3 5"/></g>
+    ${lab(0,rad-26,"北境 · 夜域","middle")}${lab(192,rad-24,"南境 · 海","end")}${lab(90,rad+12,"东方","start")}${lab(270,rad+12,"西境 · 待定","end",.6)}${lab(300,rad*.62+12,"首都","end")}`;
+}
+function place(){
+  const g=geo();
+  H.forEach(h=>{ if(mode==="map"){ const [deg,r]=h.polar; h.el.style.setProperty("--x", f(g.cx+Math.sin(deg*Math.PI/180)*r*g.rad)+"px"); h.el.style.setProperty("--y", f(g.cy-Math.cos(deg*Math.PI/180)*r*g.rad+ (h.crown?12:14))+"px"); }
+    else { const [x,y]=h.spec; h.el.style.setProperty("--x",x+"%"); h.el.style.setProperty("--y",y+"%"); }
+    h.el.style.visibility = mode==="vault" ? "hidden" : ""; });
+  ["spec","map","vault"].forEach(m=>document.getElementById(m).classList.toggle("off", mode!==m));
+  document.getElementById("mSpec").setAttribute("aria-pressed", mode!=="vault"); document.getElementById("mVault").setAttribute("aria-pressed", mode==="vault");
+  document.getElementById("sRel").setAttribute("aria-pressed", mode==="spec"); document.getElementById("sMap").setAttribute("aria-pressed", mode==="map");
+  document.getElementById("sub").hidden = mode==="vault";
+  document.querySelector(".grid").classList.toggle("solo", mode==="vault");
+  document.documentElement.classList.toggle("vault", mode==="vault");
+  links.style.visibility = mode==="vault" ? "hidden" : "";
+  const sandOn=!!V.ready; document.documentElement.classList.toggle("sand", sandOn); document.documentElement.classList.toggle("rune-on", sandOn && mode!=="vault");
+  H.forEach(h=>h.el.classList.toggle("ghost", sandOn && mode!=="vault"));
+  if(V.chartDraw) V.chartDraw();
+  if(mode==="map") drawDisc();
+  if(mode==="vault"){ if(current==="helios") pick("daeris"); else pick(current); }
+  requestAnimationFrame(()=>V.size && V.size());
+  follow();
+}
+/* connectors run like an org chart: straight down, straight across, never diagonal.
+   gold for blood and marriage, a plain line for the rest, dashed for a fallen house */
+const TIE_LABEL={};      /* filled by loadHouses from each house's crown tie */
+function draw(){
+  const R=stage.getBoundingClientRect();
+  const c=id=>{ const e=H.find(h=>h.id===id).el.querySelector(".crest").getBoundingClientRect();
+    return { x:e.left-R.left+e.width/2, y:e.top-R.top+e.height/2, top:e.top-R.top, bot:e.bottom-R.top, l:e.left-R.left, r:e.right-R.left, rad:e.width/2 }; };
+  const hc=c("helios"), gap=5, house=H.filter(h=>!h.crown);
+  const sty=h=>{ const tie=TIES.some(t=>t[1]===h.id); return `stroke="${tie?"var(--gold)":"var(--line)"}" stroke-width="${tie?1.2:.8}"${h.fallen?' stroke-dasharray="4 4"':""}`; };
+  let s="";
+  if(mode==="spec"){
+    const cs=house.map(h=>({h, ...c(h.id)})), top=Math.min(...cs.map(o=>o.top)), bus=Math.round((hc.bot+top)/2);
+    s+=`<path d="M${f(hc.x)} ${f(hc.bot+gap)}V${bus}" stroke="var(--gold)" stroke-width="1.2" fill="none"/>`;
+    s+=`<path d="M${f(Math.min(...cs.map(o=>o.x)))} ${bus}H${f(Math.max(...cs.map(o=>o.x)))}" stroke="var(--line)" stroke-width=".8" fill="none"/>`;
+    cs.forEach(o=>{ s+=`<path d="M${f(o.x)} ${bus}V${f(o.top-gap)}" ${sty(o.h)} fill="none"/>`;
+      s+=`<circle cx="${f(o.x)}" cy="${bus}" r="2" fill="var(--ink)"/>`;
+      if(TIE_LABEL[o.h.id]) s+=`<text x="${f(o.x+6)}" y="${f(bus+(o.top-bus)/2+4)}" font-family="IBM Plex Mono, monospace" font-size="10" letter-spacing="1.5" fill="var(--gold)">${TIE_LABEL[o.h.id]}</text>`; });
+    /* the gold of the ties runs along the bus from the trunk out to each tied house */
+    house.filter(h=>TIE_LABEL[h.id]).forEach(h=>{ const o=c(h.id); s+=`<path d="M${f(hc.x)} ${bus}H${f(o.x)}" stroke="var(--gold)" stroke-width="1.2" fill="none" opacity=".55"/>`; });
+    s+=`<circle cx="${f(hc.x)}" cy="${bus}" r="2.6" fill="var(--gold)"/>`;
+    /* below each house its thread runs on down through the layers, breaking around each word;
+       a party with several houses is a crossbar their threads meet at */
+    const M=document.getElementById("matrix"), rows=[...M.children].reduce((a,el)=>{ if(el.classList.contains("lab")) a.push([]); else a[a.length-1].push(el); return a; },[]);
+    const tr=el=>{ const b=el.querySelector(".t").getBoundingClientRect(); return { top:b.top-R.top, bot:b.bottom-R.top, l:b.left-R.left, r:b.right-R.left, mid:(b.top+b.bottom)/2-R.top }; };
+    const pen=on=>on?`stroke="var(--gold)" stroke-width="1"`:`stroke="var(--line)" stroke-width=".6"`;
+    VH0.forEach(h=>{ const o=c(h.id), on=h.id===current; let y=o.bot+gap+(h.badge?16:12);
+      const nameB=h.el.querySelector(h.badge?"small":"b").getBoundingClientRect(); y=nameB.bottom-R.top+6;
+      rows.forEach(row=>{ const el=row.find(e=>e.dataset.ids.split(" ").includes(h.id)); if(!el) return; const b=tr(el), multi=el.dataset.ids.includes(" ");
+        if(multi){ s+=`<path d="M${f(o.x)} ${f(y)}V${f(b.mid)}" ${pen(on)} fill="none"/><circle cx="${f(o.x)}" cy="${f(b.mid)}" r="1.8" fill="${on?"var(--gold)":"var(--line)"}"/>`; y=b.mid; }
+        else { if(b.top-4>y) s+=`<path d="M${f(o.x)} ${f(y)}V${f(b.top-4)}" ${pen(on)} fill="none"/>`; y=b.bot+4; } });
+    });
+    rows.forEach(row=>row.filter(e=>e.dataset.ids.includes(" ")).forEach(el=>{ const ids=el.dataset.ids.split(" "), b=tr(el), xs=ids.map(i=>c(i).x), on=ids.includes(current);
+      s+=`<path d="M${f(Math.min(...xs))} ${f(b.mid)}H${f(b.l-6)}M${f(b.r+6)} ${f(b.mid)}H${f(Math.max(...xs))}" ${pen(on)} fill="none"/>`; }));
+  } else if(mode==="map"){
+    /* spokes: straight out from the capital to each house */
+    house.forEach(h=>{ const o=c(h.id), dx=o.x-hc.x, dy=o.y-hc.y, L=Math.hypot(dx,dy)||1;
+      s+=`<path d="M${f(hc.x+dx/L*(hc.rad+gap))} ${f(hc.y+dy/L*(hc.rad+gap))}L${f(o.x-dx/L*(o.rad+gap))} ${f(o.y-dy/L*(o.rad+gap))}" ${sty(h)} fill="none"/>`; });
+  }
+  links.innerHTML=s;
+}
+/* ---------- the vault: a real box in three.js. paper seals lie in it; the chosen one rises toward you and takes its colour ---------- */
+const VH=H.filter(h=>!h.crown), vCols=document.getElementById("vCols"), vQuote=document.getElementById("vQuote"), vScene=document.getElementById("vScene");
+const SHIELD=`<svg viewBox="0 0 14 16" aria-hidden="true"><path d="M7 1L13 3V8Q13 12.5 7 15Q1 12.5 1 8V3Z" fill="none" stroke="currentColor" stroke-width="1"/></svg>`;
+function makeCols(){ VH.forEach(h=>{ const col=document.createElement("div"); col.className="v-col"+(h.fallen?" fallen":"");
+  const S=SHEET[h.id], names=["血统","王眷","财富","兵戈","学识","暗面"];
+  const top3=S ? S.pts.map((v,k)=>[v,k]).sort((a,b)=>b[0]-a[0]||a[1]-b[1]).slice(0,3) : [];
+  col.innerHTML=`<b>${SHIELD}${h.name}</b>`+top3.map(([v,k])=>`<span><i>${SHIELD}${v}</i>${names[k]}</span>`).join("");
+  col.addEventListener("click",()=>pick(h.id));
+  vCols.appendChild(col); h.col=col; }); }
+
+const V={ ready:false };
+const H_ID={}; H.forEach(h=>H_ID[h.id]=h);
+/* ---- the cards: playing-card stock, rounded corners, each printed with its own border and its crest; no words on them ---- */
+const CW=1, CR=1.72;                        /* tarot proportions: 1 wide, 1.72 tall */
+function cardGeo(){
+  const w=CW/2, h=CR/2, r=.065, sh=new THREE.Shape();
+  sh.moveTo(-w+r,-h); sh.lineTo(w-r,-h); sh.quadraticCurveTo(w,-h,w,-h+r); sh.lineTo(w,h-r); sh.quadraticCurveTo(w,h,w-r,h);
+  sh.lineTo(-w+r,h); sh.quadraticCurveTo(-w,h,-w,h-r); sh.lineTo(-w,-h+r); sh.quadraticCurveTo(-w,-h,-w+r,-h);
+  const g=new THREE.ExtrudeGeometry(sh,{ depth:.016, bevelEnabled:true, bevelThickness:.004, bevelSize:.004, bevelSegments:3, curveSegments:10 });
+  g.rotateX(-Math.PI/2); return g;      /* lying face up on the table */
+}
+/* what each card wears: a black card printed in two spot lacquers, a coloured panel behind a cream cartouche.
+   ink = the line work, panel = the big field, band = the diamond and the stars. Placeholders until each house has its colours. */
+const DECK={
+  varn:{ ink:"#6d64b8", panel:"#66628e", band:"#b8a77a" },        /* blue-violet */
+  k:{ ink:"#7c7c78", panel:"#7d7c78", band:"#a9a9a2", worn:true }, /* grey */
+  daeris:{ ink:"#7a8622", panel:"#979c62", band:"#c9b45a" },       /* yellow-green */
+  solenne:{ ink:"#b18a1c", panel:"#c8ae66", band:"#4f9aa3" },      /* yellow */
+  filippou:{ ink:"#b23628", panel:"#a45e56", band:"#c9a35a" },     /* red */
+  south:{ ink:"#c46a2c", panel:"#a08872", band:"#c9a68a" }         /* grey-orange */
+};
+const NIGHT="#ebe1cd", CREAM="#f6efe2";      /* NIGHT is the card stock round the edge: cream now, not black */
+function rr(x,X,Y,W,H,R){ x.beginPath(); x.moveTo(X+R,Y); x.lineTo(X+W-R,Y); x.quadraticCurveTo(X+W,Y,X+W,Y+R); x.lineTo(X+W,Y+H-R); x.quadraticCurveTo(X+W,Y+H,X+W-R,Y+H);
+  x.lineTo(X+R,Y+H); x.quadraticCurveTo(X,Y+H,X,Y+H-R); x.lineTo(X,Y+R); x.quadraticCurveTo(X,Y,X+R,Y); x.closePath(); }
+function star8(x,cx,cy,r,fill,core){
+  const pts=n=>{ x.beginPath(); for(let k=0;k<16;k++){ const a=k*Math.PI/8-Math.PI/2, rr2=k%2?n*.46:n; x.lineTo(cx+Math.cos(a)*rr2, cy+Math.sin(a)*rr2); } x.closePath(); };
+  pts(r); x.fillStyle=fill; x.fill(); pts(r*.56); x.fillStyle=core; x.fill();
+  x.beginPath(); for(let k=0;k<4;k++){ const a=k*Math.PI/2; x.moveTo(cx,cy); x.lineTo(cx+Math.cos(a)*r*.9, cy+Math.sin(a)*r*.9); } x.strokeStyle=core; x.lineWidth=2; x.stroke();
+}
+function chain(x,x0,y0,x1,y1,w,col){        /* a band of interlocked links between two rules */
+  const L=Math.hypot(x1-x0,y1-y0), a=Math.atan2(y1-y0,x1-x0), step=w*1.25, n=Math.max(1,Math.round(L/step)), st=L/n;
+  x.save(); x.translate(x0,y0); x.rotate(a); x.strokeStyle=col; x.lineWidth=2.6;
+  x.beginPath(); x.moveTo(0,-w/2); x.lineTo(L,-w/2); x.moveTo(0,w/2); x.lineTo(L,w/2); x.stroke();
+  for(let k=0;k<n;k++){ const cx=st*(k+.5); x.beginPath(); x.ellipse(cx,0,st*.62,w*.26,0,0,Math.PI*2); x.stroke(); }
+  x.restore();
+}
+/* the back of a card: the house's colour, edge to edge, and its crest large in the middle */
+function cardBack(id){
+  const D=DECK[id], W=640, H=Math.round(W*CR/CW), c=document.createElement("canvas"); c.width=W; c.height=H; const x=c.getContext("2d");
+  x.fillStyle=NIGHT; x.fillRect(0,0,W,H);
+  x.fillStyle=D.panel; x.fillRect(34,34,W-68,H-68);
+  x.strokeStyle=D.band; x.lineWidth=3; x.strokeRect(50,50,W-100,H-100); x.lineWidth=1.2; x.strokeRect(62,62,W-124,H-124);
+  [[62,62],[W-62,62],[62,H-62],[W-62,H-62]].forEach(([a,b])=>star8(x,a,b,20,D.band,CREAM));
+  x.beginPath(); x.arc(W/2,H/2,W*.36,0,7); x.strokeStyle=D.band; x.lineWidth=2; x.stroke(); x.beginPath(); x.arc(W/2,H/2,W*.36-10,0,7); x.lineWidth=.8; x.stroke();
+  x.globalAlpha=.06; for(let i=0;i<H;i+=3){ x.fillStyle=i%6?"#000":"#fff"; x.fillRect(0,i,W,1); } x.globalAlpha=1;
+  return new Promise(done=>{ const a=new Image(); a.onload=()=>{ const S=W*.62; x.drawImage(a,(W-S)/2,(H-S)/2,S,S);
+      const t=new THREE.CanvasTexture(c); t.repeat.set(1/CW,1/CR); t.offset.set(.5,.5); t.encoding=THREE.sRGBEncoding; t.anisotropy=8; done(t); };
+    a.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(crest(id).replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" color="'+CREAM+'" ').replace(/var\(--serif\)/g,"serif").replace(/stroke-width="([\d.]+)"/g,(m,v)=>`stroke-width="${(parseFloat(v)*1.8).toFixed(2)}"`)); });
+}
+function cardMaps(id){
+  const D=DECK[id], W=640, H=Math.round(W*CR/CW), hs=H_ID[id];
+  const c=document.createElement("canvas"); c.width=W; c.height=H; const x=c.getContext("2d");
+  x.fillStyle=NIGHT; x.fillRect(0,0,W,H);
+  /* outer frame and the four corner tiles */
+  const T=96, I=22;
+  x.strokeStyle=D.ink; x.lineWidth=3; x.strokeRect(I,I,W-2*I,H-2*I); x.lineWidth=1.4; x.strokeRect(I+9,I+9,W-2*I-18,H-2*I-18);
+  /* the panel */
+  x.fillStyle=D.panel; x.fillRect(104,128,W-208,H-256); x.strokeStyle=D.ink; x.lineWidth=2; x.strokeRect(104,128,W-208,H-256); x.strokeRect(96,120,W-192,H-240);
+  /* chains along the frame */
+  chain(x, I+T+6, I+30, W-I-T-6, I+30, 34, D.ink); chain(x, I+T+6, H-I-30, W-I-T-6, H-I-30, 34, D.ink);
+  chain(x, I+38, I+T+6, I+38, H-I-T-6, 26, D.ink); chain(x, W-I-38, I+T+6, W-I-38, H-I-T-6, 26, D.ink);
+  /* the great diamond, behind everything in the middle */
+  const dia=(lw,col)=>{ x.beginPath(); x.moveTo(W/2,30); x.lineTo(44,H/2); x.lineTo(W/2,H-30); x.lineTo(W-44,H/2); x.closePath(); x.lineJoin="miter"; x.lineWidth=lw; x.strokeStyle=col; x.stroke(); };
+  dia(40,D.ink); dia(34,NIGHT); dia(20,D.band); dia(9,NIGHT);
+  /* corner tiles go over the chains and the diamond */
+  [[I,I],[W-I-T,I],[I,H-I-T],[W-I-T,H-I-T]].forEach(([X,Y])=>{ x.fillStyle=NIGHT; x.fillRect(X,Y,T,T); x.strokeStyle=D.ink; x.lineWidth=3; x.strokeRect(X,Y,T,T); x.lineWidth=1.2; x.strokeRect(X+8,Y+8,T-16,T-16);
+    star8(x,X+T/2,Y+T/2,32,D.band,CREAM); x.fillStyle=D.ink; [[0,-38],[0,38],[-38,0],[38,0]].forEach(([a,b])=>{ x.beginPath(); x.arc(X+T/2+a,Y+T/2+b,2.6,0,7); x.fill(); }); });
+  /* side scrolls: rolled ribbons framing the cartouche */
+  /* the middle is drawn for an 896-tall card and stretched to the tarot length: Y() maps those heights onto this card */
+  const Y=v=>H/2+(v-448)*1.2;
+  const scroll=(sgn)=>{ const X=v=>W/2+sgn*(v-W/2);
+    const path=()=>{ x.beginPath(); x.moveTo(X(214),Y(268)); x.bezierCurveTo(X(112),Y(312),X(106),Y(560),X(178),Y(720)); };
+    path(); x.lineCap="round"; x.strokeStyle=D.ink; x.lineWidth=46; x.stroke(); path(); x.strokeStyle=CREAM; x.lineWidth=40; x.stroke();
+    path(); x.setLineDash([1.6,4.4]); x.strokeStyle=D.ink; x.lineWidth=26; x.globalAlpha=.75; x.stroke(); x.setLineDash([]); x.globalAlpha=1;
+    [[214,268],[178,720]].forEach(([a,b])=>{ x.beginPath(); x.arc(X(a),Y(b),16,0,7); x.fillStyle=CREAM; x.fill(); x.lineWidth=2; x.strokeStyle=D.ink; x.stroke();
+      x.beginPath(); x.arc(X(a),Y(b),8,0,7); x.stroke(); });
+    x.beginPath(); x.moveTo(X(178),Y(720)); x.bezierCurveTo(X(210),Y(762),X(262),Y(722),X(282),Y(694)); x.lineWidth=14; x.strokeStyle=D.ink; x.stroke(); x.lineWidth=9; x.strokeStyle=CREAM; x.stroke();
+  };
+  x.lineCap="butt"; scroll(-1); scroll(1); x.lineCap="butt";
+  const shield=()=>{ x.beginPath(); x.moveTo(204,Y(268)); x.quadraticCurveTo(W/2,Y(222),W-204,Y(268));
+    x.bezierCurveTo(W-244,Y(370),W-244,Y(560),W-200,Y(640)); x.quadraticCurveTo(W-226,Y(716),W/2+40,Y(752)); x.lineTo(W/2,Y(788)); x.lineTo(W/2-40,Y(752));
+    x.quadraticCurveTo(226,Y(716),200,Y(640)); x.bezierCurveTo(244,Y(560),244,Y(370),204,Y(268)); x.closePath(); };
+  shield(); x.fillStyle=CREAM; x.fill(); x.lineWidth=3; x.strokeStyle=D.ink; x.stroke();
+  const pb=Y(788)-10;
+  x.beginPath(); x.moveTo(W/2-38,pb); x.lineTo(W/2+38,pb); x.lineTo(W/2+22,pb+30); x.lineTo(W/2-22,pb+30); x.closePath(); x.fillStyle=CREAM; x.fill(); x.stroke();
+  x.beginPath(); x.moveTo(W/2,pb+30); x.lineTo(W/2+9,pb+44); x.lineTo(W/2,pb+58); x.lineTo(W/2-9,pb+44); x.closePath(); x.fillStyle=D.ink; x.fill();
+  const mt=Y(246); x.beginPath(); x.moveTo(W/2,mt-32); x.lineTo(W/2+28,mt); x.lineTo(W/2,mt+32); x.lineTo(W/2-28,mt); x.closePath(); x.fillStyle=D.ink; x.fill(); star8(x,W/2,mt,15,CREAM,D.ink);
+  /* the banner across the top, with the house name on it */
+  const r0=338, r1=384, cy=Y(200)+r1, a0=-Math.PI/2-.45, a1=-Math.PI/2+.45;
+  x.beginPath(); x.arc(W/2,cy,r1,a0,a1); x.arc(W/2,cy,r0,a1,a0,true); x.closePath(); x.fillStyle=CREAM; x.fill(); x.lineWidth=2.4; x.strokeStyle=D.ink; x.stroke();
+  [a0,a1].forEach(a=>{ const s2=a<0-Math.PI/2?-1:1; for(let k=0;k<9;k++){ const aa=a-s2*k*.012; x.beginPath(); x.moveTo(W/2+Math.cos(aa)*(r0+4),cy+Math.sin(aa)*(r0+4)); x.lineTo(W/2+Math.cos(aa)*(r1-4),cy+Math.sin(aa)*(r1-4)); x.lineWidth=1; x.stroke(); } });
+  const name=hs && hs.id!=="south" ? hs.name.toUpperCase() : "";
+  if(name){ x.fillStyle=D.ink; x.font='600 30px "Cormorant Garamond", Georgia, serif'; x.textAlign="center"; x.textBaseline="middle";
+    const span=Math.min(.78, name.length*.075), rm=(r0+r1)/2;
+    [...name].forEach((ch,k)=>{ const a=-Math.PI/2-span/2+(name.length>1? k*span/(name.length-1):span/2); x.save(); x.translate(W/2+Math.cos(a)*rm, cy+Math.sin(a)*rm); x.rotate(a+Math.PI/2); x.fillText(ch,0,1); x.restore(); }); }
+  /* a woven print: the card's fine canvas grain over everything */
+  x.globalAlpha=.06; for(let i=0;i<H;i+=3){ x.fillStyle=i%6?"#000":"#fff"; x.fillRect(0,i,W,1); } for(let i=0;i<W;i+=3){ x.fillStyle=i%6?"#000":"#fff"; x.fillRect(i,0,1,H); } x.globalAlpha=1;
+  for(let i=0;i<5200;i++){ x.fillStyle=Math.random()<.5?`rgba(0,0,0,${Math.random()*.14})`:`rgba(255,250,240,${Math.random()*.08})`; x.fillRect(Math.random()*W,Math.random()*H,1+Math.random()*2,1); }
+  if(D.worn){ for(let i=0;i<12;i++){ const r=40+Math.random()*120, px=Math.random()*W, py=Math.random()*H, g=x.createRadialGradient(px,py,0,px,py,r); g.addColorStop(0,"rgba(20,16,12,.32)"); g.addColorStop(1,"rgba(20,16,12,0)"); x.fillStyle=g; x.fillRect(px-r,py-r,2*r,2*r); } }
+  return new Promise(done=>{
+    const svg=crest(id).replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" color="'+D.ink+'" ').replace(/var\(--serif\)/g,"serif").replace(/stroke-width="([\d.]+)"/g,(m,v)=>`stroke-width="${(parseFloat(v)*1.7).toFixed(2)}"`);
+    const a=new Image();
+    a.onload=()=>{
+      const S=W*.48; x.drawImage(a,(W-S)/2,Y(496)-S/2,S,S);
+      if(D.worn){ x.save(); x.strokeStyle="rgba(10,8,6,.7)"; x.lineWidth=2.5; x.beginPath(); x.moveTo(W*.12,H*.2); x.lineTo(W*.42,H*.46); x.lineTo(W*.5,H*.52); x.lineTo(W*.88,H*.84); x.stroke(); x.restore(); }
+      /* height from the print itself: the lacquers stand a hair above the black */
+      const d=x.getImageData(0,0,W,H).data, hg=new Float32Array(W*H); for(let i=0;i<W*H;i++) hg[i]=(d[i*4]*.3+d[i*4+1]*.59+d[i*4+2]*.11)/255;
+      const nc=document.createElement("canvas"); nc.width=W; nc.height=H; const nx=nc.getContext("2d"), nd=nx.createImageData(W,H), K=1.4;
+      for(let yy=0;yy<H;yy++) for(let xx=0;xx<W;xx++){ const i=yy*W+xx, L=hg[yy*W+Math.max(0,xx-1)], R=hg[yy*W+Math.min(W-1,xx+1)], U=hg[Math.max(0,yy-1)*W+xx], Dn=hg[Math.min(H-1,yy+1)*W+xx];
+        let p=(L-R)*K, q=(Dn-U)*K, m=Math.hypot(p,q,1); nd.data[i*4]=(p/m*.5+.5)*255; nd.data[i*4+1]=(q/m*.5+.5)*255; nd.data[i*4+2]=(1/m*.5+.5)*255; nd.data[i*4+3]=255; }
+      nx.putImageData(nd,0,0);
+      const tex=cv=>{ const t=new THREE.CanvasTexture(cv); t.repeat.set(1/CW,1/CR); t.offset.set(.5,.5); t.anisotropy=8; return t; };
+      const map=tex(c); map.encoding=THREE.sRGBEncoding; done({ map, normal:tex(nc) });
+    };
+    a.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);
+  });
+}
+function initVault(){
+  if(V.ready) return;
+  if(!window.THREE){ V.want=true; if(V.failed && !vScene.querySelector(".fallback")) vScene.insertAdjacentHTML("beforeend",'<div class="fallback">三维场景没有加载出来</div>'); return; }
+  V.ready=true;
+  const renderer=new THREE.WebGLRenderer({antialias:true}); renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.outputEncoding=THREE.sRGBEncoding; renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.0;
+  renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  vScene.appendChild(renderer.domElement); document.querySelector(".wrap").prepend(vScene);   /* the sand lies under every view, not only the vault */
+  const scene=new THREE.Scene(), camera=new THREE.PerspectiveCamera(42,1,.1,220);
+  const CAM0=new THREE.Vector3(0,10.1,8.3), CAM=CAM0.clone(), LOOK=new THREE.Vector3(0,0,2);
+  const ROOM=new THREE.Color(0x4a4258); scene.background=ROOM; scene.fog=new THREE.Fog(ROOM, 13, 38);
+  const lin=h=>new THREE.Color(h).convertSRGBToLinear();
+  let seed=7; const rnd=()=>{ seed=(seed*16807)%2147483647; return seed/2147483647; };
+
+  const CARDZ=2;                                     /* the cards lie in the middle of the view */
+  const BOARD={ x:1.4, z:-13.6, rot:.16, s:2.5 };          /* the chessboard, at true size: a square is about a card wide */
+
+  /* ---- the table is sand: long soft swells, and over them wind ripples, crests running across the view.
+     A low sun from the far side lights every ripple face turned toward it and leaves the next trough in violet shade,
+     so the light lies on the sand in broken bands, as it lies on evening water. Flat where the cards and the board rest. ---- */
+  let clothTop=0;
+  {
+    /* grain: a fine speckle for colour, a fine noise for the surface */
+    const N=512, c=document.createElement("canvas"); c.width=c.height=N; const x=c.getContext("2d");
+    x.fillStyle="#a8917c"; x.fillRect(0,0,N,N);
+    for(let i=0;i<26000;i++){ const v=rnd(); x.fillStyle=v<.5?`rgba(90,70,60,${rnd()*.18})`:`rgba(255,240,225,${rnd()*.16})`; x.fillRect(rnd()*N,rnd()*N,1,1); }
+    const map=new THREE.CanvasTexture(c); map.wrapS=map.wrapT=THREE.RepeatWrapping; map.repeat.set(10,9); map.encoding=THREE.sRGBEncoding; map.anisotropy=8;
+    const M=256, hc=document.createElement("canvas"); hc.width=hc.height=M; const hx=hc.getContext("2d"), Hh=new Float32Array(M*M);
+    for(let k=0;k<M*M;k++) Hh[k]=rnd();
+    const id=hx.createImageData(M,M);
+    for(let yy=0;yy<M;yy++) for(let xx=0;xx<M;xx++){ const k=yy*M+xx, a=(Hh[yy*M+(xx+M-1)%M]-Hh[yy*M+(xx+1)%M])*.6, b=(Hh[((yy+1)%M)*M+xx]-Hh[((yy+M-1)%M)*M+xx])*.6, n=Math.hypot(a,b,1);
+      id.data[k*4]=(a/n*.5+.5)*255; id.data[k*4+1]=(b/n*.5+.5)*255; id.data[k*4+2]=(1/n*.5+.5)*255; id.data[k*4+3]=255; }
+    hx.putImageData(id,0,0); const nrm=new THREE.CanvasTexture(hc); nrm.wrapS=nrm.wrapT=THREE.RepeatWrapping; nrm.repeat.set(40,36);
+
+    const W=50, D=44, g=new THREE.PlaneGeometry(W, D, 640, 560); g.rotateX(-Math.PI/2); g.translate(0,0,-4);
+    const P=g.attributes.position;
+    const flat=(vx,vz)=>{   /* 0 where something rests on the sand, 1 in the open */
+      const cx=Math.max(0,Math.abs(vx)-10.2), cz=Math.max(0,Math.abs(vz-CARDZ)-3.2), ec=Math.min(1,Math.hypot(cx,cz)/2.8);
+      const bx=vx-BOARD.x, bz=vz-BOARD.z, ca=Math.cos(BOARD.rot), sa=Math.sin(BOARD.rot), lx=bx*ca-bz*sa, lz=bx*sa+bz*ca, half=4.3*BOARD.s+.35;
+      const qx=Math.max(0,Math.abs(lx)-half), qz=Math.max(0,Math.abs(lz)-half), eb=Math.min(1,Math.hypot(qx,qz)/2.2);
+      const e=Math.min(ec,eb); return e*e*(3-2*e); };
+    /* smooth value noise, so nothing in the sand is a straight line */
+    const hash=(i,j)=>{ let h=(i*374761393+j*668265263)|0; h=Math.imul(h^(h>>>13),1274126177); return ((h^(h>>>16))>>>0)/4294967295; };
+    const noise=(x,y)=>{ const i=Math.floor(x), j=Math.floor(y), fx=x-i, fy=y-j, u=fx*fx*(3-2*fx), v=fy*fy*(3-2*fy);
+      const a=hash(i,j), b=hash(i+1,j), c2=hash(i,j+1), d2=hash(i+1,j+1); return (a+(b-a)*u+(c2-a)*v+(a-b-c2+d2)*u*v)*2-1; };
+    const fbm=(x,y)=>noise(x,y)*.6+noise(x*2.03+5.2,y*2.03+1.7)*.28+noise(x*4.1+9.1,y*4.1+3.3)*.12;
+    const Y=new Float32Array(P.count); let loC=-1, loB=-1;
+    for(let i=0;i<P.count;i++){ const vx=P.getX(i), vz=P.getZ(i);
+      /* dunes: soft rounded swells, and a few long curving crests where the wind has piled the sand */
+      let f=.42*fbm(vx*.075,vz*.09);
+      const crest=1-Math.abs(noise(vx*.06+11,vz*.11+4)); f+=.32*crest*crest*crest;
+      /* wind ripples: crest lines that bend and wander (the line itself is warped by noise), a steep windward rise
+         and a soft lee fall, stronger on the open slopes and fading into the hollows */
+      const warp=1.9*fbm(vx*.16+3,vz*.16)+.55*noise(vx*.55+7,vz*.5);
+      const ph=3.1*(vz+.12*vx+warp), t=((ph/6.2832)%1+1)%1;
+      const r=t<.7 ? t/.7 : (1-t)/.3, rip=r*r*(3-2*r);
+      const amp=.13*(.55+.45*noise(vx*.22+2,vz*.22+8))*(.6+.4*crest);
+      f+=amp*rip;
+      const fl=flat(vx,vz); Y[i]=f*(.03+.97*fl);
+      if(Math.abs(vx)<10.8 && Math.abs(vz-CARDZ)<3.8) loC=Math.max(loC,Y[i]);
+      const bx=vx-BOARD.x, bz=vz-BOARD.z; if(Math.hypot(bx,bz)<4.6*BOARD.s*1.42) loB=Math.max(loB,Y[i]); }
+    for(let i=0;i<P.count;i++) P.setY(i, Y[i]-loC-.003);
+    clothTop=loB-loC;
+    g.computeVertexNormals();
+    const sandM=new THREE.MeshStandardMaterial({ map, normalMap:nrm, normalScale:new THREE.Vector2(.35,.35), roughness:.97, metalness:0, envMapIntensity:.42 });
+    const sand=new THREE.Mesh(g, sandM); sand.receiveShadow=true; sand.castShadow=true; scene.add(sand); V.sandG=g;
+  }
+
+  /* ---- light: dusk, in two temperatures, the way a painter would light it.
+     Cool: the room is a violet-grey evening, the shade is deep indigo, nothing in it is warm.
+     Warm: one low orange-gold sun, coming in over a sill. The sill's edge is the line between them: the far third of the cards
+     and everything behind them, the board and its glass, stand in the light; the near two thirds of the cards sit in the evening.
+     Bloom makes what the sun touches glow; the held card gets its own small warm lamp. ---- */
+  const sunDir=new THREE.Vector3(-.3,.3,-.9).normalize(), SUNT=new THREE.Vector3(0,0,CARDZ-2);
+  /* The ambient light is a sky, not a lamp. A dusk dome is built, blurred into an environment map (PMREM), and set as
+     scene.environment: every surface takes its fill light and its reflections from it. Lavender-violet from above,
+     a band of orange glow low on the horizon toward the sun, dusky mauve on the far side, deep indigo below.
+     So shade is never grey: it is violet where a surface faces up, warm where it turns toward the sun, and glass and
+     varnish reflect a sunset rather than a white studio. */
+  { const sky=new THREE.Scene(), pm=new THREE.PMREMGenerator(renderer);
+    const skyMat=new THREE.ShaderMaterial({ side:THREE.BackSide, depthWrite:false,
+      uniforms:{ sun:{ value:sunDir } },
+      vertexShader:`varying vec3 vd; void main(){ vd=normalize(position); gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+      fragmentShader:`uniform vec3 sun; varying vec3 vd;
+        void main(){ vec3 d=normalize(vd); float y=d.y, s=max(dot(d,sun),0.);
+          vec3 top=vec3(.30,.25,.44), mid=vec3(.44,.36,.50), below=vec3(.05,.04,.08), glow=vec3(1.,.55,.25);
+          vec3 c=mix(mid, top, smoothstep(.05,.75,y));
+          c=mix(c, below, smoothstep(.0,-.35,y));
+          float hz=exp(-pow((y-.12)/.16,2.));                       // the horizon band
+          c+=glow*(pow(s,6.)*1.4+pow(s,2.)*.25)*hz;                   // orange where the sun sits on it
+          c+=vec3(1.,.26,.42)*pow(s,36.)*2.4;                        // a rose rim round the sun
+          c+=vec3(1.,.72,.26)*smoothstep(.992,.997,s)*6.;             // the sun's disc: yellow, not white
+          gl_FragColor=vec4(c,1.); }` });
+    sky.add(new THREE.Mesh(new THREE.SphereGeometry(50,64,32), skyMat)); scene.environment=pm.fromScene(sky,.035).texture;
+    const dome=new THREE.Mesh(new THREE.SphereGeometry(85,64,32), skyMat); dome.renderOrder=-1; dome.frustumCulled=false; scene.add(dome); }
+  const sun=new THREE.DirectionalLight(0xffae40, 2.5); sun.position.copy(SUNT).addScaledVector(sunDir,34); sun.target.position.copy(SUNT);
+  sun.castShadow=true; sun.shadow.mapSize.set(4096,4096); { const c=sun.shadow.camera; c.left=-28; c.right=28; c.top=28; c.bottom=-28; c.near=1; c.far=70; }
+  sun.shadow.bias=-.0004; scene.add(sun, sun.target);
+  const rose=new THREE.DirectionalLight(0xff4f78, 1.3); rose.position.copy(SUNT).add(new THREE.Vector3(-14,4,-30)); rose.target.position.copy(SUNT); scene.add(rose, rose.target);
+  const rake=new THREE.DirectionalLight(0xff9a5c, 2.4); rake.position.set(BOARD.x-30, 1.6, BOARD.z+2); rake.target.position.set(BOARD.x, .6, BOARD.z); scene.add(rake, rake.target);
+  const held=new THREE.SpotLight(0xffa070, 0, 13, .5, .9, 1.5); held.castShadow=true; held.shadow.mapSize.set(1024,1024); held.shadow.bias=-.0004; scene.add(held, held.target);
+  /* dust, only in the light */
+  const dust=(()=>{ const N=700, g=new THREE.BufferGeometry(), P=new Float32Array(N*3), B=[];
+    for(let i=0;i<N;i++){ const b=new THREE.Vector3((rnd()-.5)*14, .3, CARDZ+3-rnd()*12).addScaledVector(sunDir, rnd()*6); B.push([b, rnd()*6.28, .2+rnd()*.5]); P.set([b.x,b.y,b.z],i*3); }
+    g.setAttribute("position", new THREE.BufferAttribute(P,3));
+    const c=document.createElement("canvas"); c.width=c.height=64; const x=c.getContext("2d"), gr=x.createRadialGradient(32,32,0,32,32,32);
+    gr.addColorStop(0,"rgba(255,236,200,1)"); gr.addColorStop(.35,"rgba(255,200,140,.5)"); gr.addColorStop(1,"rgba(255,170,100,0)"); x.fillStyle=gr; x.fillRect(0,0,64,64);
+    const pts=new THREE.Points(g, new THREE.PointsMaterial({ size:.1, map:new THREE.CanvasTexture(c), color:0xffc890, transparent:true, opacity:.85, depthWrite:false, blending:THREE.AdditiveBlending }));
+    scene.add(pts); return { g, B, P }; })();
+
+  /* ---- the chessboard: marble squares in a mahogany frame, a Najdorf on it (1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4 Nf6 5.Nc3 a6) ---- */
+  {
+    const marble=(light)=>{ const N=256, c=document.createElement("canvas"); c.width=c.height=N; const x=c.getContext("2d");
+      x.fillStyle=light?"#f0e7d8":"#d4c3a8"; x.fillRect(0,0,N,N);
+      for(let k=0;k<0;k++){ x.strokeStyle=light?`rgba(105,105,105,${.15+rnd()*.3})`:`rgba(210,205,198,${.15+rnd()*.35})`; x.lineWidth=.5+rnd()*1.6; x.beginPath();
+        let px=rnd()*N, py=rnd()*N; x.moveTo(px,py); for(let t=0;t<9;t++){ px+=(rnd()-.4)*60; py+=(rnd()-.5)*60; x.lineTo(px,py); } x.stroke(); }
+      const t=new THREE.CanvasTexture(c); t.encoding=THREE.sRGBEncoding; t.wrapS=t.wrapT=THREE.RepeatWrapping; return t; };
+    const TH=.9;          /* the board stands this high off the cloth */
+    const mW=marble(true), mB=marble(false), S=BOARD.s, g=new THREE.Group(), tiles=[];
+    const tile=new THREE.BoxGeometry(S,.06,S);
+    for(let f=0;f<8;f++) for(let r=0;r<8;r++){ const light=(f+r)%2===1, t=(light?mW:mB).clone(); t.needsUpdate=true; t.offset.set(rnd(),rnd()); t.repeat.set(.4+rnd()*.2,.4+rnd()*.2);
+      const m=new THREE.Mesh(tile); m.userData.light=light; m.position.set((f-3.5)*S, .03, (3.5-r)*S); g.add(m); tiles.push(m); }
+    const B=8*S, W=.75;
+    /* the pieces, turned on a lathe */
+    const UP=.13;         /* every piece rides on a thicker foot */
+    const L=(pts)=>new THREE.LatheGeometry(pts.map(([a,b],k)=>new THREE.Vector2(a*S,(k<foot.length?b:b+UP)*S)), 48);
+    const foot=[[0,0],[.38,0],[.385,.06],[.38,.12],[.35,.15],[.37,.19],[.33,.23],[.25,.27],[.2,.3]];
+    const ball=(cy,r,from=-70)=>{ const o=[]; for(let a=from;a<=90;a+=15){ const q=a*Math.PI/180; o.push([Math.max(.001,Math.cos(q)*r), cy+Math.sin(q)*r]); } return o; };
+    const GEO={
+      p: L([...foot,[.13,.36],[.21,.4],[.21,.43],[.12,.46],...ball(.6,.15)]),
+      r: L([...foot,[.21,.24],[.19,.64],[.27,.68],[.29,.73],[.29,.88],[.21,.88],[.21,.82],[0,.82]]),
+      b: L([...foot,[.13,.5],[.22,.56],[.22,.6],[.12,.63],[.17,.72],[.19,.82],[.15,.94],[.07,1.02],...ball(1.08,.05,-60)]),
+      q: L([...foot,[.13,.6],[.23,.68],[.23,.72],[.12,.76],[.15,.86],[.26,1.04],[.2,1.06],[.1,1.08],...ball(1.14,.07,-60)]),
+      k: L([...foot,[.14,.64],[.24,.72],[.24,.76],[.13,.8],[.16,.92],[.25,1.08],[.18,1.12],[0,1.13]]),
+      n: L([...foot,[.18,.43],[.22,.47],[0,.49]])
+    };
+    const cross=new THREE.Group(); cross.add(new THREE.Mesh(new THREE.BoxGeometry(.06*S,.26*S,.06*S))); const cb=new THREE.Mesh(new THREE.BoxGeometry(.18*S,.06*S,.06*S)); cb.position.y=.04*S; cross.add(cb);
+    const head=(()=>{ const sh=new THREE.Shape(), P2=[[-.14,0],[.16,0],[.2,.22],[.16,.42],[.04,.6],[-.06,.64],[-.12,.56],[-.3,.46],[-.32,.36],[-.14,.36],[-.04,.3],[-.16,.12]];
+      sh.moveTo(P2[0][0]*S,P2[0][1]*S); P2.slice(1).forEach(([a,b])=>sh.lineTo(a*S,b*S)); sh.closePath();
+      const gg=new THREE.ExtrudeGeometry(sh,{ depth:.2*S, bevelEnabled:true, bevelThickness:.04*S, bevelSize:.03*S, bevelSegments:2 }); gg.translate(0,0,-.1*S); return gg; })();
+    /* glass: clear crystal for one side, smoked crystal for the other. Light bends through them; a small studio of soft panels gives them something to reflect */
+    const pm=new THREE.PMREMGenerator(renderer), studio=new THREE.Scene(); studio.background=new THREE.Color(0x0c0c0c);
+    [[0,9,0,14,.2,14,1.6],[-9,4,3,.2,6,8,1.1],[9,3,-4,.2,5,9,.7],[0,3,10,10,4,.2,.5]].forEach(([x,y,z,sx,sy,sz,k])=>{ const b=new THREE.Mesh(new THREE.BoxGeometry(sx,sy,sz), new THREE.MeshBasicMaterial({ color:new THREE.Color(1,.93,.84).multiplyScalar(k) })); b.position.set(x,y,z); studio.add(b); });
+    const env=pm.fromScene(studio,.03).texture;
+    const glass=(tint,dist)=>new THREE.MeshPhysicalMaterial({ color:0xffffff, metalness:0, roughness:.04, transmission:1, thickness:.9*S, ior:1.52,
+      attenuationColor:new THREE.Color(tint), attenuationDistance:dist, envMapIntensity:1.4, specularIntensity:1, clearcoat:1, clearcoatRoughness:.03 });
+    /* all of it glass: clear squares and frosted squares, clear pieces and frosted pieces */
+    const ivory=glass(0xb9bbc0,3), ebony=glass(0x7a7c83,1.5); ebony.roughness=.12; ebony.clearcoatRoughness=.08;   /* grey glass: pale smoke and dark smoke */
+    const clearSq=glass(0xffffff,10), frostSq=glass(0xf6f2ee,5); clearSq.thickness=.08; frostSq.thickness=.08; frostSq.roughness=.42; frostSq.clearcoat=.6; frostSq.clearcoatRoughness=.3;
+    tiles.forEach(m=>{ m.material=m.userData.light?clearSq:frostSq; });
+    const crystal=glass(0xfdfbf8,6); crystal.thickness=1.4; crystal.roughness=.015; crystal.envMapIntensity=.7; crystal.ior=1.55;
+    const rrect=(sh,w,d,r)=>{ sh.moveTo(-w+r,-d); sh.lineTo(w-r,-d); sh.quadraticCurveTo(w,-d,w,-d+r); sh.lineTo(w,d-r); sh.quadraticCurveTo(w,d,w-r,d);
+      sh.lineTo(-w+r,d); sh.quadraticCurveTo(-w,d,-w,d-r); sh.lineTo(-w,-d+r); sh.quadraticCurveTo(-w,-d,-w+r,-d); return sh; };
+    const slab=(w,d,h,r,bev,hole)=>{ const sh=rrect(new THREE.Shape(),w-bev,d-bev,r); if(hole) sh.holes.push(rrect(new THREE.Path(),hole,hole,.02));
+      const gg=new THREE.ExtrudeGeometry(sh,{ depth:h-2*bev, bevelEnabled:true, bevelThickness:bev, bevelSize:bev, bevelSegments:4, curveSegments:8 }); gg.rotateX(-Math.PI/2); gg.translate(0,bev,0); return gg; };
+    const OUT=B/2+W;
+    const base=new THREE.Mesh(slab(OUT,OUT,TH,.4,.12), crystal); base.position.y=-TH; g.add(base);
+    const rim=new THREE.Mesh(slab(OUT,OUT,.2,.4,.05,B/2), crystal); rim.position.y=-.02; g.add(rim);
+    const put=(type,sq,white)=>{ const f="abcdefgh".indexOf(sq[0]), r=+sq[1]-1, mat=white?ivory:ebony, grp=new THREE.Group();
+      const m=new THREE.Mesh(GEO[type],mat); grp.add(m);
+      if(type==="k"){ const c=cross.clone(); c.children.forEach(o=>{ o.material=mat; }); c.position.y=(1.24+UP)*S; grp.add(c); }
+      if(type==="n"){ const h=new THREE.Mesh(head,mat); h.position.y=(.34+UP)*S; h.rotation.y=Math.PI/2; grp.add(h); grp.rotation.y = white? Math.PI : 0; }
+      grp.scale.setScalar(1.0); grp.position.set((f-3.5)*S, .06, (3.5-r)*S); g.add(grp); };
+    /* white sits at the far side, black faces us */
+    const WHITE={ k:["e1"], q:["d1"], r:["a1","h1"], b:["c1","f1"], n:["c3","d4"], p:["a2","b2","c2","e4","f2","g2","h2"] };
+    const BLACK={ k:["e8"], q:["d8"], r:["a8","h8"], b:["c8","f8"], n:["b8","f6"], p:["a6","b7","d6","e7","f7","g7","h7"] };
+    Object.entries(WHITE).forEach(([t,l])=>l.forEach(q=>put(t,q,true))); Object.entries(BLACK).forEach(([t,l])=>l.forEach(q=>put(t,q,false)));
+    g.rotation.y=Math.PI+BOARD.rot; g.position.set(BOARD.x, clothTop+TH, BOARD.z); scene.add(g); V.board=g; V.boardY=g.position.y;
+  }
+
+  /* ---- the cards: tarot-long, half again bigger, overlapping in a row ---- */
+  const geo=cardGeo(), SC=3.5, n=VH.length; let d=2.2; const GAP=.75;
+  const backGeo=(()=>{ const w=CW/2, h=CR/2, r=.065, sh=new THREE.Shape();
+    sh.moveTo(-w+r,-h); sh.lineTo(w-r,-h); sh.quadraticCurveTo(w,-h,w,-h+r); sh.lineTo(w,h-r); sh.quadraticCurveTo(w,h,w-r,h);
+    sh.lineTo(-w+r,h); sh.quadraticCurveTo(-w,h,-w,h-r); sh.lineTo(-w,-h+r); sh.quadraticCurveTo(-w,-h,-w+r,-h);
+    const g=new THREE.ShapeGeometry(sh,10); g.rotateX(Math.PI/2); return g; })();
+  /* each card lies a little off the line and a little turned, as if dealt by hand */
+  const ZJ=[.55,-.4,.2,-.55,.42,-.22], XJ=[0,.18,-.12,.14,-.1,.05], TW=[.17,-.09,.12,-.14,.07,-.16];
+  VH.forEach((h,i)=>{
+    const mat=new THREE.MeshStandardMaterial({ color:0xffffff, roughness:.6, metalness:0, envMapIntensity:.6, normalScale:new THREE.Vector2(.9,.9) });
+    cardMaps(h.id).then(t=>{ mat.map=t.map; mat.normalMap=t.normal; mat.needsUpdate=true; });
+    const edge=new THREE.MeshStandardMaterial({ color:new THREE.Color("#e6dfd1").convertSRGBToLinear(), roughness:.7 });
+    const m=new THREE.Mesh(geo,[mat,edge]); m.castShadow=m.receiveShadow=true; m.scale.setScalar(SC);
+    const bmat=new THREE.MeshStandardMaterial({ color:new THREE.Color(.85,.85,.85), roughness:.6, envMapIntensity:.5 }); cardBack(h.id).then(t=>{ bmat.map=t; bmat.needsUpdate=true; });
+    const back=new THREE.Mesh(backGeo, bmat); back.position.y=-.0045; m.add(back);
+    const z=CARDZ+ZJ[i], tw=TW[i];
+    const home=new THREE.Vector3((i-(n-1)/2)*d+XJ[i], .004+i*.095, z);       /* each card a card's thickness above the one to its left */
+    m.userData={ id:h.id, i, home, tw, mat, v:new THREE.Vector3(), r:new THREE.Vector3(0,tw,0), rv:new THREE.Vector3() };
+    m.position.copy(home); m.rotation.set(0,tw,0); scene.add(m); h.seal=m;
+  });
+  /* ---- the structure, written on the sand in light: the org chart drawn to a canvas, laid over the dunes like runes ---- */
+  const CH={ cx:0, cz:CARDZ-.6, w:21 }; CH.d=CH.w*1500/2400;
+  const sandY=(x,z)=>{ const g=V.sandG, P=g.attributes.position, sx=g.parameters.widthSegments, sy=g.parameters.heightSegments;
+    let fx=(x+25)/50*sx, fz=(z+4+22)/44*sy; fx=Math.max(0,Math.min(sx-1e-3,fx)); fz=Math.max(0,Math.min(sy-1e-3,fz));
+    const c0=Math.floor(fx), r0=Math.floor(fz), u=fx-c0, v=fz-r0, at=(r,c)=>P.getY(r*(sx+1)+c);
+    return (at(r0,c0)*(1-u)+at(r0,c0+1)*u)*(1-v)+(at(r0+1,c0)*(1-u)+at(r0+1,c0+1)*u)*v; };
+  const RW=2400, RH=1500, MAPR=630, X=pc=>pc/100*RW;
+  const RY={ helios:150, hlab:292, bus:345, crest:478, name:598, badge:642, region:770, party:905, cab:1040, crown:1178, head:1318 };
+  const RX=h=>h.crown ? X(GUT+(100-GUT)/2) : X(colX(VH0.indexOf(h)));
+  const runeImgs={}; let runeLoaded=0;
+  H.forEach(h=>{ const im=new Image(); im.onload=()=>{ runeLoaded++; if(V.chartDraw) V.chartDraw(); };
+    im.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(crest(h.id).replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" color="#ffd49a" ').replace(/var\(--serif\)/g,"serif").replace(/stroke-width="([\d.]+)"/g,(m,v)=>`stroke-width="${(parseFloat(v)*2.3).toFixed(2)}"`)); runeImgs[h.id]=im; });
+  const runeA=document.createElement("canvas"), runeF=document.createElement("canvas"); runeA.width=runeF.width=RW; runeA.height=runeF.height=RH;
+  const runeTex=new THREE.CanvasTexture(runeF); runeTex.encoding=THREE.sRGBEncoding; runeTex.anisotropy=8;
+  function chartDraw(){
+    const x=runeA.getContext("2d"); x.clearRect(0,0,RW,RH); x.textAlign="center"; x.textBaseline="middle"; x.lineCap="round";
+    const C={ ink:"#fff4e2", dim:"#ffe1b4", gold:"#ffbf66", line:"#ffe6c4", lineDim:"#ffdcb0" };
+    const WIDE='"Inter","Helvetica Neue",Arial,sans-serif', SER='"Noto Serif SC","Songti SC",serif', MONO='"IBM Plex Mono",ui-monospace,monospace';
+    const txt=(t,px,py,font,col,ls=0)=>{ x.font=font; x.fillStyle=col; if("letterSpacing" in x) x.letterSpacing=ls+"px"; x.fillText(t,px+ls/2,py); return x.measureText(t).width; };
+    const seg=(x0,y0,x1,y1,col,w=3,dash)=>{ x.save(); x.strokeStyle=col; x.lineWidth=w; if(dash) x.setLineDash(dash); x.beginPath(); x.moveTo(x0,y0); x.lineTo(x1,y1); x.stroke(); x.restore(); };
+    if(mode==="map"){
+      const cx=RW/2, cy=RH/2, rad=MAPR, at=(deg,r)=>[cx+Math.sin(deg*Math.PI/180)*r, cy-Math.cos(deg*Math.PI/180)*r];
+      x.save(); x.strokeStyle=C.line; x.lineWidth=3; x.beginPath(); x.arc(cx,cy,rad,0,7); x.stroke(); x.lineWidth=1.5; x.beginPath(); x.arc(cx,cy,rad-18,0,7); x.stroke();
+      for(let i=0;i<120;i++){ const [x1,y1]=at(i*3,rad-18), [x2,y2]=at(i*3,rad-(i%10===0?44:30)); x.beginPath(); x.moveTo(x1,y1); x.lineTo(x2,y2); x.lineWidth=i%10===0?2.5:1.5; x.stroke(); }
+      x.setLineDash([10,16]); x.lineWidth=2; x.beginPath(); x.arc(cx,cy,rad*.62,0,7); x.stroke();
+      [45,135,225,315].forEach(d=>{ const [a1,b1]=at(d,rad*.62), [a2,b2]=at(d,rad-50); x.beginPath(); x.moveTo(a1,b1); x.lineTo(a2,b2); x.stroke(); }); x.restore();
+      const edge=(deg,r,t,al)=>{ const [px,py]=at(deg,r); x.textAlign=al; txt(t,px,py,`500 34px ${SER}`,C.dim,4); x.textAlign="center"; };
+      edge(0,rad+44,"北境 · 夜域","center"); edge(180,rad+44,"南境 · 海","center"); edge(90,rad+34,"东方","left"); edge(270,rad+34,"西境 · 待定","right"); edge(300,rad*.62+46,"首都","right");
+      const pos=h=>{ const [deg,r]=h.polar; return at(deg,r*rad); };
+      const [hx,hy]=pos(H.find(h=>h.crown));
+      VH0.forEach(h=>{ const [px,py]=pos(h), dx=px-hx, dy=py-hy, L=Math.hypot(dx,dy), tie=!!TIE_LABEL[h.id], on=h.id===current;
+        seg(hx+dx/L*120,hy+dy/L*120,px-dx/L*95,py-dy/L*95, tie||on?C.gold:C.line, tie?4:3, h.fallen?[12,12]:null); });
+      H.forEach(h=>{ const [px,py]=pos(h), on=h.id===current, big=h.crown, s2=big?230:160;
+        if(runeImgs[h.id].complete) x.drawImage(runeImgs[h.id],px-s2/2,py-s2/2,s2,s2);
+        const ny=py+s2/2+34; txt(h.crown?"HELIOS":h.name.toUpperCase(),px,ny,`500 ${big?46:44}px ${h.id==="south"?SER:WIDE}`,on?C.gold:C.ink,h.id==="south"?6:10);
+        if(!h.crown) txt(h.zh,px,ny+44,`500 28px ${SER}`,C.dim,3); });
+    } else {
+    const hh=H.find(h=>h.crown), hx=RX(hh), xs=VH0.map(RX);
+    /* the crown */
+    if(runeImgs.helios.complete) x.drawImage(runeImgs.helios,hx-105,RY.helios-105,210,210);
+    txt("HELIOS",hx,RY.hlab,`400 40px ${WIDE}`,C.ink,12);
+    seg(hx,RY.hlab+30,hx,RY.bus,C.gold,4);
+    seg(Math.min(...xs),RY.bus,Math.max(...xs),RY.bus,C.line,3);
+    VH0.forEach((h,i)=>{ if(TIE_LABEL[h.id]) seg(hx,RY.bus,xs[i],RY.bus,C.gold,4); });
+    x.fillStyle=C.gold; x.beginPath(); x.arc(hx,RY.bus,9,0,7); x.fill();
+    /* the houses */
+    VH0.forEach((h,i)=>{ const cx=xs[i], on=h.id===current, tie=!!TIE_LABEL[h.id], a=1;
+      x.globalAlpha=1; x.fillStyle=C.ink; x.beginPath(); x.arc(cx,RY.bus,6,0,7); x.fill();
+      seg(cx,RY.bus,cx,RY.crest-92,tie?C.gold:C.line,tie?4:3,h.fallen?[10,12]:null);
+      if(tie) txt(TIE_LABEL[h.id],cx+20,(RY.bus+RY.crest-92)/2,`500 34px ${SER}`,C.gold,4), x.textAlign="center";
+      x.globalAlpha=a; if(runeImgs[h.id].complete) x.drawImage(runeImgs[h.id],cx-84,RY.crest-84,168,168);
+      txt(h.name.toUpperCase(),cx,RY.name,`500 50px ${h.id==="south"?SER:WIDE}`,on?C.gold:C.ink,h.id==="south"?6:10);
+      if(h.badge) txt(h.badge,cx,RY.badge,`400 28px ${SER}`,C.dim,4);
+      x.globalAlpha=1; });
+    /* the rows, a thread running down each house and breaking round the words */
+    const rowsOf=h=>[["region",h.m.region,h.m.sub],["party",null],["cab",h.m.cab,h.m.csub],["crown",h.m.tie,h.m.tsub],["head",h.m.head||"待定",""]];
+    VH0.forEach((h,i)=>{ const cx=xs[i], on=h.id===current, lc=on?C.gold:C.lineDim; let y=RY.badge+(h.badge?30:-6);
+      rowsOf(h).forEach(([k,main,sub])=>{ const ry=RY[k];
+        if(k==="party"){ const P=PARTIES.find(p=>p[1].includes(h.id)); if(P[1].length>1){ seg(cx,y,cx,ry,lc,on?3.5:2.5); x.fillStyle=on?C.gold:C.line; x.beginPath(); x.arc(cx,ry,6,0,7); x.fill(); y=ry; return; } main=P[0]; sub=P[2]; }
+        const top=ry-26, bot=ry+(sub?50:24); seg(cx,y,cx,top-10,lc,on?3.5:2.5);
+        const tieOn=k==="crown" && main && main!=="—";
+        txt(main||"待定",cx,ry,`600 44px ${SER}`, k==="head"&&!h.head ? C.dim : tieOn ? C.gold : on ? C.ink : "#fff3e0",2);
+        if(sub) txt(sub,cx,ry+40,`500 28px ${MONO}`,C.dim,1);
+        y=bot+10; }); });
+    /* parties with several houses: a crossbar their threads meet at, the name in its middle */
+    PARTIES.filter(p=>p[1].length>1).forEach(([name,ids,sub])=>{ const ax=ids.map(id=>xs[VH0.findIndex(h=>h.id===id)]), m=(ax[0]+ax[1])/2, on=ids.includes(current);
+      x.font=`600 44px ${SER}`; const tw=x.measureText(name).width/2+26;
+      seg(Math.min(...ax),RY.party,m-tw,RY.party,on?C.gold:C.line,on?3.5:2.5); seg(m+tw,RY.party,Math.max(...ax),RY.party,on?C.gold:C.line,on?3.5:2.5);
+      txt(name,m,RY.party,`600 44px ${SER}`,on?C.gold:"#fff3e0",2); if(sub) txt(sub,m,RY.party+40,`500 28px ${MONO}`,C.dim,1); });
+    /* the row names down the left */
+    x.textAlign="left";
+    [["region","地域","REGION","政治"],["party","党派","PARTY"],["cab","内阁","CABINET"],["crown","与王室","CROWN"],["head","家主","HEAD","家族"]].forEach(([k,zh,en,grp])=>{ const ry=RY[k];
+      if(grp) txt(grp,40,ry-52,`500 24px ${SER}`,C.gold,6);
+      txt(zh,40,ry-6,`500 36px ${SER}`,C.ink,4); txt(en,40,ry+32,`400 22px ${MONO}`,C.dim,5); });
+    x.textAlign="center";
+    }
+    /* compose: only the crisp strokes, nothing under or around them */
+    const f=runeF.getContext("2d"); f.clearRect(0,0,RW,RH); f.drawImage(runeA,0,0);
+    runeTex.needsUpdate=true;
+  }
+  V.chartDraw=chartDraw;
+  const runeGeo=new THREE.PlaneGeometry(CH.w,CH.d,220,140); runeGeo.rotateX(-Math.PI/2); runeGeo.translate(CH.cx,0,CH.cz);
+  { const P=runeGeo.attributes.position; for(let i=0;i<P.count;i++) P.setY(i, sandY(P.getX(i),P.getZ(i))+.025); runeGeo.computeVertexNormals(); }
+  const runeMat=new THREE.MeshBasicMaterial({ map:runeTex, transparent:true, depthWrite:false, depthTest:false, toneMapped:false, opacity:0 });
+  const runes=new THREE.Mesh(runeGeo, runeMat); runes.renderOrder=2; scene.add(runes);
+  const runeAt=h=>{ const mp=mode==="map" && h.polar, px=mp?RW/2+Math.sin(h.polar[0]*Math.PI/180)*h.polar[1]*MAPR:RX(h), py=mp?RH/2-Math.cos(h.polar[0]*Math.PI/180)*h.polar[1]*MAPR:(h.crown?RY.helios:RY.crest), wx=CH.cx+(px/RW-.5)*CH.w, wz=CH.cz+(py/RH-.5)*CH.d; return new THREE.Vector3(wx, sandY(wx,wz), wz); };
+  if(document.fonts) document.fonts.ready.then(chartDraw); chartDraw();
+
+  const composer=new POST.EffectComposer(renderer); composer.addPass(new POST.RenderPass(scene,camera));
+  const bloom=new POST.UnrealBloomPass(new THREE.Vector2(512,512), .55, .5, .86); composer.addPass(bloom);
+  composer.addPass(new POST.ShaderPass(POST.GammaCorrectionShader));
+  Object.assign(V,{ renderer, scene, camera });
+
+  /* the canvas sits behind the page, so listen on the window and ask the scene what is under the pointer */
+  const ray=new THREE.Raycaster(), mv=new THREE.Vector2(); let hover=null, par=[0,0], parT=[0,0];
+  const hit=e=>{ const r=renderer.domElement.getBoundingClientRect(); mv.set(((e.clientX-r.left)/r.width)*2-1, -((e.clientY-r.top)/r.height)*2+1);
+    ray.setFromCamera(mv,camera); const o=ray.intersectObjects(VH.map(h=>h.seal)); return o.length?o[0].object:null; };
+  const ui=e=>e.target.closest && e.target.closest("button, a, header, .v-col, .v-quote, .v-sheet");
+  addEventListener("pointermove",e=>{ if(mode!=="vault") return; const o=ui(e)?null:hit(e); hover=o; document.body.style.cursor=o?"pointer":"";
+    parT=[e.clientX/innerWidth-.5, e.clientY/innerHeight-.5]; });
+  addEventListener("click",e=>{ if(mode!=="vault" || ui(e)) return; const o=hit(e), id=o&&o.userData.id;
+    if(V.flip){ flip(null); if(id && id!==current) pick(id); return; }
+    if(!id) return; if(id===current) flip(id); else pick(id); });
+  addEventListener("keydown",e=>{ if(e.key==="Escape" && V.flip) flip(null); });
+
+  function size(){ const w=vScene.clientWidth, h=vScene.clientHeight; if(!w||!h) return; renderer.setSize(w,h,false); composer.setSize(w,h); bloom.setSize(w,h); camera.aspect=w/h;
+    /* frame the cards: as big as the window allows, between the line of text at the top and the details band at the bottom.
+       The camera keeps its angle and only moves along its line of sight; then the picture slides so the row sits in that gap */
+    camera.fov=42; camera.clearViewOffset(); camera.updateProjectionMatrix();
+    const top=h*.33, bot=h-((vCols.offsetHeight||130)+62), q=new THREE.Vector3();
+    /* spread the hand to suit the window: wide windows get a looser deal */
+    d=Math.max(1.95, Math.min(3.1, 1.95+(w/h-1.25)*1.8));
+    VH.forEach((hh,i)=>{ const u=hh.seal.userData; u.home.x=(i-(n-1)/2)*d+XJ[i]; });
+    const pts=[[0,2.2,CARDZ-1.7],[0,.3,CARDZ+4.3]];
+    VH.forEach((hh,i)=>{ const u=hh.seal.userData, c=Math.cos(u.tw), sn=Math.sin(u.tw); [[-1.75,-3.01],[1.75,-3.01],[-1.75,3.01],[1.75,3.01]].forEach(([a,b])=>pts.push([u.home.x+a*c+b*sn, u.home.y, u.home.z-a*sn+b*c])); });
+    const measure=k=>{ camera.position.copy(LOOK).addScaledVector(CAM0.clone().sub(LOOK),k); camera.lookAt(LOOK); camera.updateMatrixWorld();
+      let y0=1e9,y1=-1e9,x0=1e9,x1=-1e9; pts.forEach(([x,y,z])=>{ q.set(x,y,z).project(camera); const sx=(q.x+1)/2*w, sy=(1-q.y)/2*h; y0=Math.min(y0,sy); y1=Math.max(y1,sy); x0=Math.min(x0,sx); x1=Math.max(x1,sx); });
+      return { y0,y1,x0,x1, fits:(y1-y0)<=bot-top && x1-x0<=w*.84 }; };
+    let lo=.6, hi=3; for(let it=0;it<22;it++){ const mid=(lo+hi)/2; if(measure(mid).fits) hi=mid; else lo=mid; }
+    const r=measure(hi); CAM.copy(camera.position); V.voy=(r.y0+r.y1)/2-(top+bot)/2;
+    /* the runes: seen from high above, framed inside the stage (left of the readout card) */
+    if(mode!=="vault"){ const S=stage.getBoundingClientRect(), L=S.left, R2=S.right, T=S.top+8, B=S.bottom-8, C0=new THREE.Vector3(CH.cx,0,CH.cz), dir=new THREE.Vector3(0,1,.36).normalize();
+      const ex=mode==="map"?(MAPR+250)/RW:.5, ez=mode==="map"?(MAPR+80)/RH:.5;
+      const cs=[[-1,-1],[1,-1],[-1,1],[1,1]].map(([a,b])=>new THREE.Vector3(CH.cx+a*CH.w*ex,0,CH.cz+b*CH.d*ez));
+      const meas=k=>{ camera.position.copy(C0).addScaledVector(dir,k); camera.lookAt(C0); camera.updateMatrixWorld();
+        let y0=1e9,y1=-1e9,x0=1e9,x1=-1e9; cs.forEach(c=>{ q.copy(c).project(camera); const sx=(q.x+1)/2*w, sy=(1-q.y)/2*h; y0=Math.min(y0,sy); y1=Math.max(y1,sy); x0=Math.min(x0,sx); x1=Math.max(x1,sx); });
+        return { y0,y1,x0,x1, fits:(x1-x0)<=(R2-L) && (y1-y0)<=(B-T) }; };
+      let lo2=4, hi2=80; for(let it=0;it<24;it++){ const mid=(lo2+hi2)/2; if(meas(mid).fits) hi2=mid; else lo2=mid; }
+      const r2=meas(hi2); V.spos=camera.position.clone(); V.slook=C0; V.sox=(r2.x0+r2.x1)/2-(L+R2)/2; V.soy=(r2.y0+r2.y1)/2-(T+B)/2; }
+    if(!V.cur) V.cur={ pos:(mode==="vault"?CAM:V.spos).clone(), look:(mode==="vault"?LOOK:V.slook).clone(), ox:mode==="vault"?0:V.sox, oy:mode==="vault"?V.voy:V.soy, bl:mode==="vault"?0:1 };
+    V.vw=w; V.vh=h;
+    layout(); }
+  V.size=size; addEventListener("resize",size); size();
+
+  /* motion: every card rides on springs. Pulling one out: it slides toward you first (stiff), then rises and tips up (softer),
+     while the cards on either side ease apart to leave it room. */
+  const tmp=new THREE.Vector3(), rt=new THREE.Vector3(), T0=performance.now(); let last=T0, heldOn=0;
+  const K={ x:55, y:38, z:85, r:34 };
+  const spring=(p,v,target,k,dt)=>{ const a=k*(target-p)-2*Math.sqrt(k)*v; v+=a*dt; return [p+v*dt, v]; };
+  function tick(t){
+    requestAnimationFrame(tick);
+    let dt=Math.min(.05,(t-last)/1000); last=t; par[0]+=(parT[0]-par[0])*.05; par[1]+=(parT[1]-par[1])*.05;
+    { const vt=mode==="vault" || !V.spos, cu=V.cur, kk=reduce?1:1-Math.exp(-dt*2.6);
+      const tp=vt ? new THREE.Vector3(CAM.x+par[0]*1.4, CAM.y, CAM.z+par[1]*.8) : V.spos, tl=vt?LOOK:V.slook;
+      cu.pos.lerp(tp,kk); cu.look.lerp(tl,kk); cu.ox+=((vt?0:V.sox)-cu.ox)*kk; cu.oy+=((vt?V.voy:V.soy)-cu.oy)*kk; cu.bl+=((vt?0:1)-cu.bl)*kk;
+      camera.position.copy(cu.pos); camera.lookAt(cu.look); camera.setViewOffset(V.vw,V.vh,cu.ox,cu.oy,V.vw,V.vh); camera.updateProjectionMatrix();
+      { const dd=cu.pos.distanceTo(cu.look), dusk=MOOD==="dusk";
+        const nearV=dusk?13:24, farV=dusk?38:60, nearS=dusk?Math.max(13,dd-3):Math.max(13,dd+2), farS=nearS+(dusk?24:40);
+        scene.fog.near=nearV+(nearS-nearV)*cu.bl; scene.fog.far=farV+(farS-farV)*cu.bl; }
+      if(V.board){ const BACK=8;
+        if(V.boardLift==null){ let mx=-9; for(let a=-12;a<=12;a+=1.5) for(let b=-12;b<=12;b+=1.5) mx=Math.max(mx, sandY(BOARD.x+a, BOARD.z-BACK+b)); V.boardLift=Math.max(0, mx+.9-V.boardY); }
+        const k2=mode!=="vault"?cu.bl:0; V.board.position.z=BOARD.z-BACK*k2; V.board.position.y=V.boardY+V.boardLift*k2; }
+      runeMat.opacity=mode!=="vault" ? Math.max(0,(cu.bl-.35)/.65) : runeMat.opacity*(1-kk);
+      VH.forEach(h=>{ h.seal.visible=cu.bl<.45; });
+      if(mode!=="vault" && V.ready){ const S=stage.getBoundingClientRect(), qv=new THREE.Vector3();
+        H.forEach(h=>{ qv.copy(runeAt(h)).project(camera); h.el.style.setProperty("--x", f((qv.x+1)/2*V.vw-S.left)+"px"); h.el.style.setProperty("--y", f((1-qv.y)/2*V.vh-S.top)+"px"); }); } }
+    const sel=VH.findIndex(h=>h.id===current);
+    const fw=new THREE.Vector3(0,0,-1).applyQuaternion(camera.quaternion), rgt=new THREE.Vector3(1,0,0).applyQuaternion(camera.quaternion), upv=new THREE.Vector3(0,1,0).applyQuaternion(camera.quaternion);
+    /* where the turned card stands: aimed through a point on screen (centre of the left column, below the name), a fixed distance out */
+    const DIST=9, FL=(()=>{ const r=vScene.getBoundingClientRect(), nx=-1+2*(.215), ny=1-2*(.56);
+      const pp=new THREE.Vector3(nx,ny,.5).unproject(camera).sub(camera.position).normalize(); return camera.position.clone().addScaledVector(pp,DIST); })();
+    const QF=camera.quaternion.clone().multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),Math.PI/2)).multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,1),Math.PI));
+    VH.forEach(h=>{ const m=h.seal, u=m.userData, on=u.i===sel, hv=hover===m && !on, fl=V.flip===h.id;
+      if(fl){ const k=reduce?1:1-Math.exp(-dt*5); m.position.lerp(FL,k); m.scale.setScalar(m.scale.x+(SC*.66-m.scale.x)*k); m.quaternion.slerp(QF,reduce?1:1-Math.exp(-dt*4)); u.was=true;
+        u.mat.color.setScalar(1); held.position.copy(camera.position).addScaledVector(upv,2); held.target.position.copy(m.position); return; }
+      if(m.scale.x!==SC) m.scale.setScalar(Math.abs(m.scale.x-SC)<.01?SC:m.scale.x+(SC-m.scale.x)*Math.min(1,dt*5));
+      if(u.was){ u.was=false; u.r.set(m.rotation.x,m.rotation.y,m.rotation.z); u.rv.set(0,0,0); u.v.set(0,0,0); }
+      const side= sel<0||on ? 0 : Math.sign(u.i-sel);
+      if(on){ const bob=reduce?0:Math.sin((t-T0)/1400)*.03; tmp.set(u.home.x*.85, 1.2+bob, u.home.z+.75); rt.set(.3,0,0); }
+      else { tmp.set(u.home.x+side*GAP, u.home.y+(hv?.12:0), u.home.z+(hv?.15:0)); rt.set(hv?.03:0, u.tw, 0); }
+      if(reduce){ m.position.copy(tmp); m.rotation.set(rt.x,rt.y,rt.z); }
+      else {
+        for(let s2=0,N2=Math.ceil(dt/.012), h2=dt/N2; s2<N2; s2++){
+          let r;
+          r=spring(m.position.x,u.v.x,tmp.x,K.x,h2); m.position.x=r[0]; u.v.x=r[1];
+          r=spring(m.position.y,u.v.y,tmp.y,K.y,h2); m.position.y=r[0]; u.v.y=r[1];
+          r=spring(m.position.z,u.v.z,tmp.z,K.z,h2); m.position.z=r[0]; u.v.z=r[1];
+          r=spring(u.r.x,u.rv.x,rt.x,K.r,h2); u.r.x=r[0]; u.rv.x=r[1];
+          r=spring(u.r.y,u.rv.y,rt.y,K.r,h2); u.r.y=r[0]; u.rv.y=r[1];
+          r=spring(u.r.z,u.rv.z,0,K.r,h2); u.r.z=r[0]; u.rv.z=r[1];
+        }
+        m.rotation.set(u.r.x,u.r.y,u.r.z);
+      }
+      u.mat.color.setScalar(u.mat.color.r+(((V.flip?.14:(on?1:.88)))-u.mat.color.r)*Math.min(1,dt*6));
+      if(on){ held.position.set(m.position.x-1.4, m.position.y+4.6, m.position.z+2.6); held.target.position.copy(m.position); }
+    });
+    heldOn+=((V.flip?.75:(sel<0?0:1.2))-heldOn)*Math.min(1,dt*4); held.intensity=heldOn;
+    if(!reduce){ const T=(t-T0)/1000; dust.B.forEach(([b,ph,sp],i)=>{ dust.P[i*3]=b.x+Math.sin(T*.13*sp+ph)*.35; dust.P[i*3+1]=b.y+((T*.05*sp+ph)%1.5)-.4+Math.sin(T*.3+ph)*.05; dust.P[i*3+2]=b.z+Math.cos(T*.11*sp+ph)*.3; }); dust.g.attributes.position.needsUpdate=true; }
+    composer.render(); if(mode==="vault") layout();
+  }
+  requestAnimationFrame(tick);
+}
+const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+/* light mood, kept per viewer: dusk by default */
+let MOOD="dusk"; try{ MOOD=localStorage.getItem("houses-mood")||"dusk"; }catch(e){}
+const MOOD_ICON={ dusk:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><path d="M3 16h18M6 19.5h12"/><path d="M7 16a5 5 0 0 1 10 0"/><path d="M12 6.5v2M5.6 9.6l1.4 1.4M18.4 9.6 17 11"/></svg>`,
+  noon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 3v2.2M12 18.8V21M3 12h2.2M18.8 12H21M5.6 5.6l1.6 1.6M16.8 16.8l1.6 1.6M5.6 18.4l1.6-1.6M16.8 7.2l1.6-1.6"/></svg>` };
+function setMood(m){ MOOD=m; document.documentElement.classList.toggle("noon", m==="noon"); const b=document.getElementById("mood"); b.innerHTML=MOOD_ICON[m]; b.setAttribute("aria-pressed", m==="noon");
+  try{ localStorage.setItem("houses-mood",m); }catch(e){} }
+setMood(MOOD); document.getElementById("mood").addEventListener("click",()=>setMood(MOOD==="dusk"?"noon":"dusk"));
+/* the words sit where the seals are on screen: the quote above the chosen one, a column under each */
+function layout(){
+  if(!V.ready) return; const R=stage.getBoundingClientRect(), C=V.renderer.domElement.getBoundingClientRect(), p=new THREE.Vector3();
+  VH.forEach(h=>{ p.copy(h.seal.userData.home); p.x=h.seal.position.x; p.project(V.camera); h.col.style.left=f(C.left-R.left+(p.x+1)/2*C.width)+"px"; });
+  const h=!V.flip && VH.find(x=>x.id===current); if(h){ p.copy(h.seal.userData.home); p.x=h.seal.position.x; p.project(V.camera); const w=vQuote.offsetWidth/2;
+    vQuote.style.left=f(Math.max(w, Math.min(R.width-w, C.left-R.left+(p.x+1)/2*C.width)))+"px"; }
+}
+const SHIELD_I=n=>`<svg viewBox="0 0 14 16" aria-hidden="true"><path d="M7 1L13 3V8Q13 12.5 7 15Q1 12.5 1 8V3Z" fill="none" stroke="currentColor" stroke-width="1"/>${n!=null?`<text x="7" y="10.6" text-anchor="middle" font-size="6.4" fill="currentColor" font-family="IBM Plex Mono, monospace">${n}</text>`:""}</svg>`;
+const GLYPH={   /* small engraved emblems, one per talent */
+  blood:`<path d="M12 5C9 10 7.5 12.5 7.5 15a4.5 4.5 0 0 0 9 0c0-2.5-1.5-5-4.5-10Z"/><path d="M10 15.5a2 2 0 0 0 2 2" stroke-width=".7"/>`,
+  crown:`<path d="M6 17h12M6.5 15 5.5 8l3.6 3.2L12 6.5l2.9 4.7L18.5 8l-1 7Z"/><circle cx="12" cy="6" r=".9"/>`,
+  coin:`<circle cx="12" cy="12" r="5.6"/><circle cx="12" cy="12" r="3.8" stroke-width=".6"/><path d="M12 9.6v4.8" stroke-width=".8"/>`,
+  sword:`<path d="M12 4.5v11M9 15.5h6M12 15.5v3.2"/><path d="M12 4.5l1 1.6v8M12 4.5l-1 1.6v8" stroke-width=".5"/><circle cx="12" cy="19.4" r=".8"/>`,
+  book:`<path d="M5.5 7.5 12 9l6.5-1.5v9L12 18l-6.5-1.5Z"/><path d="M12 9v9" stroke-width=".7"/>`,
+  eye:`<path d="M5 12q7-7 14 0q-7 7-14 0Z"/><circle cx="12" cy="12" r="2.2"/><path d="M12 12h0" stroke-width="2.2" stroke-linecap="round"/>`
+};
+function badge(kind, lit, col){
+  return `<svg viewBox="0 0 24 27" class="bd${lit?" lit":""}" aria-hidden="true">
+    <path d="M12 1.5 22 4.6v8.6q0 7.6-10 12.3Q2 20.8 2 13.2V4.6Z" fill="${lit?col:"none"}" fill-opacity="${lit?.85:0}" stroke="currentColor" stroke-width="${lit?1.1:.8}"/>
+    <g transform="translate(0 .8)" fill="none" stroke="${lit?"#f3ead8":"currentColor"}" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">${GLYPH[kind]}</g></svg>`;
+}
+function sheet(id){
+  const h=H.find(x=>x.id===id), S=SHEET[id], col=DECK[id]?DECK[id].panel:"#888";
+  const top=`<button class="close" type="button" id="vClose" aria-label="退出">✕</button>
+      <div class="sh-top"><div class="sh-head"><h2>${h.name.toUpperCase()}</h2></div>
+      <div class="sh-sub">${h.region} · ${h.party} · ${h.m.cab}</div></div>`;
+  if(!S) return `<div class="sh-panel">${top}<div class="pane talents"><p class="sh-empty">这一家的天赋还没有点。</p></div></div>`;
+  const frame=(icon,zh,en,meter,row,num,n)=>`<div class="fac" style="--n:${n}"><div class="fac-h"><span class="fac-n">${icon}${zh}<em>${en}</em></span><span class="rule"></span>${meter}</div>
+      <div class="fac-row">${row}</div><div class="fac-num"><span class="sp"></span>${num.join("<i></i>")}<span class="sp"></span></div></div>`;
+  let k=0;
+  const facs=FAC.map(([zh,en,list])=>{ const vals=list.map(()=>S.pts[k++]), sum=vals.reduce((a,b)=>a+b,0);
+    const meter=`<span class="meter"><span>${sum}</span><i>${Array.from({length:15},(_,n)=>`<s class="${n<sum?"on":""}"></s>`).join("")}</i></span>`;
+    return frame(badge(list[0][2],false,col), zh, en, meter,
+      list.map(([n,desc,kind],j)=>`<button type="button" class="tal" data-name="${n}" data-desc="${desc}">${badge(kind, vals[j]>=4, col)}<span>${n}</span></button>`).join(""),
+      vals.map(v=>`<b>${v}</b>`), 3); }).join("");
+  const others=["helios",...VH.map(x=>x.id).filter(x=>x!==id)], WORD={ blood:"血亲", ally:"盟", foe:"仇", peace:"和" };
+  const stance=frame(badge("eye",false,col).replace(GLYPH.eye,GLYPH.sword), "立场", "STANCE", "",
+    others.map(o=>{ const r=S.rel[o]||"peace", hh=H.find(q=>q.id===o); return `<div class="tal st ${r}"><span class="cr">${crest(o)}</span><span>${hh.name.toUpperCase()}</span></div>`; }).join(""),
+    others.map(o=>{ const r=S.rel[o]||"peace"; return `<b class="w ${r}">${WORD[r]}</b>`; }), others.length);
+  const tot=ERAS.reduce((a,e)=>a+e[1],0); let acc=0; const lp=ERAS.map(e=>{ const l=acc/tot*100; acc+=e[1]; return l; });
+  const eras=`<div class="sh-eras">${ERAS.map(([n,w])=>`<div style="flex:${w}">${n}</div>`).join("")}
+      <span class="run" style="left:${f(lp[S.since])}%;right:0"></span><span class="mk" style="left:${f(lp[S.since])}%">起源</span><span class="mk now" style="left:100%">今</span></div>`;
+  const right=`<div class="sh-col sh-right"><p class="sh-motto">“${S.motto}”</p>
+      <div class="sh-text">${S.text.map(([t,p])=>`<div><h4>${t}</h4><p>${spoil(p)}</p></div>`).join("")}</div>
+      <p class="sh-desc" id="shDesc">${S.blurb}</p></div>`;
+  const hist=`<div class="pane hist"><div class="sh-lab">传承<em>${S.origin}</em></div>${eras}</div>`;
+  return `<div class="sh-panel">${top}<div class="pane talents"><div class="sh-col sh-mid">${facs}${stance}</div></div>${right.replace('class="sh-col sh-right"','class="pane dossier sh-col sh-right"')}${hist}</div>`;
+}
+function flip(id){
+  V.flip=id; document.documentElement.classList.toggle("flipped", !!id);
+  const el=document.getElementById("vSheet"); if(id){ el.innerHTML=sheet(id); document.getElementById("vClose").addEventListener("click",()=>flip(null));
+    const d=document.getElementById("shDesc"), base=d&&d.textContent;
+    el.querySelectorAll(".tal[data-desc]").forEach(b=>{ b.addEventListener("pointerenter",()=>{ d.innerHTML=`<b>${b.dataset.name}</b>${b.dataset.desc}`; d.classList.add("on"); });
+      b.addEventListener("pointerleave",()=>{ d.textContent=base; d.classList.remove("on"); }); }); }
+}
+function pick(id){
+  current=id; show(id); const h=VH.find(x=>x.id===id); if(!h) return;
+  VH.forEach(x=>x.col.classList.toggle("on",x.id===id)); vQuote.innerHTML=h.quote; layout();
+}
+document.getElementById("mVault").addEventListener("click",()=>{ mode="vault"; place(); initVault(); V.size && V.size(); });
+function follow(){ const t0=performance.now(); const step=t=>{ draw(); if(t-t0<1000) requestAnimationFrame(step); }; requestAnimationFrame(step); }
+let structView="spec";      /* which structure view you were last on */
+document.getElementById("mSpec").addEventListener("click",()=>{ mode=structView; place(); });
+document.getElementById("sRel").addEventListener("click",()=>{ mode=structView="spec"; place(); });
+document.getElementById("sMap").addEventListener("click",()=>{ mode=structView="map"; place(); });
+addEventListener("resize", ()=>{ if(mode==="map"){ place(); } else draw(); });
+/* read the houses, then build the page */
+loadHouses().then(()=>{
+  makeButtons(); buildMatrix(); makeCols();
+  place(); show("helios");
+  initVault();                               /* the sand is the ground of every view */
+  document.fonts && document.fonts.ready.then(draw);
+}).catch(e=>{ console.error(e); document.getElementById("stage").insertAdjacentHTML("beforeend",'<p class="fallback-msg">家族资料没有读进来：'+e.message+'</p>'); });
+</script>
+<script type="module">
+/* three.js and its post-processing arrive as modules; the page waits for them before building the table */
+try{
+  const THREE=await import("three");
+  const [{EffectComposer},{RenderPass},{UnrealBloomPass},{ShaderPass},{GammaCorrectionShader}]=await Promise.all([
+    import("three/addons/postprocessing/EffectComposer.js"), import("three/addons/postprocessing/RenderPass.js"),
+    import("three/addons/postprocessing/UnrealBloomPass.js"), import("three/addons/postprocessing/ShaderPass.js"), import("three/addons/shaders/GammaCorrectionShader.js")]);
+  window.THREE=THREE; window.POST={ EffectComposer, RenderPass, UnrealBloomPass, ShaderPass, GammaCorrectionShader };
+  if(V.want){ initVault(); V.size && V.size(); place(); }
+}catch(e){ console.error(e); V.failed=true; if(V.want) initVault(); }
+</script>
+
+</body>
+</html>
