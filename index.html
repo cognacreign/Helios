@@ -1448,37 +1448,45 @@ renderSkins();
   function build(){
     ctx=new AC(); master=gain(0); master.connect(ctx.destination);
     const pink=noiseBuf(7,"pink"), brown=noiseBuf(7,"brown");
+    /* the hall itself: a long, dark tail so every sound arrives from far off */
+    const hall=ctx.createConvolver(), n=Math.round(ctx.sampleRate*4.2), ir=ctx.createBuffer(2,n,ctx.sampleRate);
+    for(let ch=0;ch<2;ch++){ const d=ir.getChannelData(ch); let lp=0; for(let i=0;i<n;i++){ lp+= ( (Math.random()*2-1) - lp)*.18; d[i]=lp*Math.pow(1-i/n, 2.6); } }
+    hall.buffer=ir; const wet=gain(.9); hall.connect(wet); wet.connect(master);
+    const send=(node, dry, rev)=>{ const d=gain(dry), r=gain(rev); node.connect(d); d.connect(master); node.connect(r); r.connect(hall); };
     /* wind: a low body, and an airy edge that only rises in the gusts */
-    const wLow=filt("lowpass",320,.7), wLowG=gain(.13); loop(brown).connect(wLow); wLow.connect(wLowG); wLowG.connect(master);
-    const wAir=filt("bandpass",900,.7), wAirG=gain(.08); loop(pink).connect(wAir); wAir.connect(wAirG); wAirG.connect(master);
+    const wLow=filt("lowpass",260,.7), wLowG=gain(0); loop(brown).connect(wLow); wLow.connect(wLowG); send(wLowG, .7, .5);
+    const wAir=filt("bandpass",900,.6), wAirG=gain(0); loop(pink).connect(wAir); wAir.connect(wAirG); send(wAirG, .4, .9);
     /* water: a soft steady wash, and laps that come in one by one from either side */
-    const wash=filt("bandpass",520,.6), washG=gain(.24); loop(pink).connect(wash); wash.connect(washG); washG.connect(master);
-    const lapF=filt("bandpass",700,1.3), lapG=gain(0), lapP=pan(); loop(pink).connect(lapF); lapF.connect(lapG);
-    if(lapP){ lapG.connect(lapP); lapP.connect(master); } else lapG.connect(master);
-    /* the gusts follow the same slow, uneven swell as the light */
+    const wash=filt("lowpass",420,.5), washG=gain(.035); loop(pink).connect(wash); wash.connect(washG); send(washG, .8, .4);
+    const lapF=filt("bandpass",520,1.1), lapG=gain(0), lapP=pan(); loop(pink).connect(lapF); lapF.connect(lapG);
+    if(lapP){ lapG.connect(lapP); send(lapP, .55, .8); } else send(lapG, .55, .8);
+    /* the wind breathes: a slow swell in and out, every eight to twelve seconds, almost silent between;
+       the gusts on top follow the same uneven rhythm as the light */
     setInterval(()=>{ if(!on) return; const t=ctx.currentTime;
       const g=.5+.5*(Math.sin(t*.23)*.5+Math.sin(t*.137+1.7)*.3+Math.sin(t*.071+4.1)*.2);
-      wLowG.gain.setTargetAtTime(.06+.15*g, t, .5); wAirG.gain.setTargetAtTime(.02+.22*g*g, t, .5); wAir.frequency.setTargetAtTime(650+700*g, t, .8); }, 120);
-    const lap=()=>{ if(on){ const t=ctx.currentTime, up=.16+Math.random()*.28, down=.8+Math.random()*1.3, peak=.28+Math.random()*.32;
-        lapF.frequency.cancelScheduledValues(t); lapF.frequency.setValueAtTime(480+Math.random()*700, t); lapF.frequency.linearRampToValueAtTime(280+Math.random()*260, t+up+down);
+      const br=Math.pow(.5+.5*Math.sin(t*.62 + Math.sin(t*.09)*1.4), 1.8);
+      const b=br*(.45+.55*g);
+      wLowG.gain.setTargetAtTime(.008+.07*b, t, .6); wAirG.gain.setTargetAtTime(.004+.09*b*b, t, .6); wAir.frequency.setTargetAtTime(600+650*b, t, .9); }, 120);
+    const lap=()=>{ if(on){ const t=ctx.currentTime, up=.25+Math.random()*.3, down=1+Math.random()*1.4, peak=.05+Math.random()*.07;
+        lapF.frequency.cancelScheduledValues(t); lapF.frequency.setValueAtTime(380+Math.random()*380, t); lapF.frequency.linearRampToValueAtTime(240+Math.random()*160, t+up+down);
         lapG.gain.cancelScheduledValues(t); lapG.gain.setValueAtTime(Math.max(.001,lapG.gain.value), t);
         lapG.gain.linearRampToValueAtTime(peak, t+up); lapG.gain.exponentialRampToValueAtTime(.001, t+up+down);
         if(lapP) lapP.pan.setValueAtTime(Math.random()*1.2-.6, t); }
-      setTimeout(lap, 900+Math.random()*2600); };
+      setTimeout(lap, 2400+Math.random()*4600); };
     lap();
     /* now and then a drop falls from the vault */
     const drop=()=>{ if(on){ const t=ctx.currentTime+.01, o=ctx.createOscillator(), g=gain(0), p=pan(), f=950+Math.random()*900;
         o.type="sine"; o.frequency.setValueAtTime(f,t); o.frequency.exponentialRampToValueAtTime(f*1.55,t+.07);
-        g.gain.linearRampToValueAtTime(.02+Math.random()*.025,t+.006); g.gain.exponentialRampToValueAtTime(.0001,t+.2);
-        o.connect(g); if(p){ p.pan.value=Math.random()*1.4-.7; g.connect(p); p.connect(master); } else g.connect(master);
+        g.gain.linearRampToValueAtTime(.006+Math.random()*.008,t+.006); g.gain.exponentialRampToValueAtTime(.0001,t+.2);
+        o.connect(g); if(p){ p.pan.value=Math.random()*1.4-.7; g.connect(p); send(p, .4, 1); } else send(g, .4, 1);
         o.start(t); o.stop(t+.22); }
-      setTimeout(drop, 2600+Math.random()*7000); };
+      setTimeout(drop, 5000+Math.random()*11000); };
     setTimeout(drop, 3000);
   }
   function set(v){
     on=v; btn.classList.toggle("on", v); btn.setAttribute("aria-pressed", v); btn.setAttribute("aria-label", v?"关闭声音":"打开声音");
     try{ localStorage.setItem(KEY, v?"1":"0"); }catch(e){}
-    if(v){ if(!ctx) build(); ctx.resume(); const t=ctx.currentTime; master.gain.cancelScheduledValues(t); master.gain.setValueAtTime(master.gain.value,t); master.gain.setTargetAtTime(.8, t, 1.4); }
+    if(v){ if(!ctx) build(); ctx.resume(); const t=ctx.currentTime; master.gain.cancelScheduledValues(t); master.gain.setValueAtTime(master.gain.value,t); master.gain.setTargetAtTime(.7, t, 1.6); }
     else if(ctx){ const t=ctx.currentTime; master.gain.cancelScheduledValues(t); master.gain.setValueAtTime(master.gain.value,t); master.gain.setTargetAtTime(0, t, .3);
       setTimeout(()=>{ if(!on) ctx.suspend(); }, 1600); }
   }
