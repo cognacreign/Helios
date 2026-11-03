@@ -1226,9 +1226,9 @@ const BLUSH={
   /* the classic portrait is concept art: she doesn't drink in it. only the academy one */
   "images/aurelia-academy.webp":{ l:[42.6,17.9], r:[57.6,17.7], rx:5.0, ry:1.5, mask:"images/aurelia-academy-mask.png" }
 };
-const DRINK={ aurelia:[], iris:[], refuse:"" };     /* from 台词.md */
+const DRINK={ aurelia:[], iris:[], refuse:"", plain:[] };     /* from 台词.md */
 const blushEl=$("#blush"), blushCh=blushEl.querySelector(".ch"), blushNose=blushEl.querySelector(".nose"), blushRose=blushEl.querySelector(".rose");
-let flush=0, irisSips=0, soberT=null;
+let flush=0, irisSips=0, plainTurn=0, soberT=null;
 const pink=(x,y,rx,ry,a)=>`radial-gradient(${rx}% ${ry}% at ${x}% ${y}%, rgba(226,98,100,${a}) 0%, rgba(226,98,100,${(a*.7).toFixed(3)}) 45%, rgba(226,98,100,0) 100%)`;
 function paintBlush(src){
   const b=BLUSH[src]; blushEl.hidden=!b; if(!b) return;
@@ -1251,7 +1251,9 @@ function drink(id){
   const own=ITEMS[id] && ITEMS[id].owner; if(!own || PEOPLE[cur].id!==own) return false;
   if(own==="aurelia"){
     if(me().worn.top==="corona"){ if(DRINK.refuse) sayLine(DRINK.refuse, "aurelia"); return true; }
-    if(!BLUSH[art.getAttribute("src")]) return false;
+    /* the classic portrait: no fun in it, so she won't drink. a cup out of nowhere means you want something */
+    if(!BLUSH[art.getAttribute("src")]){ if(!DRINK.plain.length) return false;
+      sayLine(DRINK.plain[Math.min(plainTurn++, DRINK.plain.length-1)], "aurelia"); return true; }
     flush=Math.min(3, flush+1); setFlush(); sober();
     if(DRINK.aurelia.length) sayLine(DRINK.aurelia[Math.min(flush-1, DRINK.aurelia.length-1)], "aurelia");
   } else if(DRINK.iris.length) sayLine(DRINK.iris[Math.min(irisSips++, DRINK.iris.length-1)], "iris");
@@ -1443,6 +1445,7 @@ function parseLines(md){
     else if(s.h==="Aurelia 的小鹿 · 贴上") ITEMS.deer_aurelia.says.stick=L[0];
     else if(s.h==="Aurelia · 喝热红酒") DRINK.aurelia=L;
     else if(s.h==="Aurelia · 上朝不喝") DRINK.refuse=L[0];
+    else if(s.h==="Aurelia · 经典皮不喝") DRINK.plain=L;
     else if(s.h==="Iris · 喝热红酒") DRINK.iris=L;
     else if(s.h==="热红酒 · 拿起") ITEMS.wine.says.move=L[0];
     else if(s.h==="热红酒 · 贴上") ITEMS.wine.says.stick=L[0];
