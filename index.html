@@ -910,7 +910,7 @@ function placeSay(){ const st=$("#stage"), r=st.getBoundingClientRect(), dx=pars
 addEventListener("resize", ()=>{ if(sayEl.classList.contains("show")) placeSay(); });
 function speak(id, kind, x, y){
   const t=ITEMS[id] && ITEMS[id].says && ITEMS[id].says[kind]; if(!t) return;
-  if(x===undefined){ const el=STK[id] && STK[id].el; if(!el) return; x=el.offsetLeft+el.offsetWidth/2; y=el.offsetTop-4; }
+  /* every line is said in the same place above the frame, so things that are not stickers can speak too */
   sayLine(t, ITEMS[id].owner);
 }
 function sayLine(t, owner){
@@ -1038,7 +1038,7 @@ const ITEMS = {
   uniform_iris:{ owner:"iris", name:"北方学院制服", icon:UNIFORM_ICON, wear:"top", fig:"images/iris-academy.webp", size:[886,1616], sheet:"iris_academy" },
   uniform_aurelia:{ owner:"aurelia", name:"北方学院制服", icon:UNIFORM_ICON, wear:"top", fig:"images/aurelia-academy.webp", size:[814,1616], sheet:"aurelia_academy" },
   /* the Sun King: the crown is her own hand against the light. the engraved sun turns behind her eye */
-  corona:{ owner:"aurelia", name:"日冕", icon:CORONA_ICON, wear:"top", fig:"images/aurelia-sun.webp", size:[1086,1616], sun:[.598,.164] }
+  corona:{ owner:"aurelia", name:"日冕", icon:CORONA_ICON, wear:"top", fig:"images/aurelia-sun.webp", size:[1086,1616], sun:[.598,.164], says:{} }
 };
 const BAG_N=8;    /* two rows of four */
 const fillBag=b=>b.concat(Array(BAG_N-b.length).fill(null));
@@ -1377,6 +1377,7 @@ function parseLines(md){
     else if(s.h==="Aurelia 的小鹿 · 贴上") ITEMS.deer_aurelia.says.stick=L[0];
     else if(s.h==="黄色礼裙 · 拿起") ITEMS.ydress.says.move=L[0];
     else if(s.h==="黄色礼裙 · 贴上") ITEMS.ydress.says.stick=L[0];
+    else if(s.h==="日冕 · 拿起") ITEMS.corona.says.move=L[0];
     else if(s.h==="Aurelia · 生日宴") SORE_LINES=L;
     else if(s.h==="卡槽已占用") TAKEN_LINE=L[0];
   });
