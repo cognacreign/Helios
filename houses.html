@@ -1097,8 +1097,8 @@ addEventListener("resize", ()=>{ if(mode==="map"){ place(); } else draw(); });
 /* read the houses, then build the page */
 loadHouses().then(()=>{
   makeButtons(); buildMatrix(); makeCols();
+  initVault();                               /* the sand is the ground of every view: build it before the first view is laid out */
   place(); show("helios");
-  initVault();                               /* the sand is the ground of every view */
   document.fonts && document.fonts.ready.then(draw);
 }).catch(e=>{ console.error(e); document.getElementById("stage").insertAdjacentHTML("beforeend",'<p class="fallback-msg">家族资料没有读进来：'+e.message+'</p>'); });
 </script>
