@@ -339,13 +339,15 @@
   .sticker.home{ transition:left .4s cubic-bezier(.3,.7,.3,1), top .4s cubic-bezier(.3,.7,.3,1), transform .2s ease }
 
   /* ---------- 穿戴: two slots on the frame's side, wired to its edge ---------- */
-  .equip{ position:absolute; right:calc(100% + 1.3rem); top:0; bottom:0; width:4.6rem; z-index:3; pointer-events:none; transition:opacity .45s ease }
+  /* a figure wider than the frame (the Sun King's arm) pushes the slots out of its way */
+  .frame{ --push:calc((100vh - var(--top) - var(--bot) - 2 * var(--pad)) * var(--over, 0)) }
+  .equip{ position:absolute; right:calc(100% + 1.3rem + var(--push)); top:0; bottom:0; width:4.6rem; z-index:3; pointer-events:none; transition:opacity .45s ease, right .6s cubic-bezier(.3,.7,.3,1) }
   body.bare .equip{ opacity:0; visibility:hidden; transition:opacity .45s ease, visibility 0s .45s }
   .eq{ position:absolute; left:0; width:4.6rem; pointer-events:auto }
   .eq .slot{ width:4.6rem }
   .eq .fig{ display:flex; justify-content:flex-end; align-items:baseline; text-align:right; margin-bottom:.35rem; font-family:var(--mono); font-size:.6rem; letter-spacing:.12em; color:var(--ink); white-space:nowrap }
-  .eq::before{ content:""; position:absolute; left:100%; top:calc(.95rem + 2.3rem); width:1.3rem; height:1px; background:var(--line) }
-  .eq::after{ content:""; position:absolute; left:calc(100% + 1.3rem - .22rem); top:calc(.95rem + 2.3rem - .22rem); width:.44rem; height:.44rem; box-sizing:border-box;
+  .eq::before{ content:""; position:absolute; left:100%; top:calc(.95rem + 2.3rem); width:calc(1.3rem + var(--push)); height:1px; background:var(--line); transition:width .6s cubic-bezier(.3,.7,.3,1) }
+  .eq::after{ content:""; position:absolute; left:calc(100% + 1.3rem + var(--push) - .22rem); transition:left .6s cubic-bezier(.3,.7,.3,1); top:calc(.95rem + 2.3rem - .22rem); width:.44rem; height:.44rem; box-sizing:border-box;
     border:1px solid var(--line); border-radius:50%; background:var(--bg) }
   .eq .fig em{ font-style:normal; font-family:var(--sans); letter-spacing:.04em; font-size:.68rem; color:var(--ink) }
   .eq .fig em:not(:empty)::before{ content:"·"; margin:0 .45em; color:var(--dim) }
@@ -1138,6 +1140,9 @@ function applySkin(){
   if((sheetOver[pid]||null)!==sh){ sheetOver[pid]=sh; if(!view){ renderReadout(); readin.classList.remove("swap"); void readin.offsetWidth; readin.classList.add("swap"); } }
   swapFigure(src, `${PEOPLE[cur].full}，${outfit?outfit.name:"作者绘"}`, sz, !!sk);
   sunBehind(outfit && outfit.sun);
+  /* how far the figure reaches past the frame on each side, as a share of its height (plus a little air) */
+  { const A=parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--A"))||.5037, over=(sz[0]/sz[1]-A)/2;
+    $("#stage").style.setProperty("--over", over>.05 ? (over+.02).toFixed(3) : 0); }
   if(window.HALL && HALL.force) HALL.force(sk ? sk.mood : null);
   if(window.HALL && HALL.roll) HALL.roll(!!(sk && sk.turn));
 }
