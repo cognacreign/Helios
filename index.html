@@ -59,6 +59,7 @@
     all:unset; cursor:pointer; width:2.125rem; height:2.125rem; display:grid; place-items:center; border-radius:50%;
     background:var(--chip); color:var(--ink); -webkit-backdrop-filter:blur(0.375rem); backdrop-filter:blur(0.375rem);
   }
+  .snd .w{ display:none } .snd.on .w{ display:inline } .snd.on .x{ display:none } .snd:not(.on){ color:var(--dim) }
   .mode:focus-visible{ outline:1px solid var(--ink); outline-offset:0.1875rem }
 
 
@@ -505,6 +506,9 @@ window.__lp=(function(){
   <span class="mark">HELIOS</span>
   <span class="rule"></span>
   <span class="count" id="count"></span>
+  <button class="mode snd" id="sound" type="button" aria-label="打开声音" aria-pressed="false">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.6h3.1L11.4 6v12l-4.3-3.6H4z"/><g class="w"><path d="M14.8 9.3a4 4 0 0 1 0 5.4"/><path d="M17.4 6.9a7.4 7.4 0 0 1 0 10.2"/></g><g class="x"><path d="M15 9.5l5 5M20 9.5l-5 5"/></g></svg>
+  </button>
   <button class="mode" id="mode" type="button" aria-label="切换明暗">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.6M12 18.9v2.6M2.5 12h2.6M18.9 12h2.6M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></svg>
   </button>
@@ -1421,6 +1425,74 @@ renderSkins();
 <script>window.__lp&&__lp("s10",.05)</script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/objects/Water2.js"></script>
 <script>window.__lp&&__lp("s11",.05)</script>
+<script>
+/* ---------- sound: water lapping at the columns' feet, wind through the hall. all made live in the browser, no files ---------- */
+(function(){
+  const btn=document.getElementById("sound"); if(!btn) return;
+  const AC=window.AudioContext||window.webkitAudioContext; if(!AC){ btn.hidden=true; return; }
+  const KEY="helios-sound";
+  let ctx=null, master=null, on=false;
+  function noiseBuf(secs, kind){
+    const n=ctx.sampleRate*secs, b=ctx.createBuffer(2,n,ctx.sampleRate);
+    for(let ch=0;ch<2;ch++){ const d=b.getChannelData(ch); let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0,last=0;
+      for(let i=0;i<n;i++){ const w=Math.random()*2-1;
+        if(kind==="brown"){ last=(last+.02*w)/1.02; d[i]=last*3.5; }
+        else{ b0=.99886*b0+w*.0555179; b1=.99332*b1+w*.0750759; b2=.969*b2+w*.153852; b3=.8665*b3+w*.3104856; b4=.55*b4+w*.5329522; b5=-.7616*b5-w*.016898;
+          d[i]=(b0+b1+b2+b3+b4+b5+b6+w*.5362)*.11; b6=w*.115926; } } }
+    return b;
+  }
+  const loop=buf=>{ const s=ctx.createBufferSource(); s.buffer=buf; s.loop=true; s.start(0, Math.random()*buf.duration); return s; };
+  const filt=(type,f,q)=>{ const x=ctx.createBiquadFilter(); x.type=type; x.frequency.value=f; x.Q.value=q; return x; };
+  const gain=v=>{ const g=ctx.createGain(); g.gain.value=v; return g; };
+  const pan=()=>ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+  function build(){
+    ctx=new AC(); master=gain(0); master.connect(ctx.destination);
+    const pink=noiseBuf(7,"pink"), brown=noiseBuf(7,"brown");
+    /* wind: a low body, and an airy edge that only rises in the gusts */
+    const wLow=filt("lowpass",320,.7), wLowG=gain(.13); loop(brown).connect(wLow); wLow.connect(wLowG); wLowG.connect(master);
+    const wAir=filt("bandpass",900,.7), wAirG=gain(.08); loop(pink).connect(wAir); wAir.connect(wAirG); wAirG.connect(master);
+    /* water: a soft steady wash, and laps that come in one by one from either side */
+    const wash=filt("bandpass",520,.6), washG=gain(.24); loop(pink).connect(wash); wash.connect(washG); washG.connect(master);
+    const lapF=filt("bandpass",700,1.3), lapG=gain(0), lapP=pan(); loop(pink).connect(lapF); lapF.connect(lapG);
+    if(lapP){ lapG.connect(lapP); lapP.connect(master); } else lapG.connect(master);
+    /* the gusts follow the same slow, uneven swell as the light */
+    setInterval(()=>{ if(!on) return; const t=ctx.currentTime;
+      const g=.5+.5*(Math.sin(t*.23)*.5+Math.sin(t*.137+1.7)*.3+Math.sin(t*.071+4.1)*.2);
+      wLowG.gain.setTargetAtTime(.06+.15*g, t, .5); wAirG.gain.setTargetAtTime(.02+.22*g*g, t, .5); wAir.frequency.setTargetAtTime(650+700*g, t, .8); }, 120);
+    const lap=()=>{ if(on){ const t=ctx.currentTime, up=.16+Math.random()*.28, down=.8+Math.random()*1.3, peak=.28+Math.random()*.32;
+        lapF.frequency.cancelScheduledValues(t); lapF.frequency.setValueAtTime(480+Math.random()*700, t); lapF.frequency.linearRampToValueAtTime(280+Math.random()*260, t+up+down);
+        lapG.gain.cancelScheduledValues(t); lapG.gain.setValueAtTime(Math.max(.001,lapG.gain.value), t);
+        lapG.gain.linearRampToValueAtTime(peak, t+up); lapG.gain.exponentialRampToValueAtTime(.001, t+up+down);
+        if(lapP) lapP.pan.setValueAtTime(Math.random()*1.2-.6, t); }
+      setTimeout(lap, 900+Math.random()*2600); };
+    lap();
+    /* now and then a drop falls from the vault */
+    const drop=()=>{ if(on){ const t=ctx.currentTime+.01, o=ctx.createOscillator(), g=gain(0), p=pan(), f=950+Math.random()*900;
+        o.type="sine"; o.frequency.setValueAtTime(f,t); o.frequency.exponentialRampToValueAtTime(f*1.55,t+.07);
+        g.gain.linearRampToValueAtTime(.02+Math.random()*.025,t+.006); g.gain.exponentialRampToValueAtTime(.0001,t+.2);
+        o.connect(g); if(p){ p.pan.value=Math.random()*1.4-.7; g.connect(p); p.connect(master); } else g.connect(master);
+        o.start(t); o.stop(t+.22); }
+      setTimeout(drop, 2600+Math.random()*7000); };
+    setTimeout(drop, 3000);
+  }
+  function set(v){
+    on=v; btn.classList.toggle("on", v); btn.setAttribute("aria-pressed", v); btn.setAttribute("aria-label", v?"关闭声音":"打开声音");
+    try{ localStorage.setItem(KEY, v?"1":"0"); }catch(e){}
+    if(v){ if(!ctx) build(); ctx.resume(); const t=ctx.currentTime; master.gain.cancelScheduledValues(t); master.gain.setValueAtTime(master.gain.value,t); master.gain.setTargetAtTime(.8, t, 1.4); }
+    else if(ctx){ const t=ctx.currentTime; master.gain.cancelScheduledValues(t); master.gain.setValueAtTime(master.gain.value,t); master.gain.setTargetAtTime(0, t, .3);
+      setTimeout(()=>{ if(!on) ctx.suspend(); }, 1600); }
+  }
+  btn.addEventListener("click", e=>{ e.stopPropagation(); set(!on); });
+  /* if it was left on, it comes back with the first touch: browsers only let a page make sound after one */
+  let wanted=false; try{ wanted=localStorage.getItem(KEY)==="1"; }catch(e){}
+  if(wanted){ btn.classList.add("on");
+    const go=e=>{ if(e.target.closest && e.target.closest("#sound")) return; removeEventListener("pointerdown", go, true); removeEventListener("keydown", go, true); if(!on) set(true); };
+    addEventListener("pointerdown", go, true); addEventListener("keydown", go, true); }
+  /* quiet while the tab is hidden */
+  document.addEventListener("visibilitychange", ()=>{ if(!ctx) return; if(document.hidden) ctx.suspend(); else if(on) ctx.resume(); });
+})();
+</script>
+
 <script>
 (function(){
 if(!window.THREE) return;
