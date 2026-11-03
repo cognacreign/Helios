@@ -827,7 +827,7 @@ cur=start; renderPlate(); renderReadout(); drawFrame();
    词条与物品：都在资料框里打开，替换它的内容
    ============================================================ */
 /* reading some entries for the first time drops a sticker */
-const ENTRY_DROP={ meta:"apple", civilwar:"rope" };
+const ENTRY_DROP={ meta:"apple", civilwar:"rope", birthday:"ydress" };
 function entryHTML(key){
   const e=ENTRIES[key];
   return `<div class="head">
@@ -888,7 +888,9 @@ const STK={
   /* Aurelia has one too. she knows where it came from */
   deer_aurelia:{ el:$("#deer2"), src:DEER_SRC, owner:"aurelia", s:1, r:-6, bagKey:"helios-deer-aurelia-in-bag", posKey:"helios-sticker-deer-aurelia", startInBag:true },
   /* and the dress she will not wear */
-  ydress:{ el:$("#ydress"), src:DRESS_SRC, owner:"aurelia", s:1, r:5, bagKey:"helios-ydress-in-bag", posKey:"helios-sticker-ydress", startInBag:true }
+  ydress:{ el:$("#ydress"), src:DRESS_SRC, owner:"aurelia", s:1, r:5, bagKey:"helios-ydress-in-bag", posKey:"helios-sticker-ydress", untilFound:"helios-sticker-ydress-found", drop:true,
+            spot:()=>{ const s=$("#stage").getBoundingClientRect(), p=$("#readout").getBoundingClientRect();
+              return p.width && p.left>s.right+60 ? [(s.right+p.left)/2-24, p.top+30] : [s.right-70, s.top+40]; } }
 };
 /* a line from the owner, said beside the thing in hand */
 const sayEl=$("#say");
@@ -994,7 +996,7 @@ function bindSticker(id){
         setTimeout(()=>el.classList.remove("home"), 450); return; }
       saveSt(id); speak(id,"stick"); } });
   el.addEventListener("click",e=>{ if(moved){ e.preventDefault(); e.stopImmediatePropagation(); moved=false; return; }
-    if(ITEMS[id].entry) openEntry(ITEMS[id].entry);
+    if(ITEMS[id].entry){ openEntry(ITEMS[id].entry); if(ITEMS[id].sore) sore(el); }
     else if(ITEMS[id].sore){ el.classList.remove("boop"); void el.offsetWidth; el.classList.add("boop"); sore(el); }
     else { el.classList.remove("boop"); void el.offsetWidth; el.classList.add("boop"); speak(id,"move"); } });
   /* the wheel resizes; with Shift held it turns */
@@ -1020,7 +1022,7 @@ const ITEMS = {
   deer:{ owner:"iris", name:"小鹿玩偶", icon:DEER_SRC, sticker:true },
   rope:{ owner:"iris", name:"绞索", icon:ROPE_SRC, entry:"rope", sticker:true },
   deer_aurelia:{ owner:"aurelia", name:"小鹿玩偶", icon:DEER_SRC, sticker:true, says:{} },
-  ydress:{ owner:"aurelia", name:"黄色礼裙", icon:DRESS_SRC, sticker:true, sore:true, says:{} },
+  ydress:{ owner:"aurelia", name:"黄色礼裙", icon:DRESS_SRC, entry:"ydress", sticker:true, sore:true, says:{} },
   /* outfits swap the standing portrait itself: same scale, same frame */
   uniform_iris:{ owner:"iris", name:"北方学院制服", icon:UNIFORM_ICON, wear:"top", fig:"images/iris-academy.webp", size:[886,1616], sheet:"iris_academy" },
   uniform_aurelia:{ owner:"aurelia", name:"北方学院制服", icon:UNIFORM_ICON, wear:"top", fig:"images/aurelia-academy.webp", size:[814,1616], sheet:"aurelia_academy" }
@@ -1260,7 +1262,7 @@ const CONTENT={
   stories:{ iris:"iris/故事.md", aurelia:"aurelia/故事.md" },
   outfits:{ iris_academy:"iris/学院制服.md", iris_drape:"iris/倒吊人.md", aurelia_academy:"aurelia/学院制服.md" },
   entries:{ meta:"词条/形而上学魔法.md", civilwar:"词条/北方内战.md", birthday:"词条/生日宴闹剧.md",
-            apple:"物品/苹果.md", rope:"物品/绞索.md", winter:"秘闻/那个冬天.md" },
+            apple:"物品/苹果.md", rope:"物品/绞索.md", ydress:"物品/黄色礼裙.md", winter:"秘闻/那个冬天.md" },
   lines:"台词.md"
 };
 const SORE_KEYS=new Set(["birthday"]);     /* links to these sting Aurelia */
