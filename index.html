@@ -106,6 +106,9 @@
   @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .figure .sundial{ color:#e4a96d } }
   :root[data-theme="dark"] .figure .sundial{ color:#e4a96d }
   .figure.sun .sundial{ opacity:.8 }
+  .figure .sundial .ld-t{ animation:ldspin 150s linear infinite }
+  .figure .sundial .sun-creed{ fill:currentColor; stroke:none; font-family:var(--serif); font-size:4.3px; letter-spacing:.3em }
+  @media (prefers-reduced-motion: reduce){ .figure .sundial .ld-t{ animation:none } }
   .figure.out-l{ opacity:0; transform:translate(-62%,-50%) }
   .figure.out-r{ opacity:0; transform:translate(-38%,-50%) }
   /* changing clothes: a short sideways slide */
@@ -1101,7 +1104,12 @@ let dial=null;
 function sunBehind(at){
   if(at && !dial && window.drawSun){ dial=document.createElementNS("http://www.w3.org/2000/svg","svg");
     dial.setAttribute("viewBox","-100 -100 200 200"); dial.setAttribute("class","ld-sun sundial"); dial.setAttribute("aria-hidden","true");
-    dial.innerHTML='<g class="ld-o"></g><g class="ld-r"></g><g class="ld-i"></g><g class="ld-c"></g>'; drawSun(dial); figure.prepend(dial); }
+    dial.innerHTML='<g class="ld-o"></g><g class="ld-r"></g><g class="ld-i"></g><g class="ld-c"></g>'; drawSun(dial);
+    /* her creed runs round the rim, three times over, like the legend on a coin */
+    const C=2*Math.PI*100.5, says="EVERYTHING YOU DID IS JUSTIFIED";
+    dial.insertAdjacentHTML("beforeend", `<defs><path id="sunRim" d="M0 -100.5 a100.5 100.5 0 1 1 0 201 a100.5 100.5 0 1 1 0 -201"/></defs>
+      <g class="ld-t"><text class="sun-creed"><textPath href="#sunRim" textLength="${C.toFixed(1)}" lengthAdjust="spacing">${(says+" · ").repeat(4)}</textPath></text></g>`);
+    figure.prepend(dial); }
   if(!dial) return;
   if(at){ dial.style.left=(at[0]*100)+"%"; dial.style.top=(at[1]*100)+"%"; }
   figure.classList.toggle("sun", !!at);
