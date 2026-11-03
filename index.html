@@ -102,6 +102,13 @@
   /* behind the Sun King: the loading page's sun, centred on her eye */
   .figure img{ position:relative; z-index:1 }
   .figure .lit{ z-index:2 }
+  /* wine goes to her face: a soft flush over the painting, under the scene's light */
+  .figure .blush{ position:absolute; inset:0; z-index:1; pointer-events:none; mix-blend-mode:multiply; opacity:0; transition:opacity 1.6s ease }
+  .figure .blush.on{ opacity:1 }
+  .figure .blush i{ position:absolute; inset:0; opacity:0; transition:opacity 1.4s ease }
+  /* the third cup: the whole painting goes rosy, inside her outline only */
+  .figure .blush .rose{ background:rgb(255,222,204); -webkit-mask-size:100% 100%; mask-size:100% 100%; -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat; transition:opacity 2s ease }
+  @media (prefers-reduced-motion: reduce){ .figure .blush, .figure .blush i{ transition:none } }
   .figure .sundial{ position:absolute; z-index:0; width:165%; height:auto; aspect-ratio:1; transform:translate(-50%,-50%); pointer-events:none;
     color:#9b7646; opacity:0; transition:opacity 1.2s ease }
   @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .figure .sundial{ color:#e4a96d } }
@@ -251,6 +258,7 @@
   @keyframes swapIn{ from{ opacity:0; transform:translateY(.3rem) } }
   #deer, #deer2{ width:3.6rem }
   #rope{ width:3.4rem }
+  #wine, #wine2{ width:3.1rem }
   #ydress{ width:3.3rem }
   /* the yellow dress gets you slapped: the whole page takes the hit */
   html.slap body{ animation:slap .75s cubic-bezier(.15,.8,.3,1) }
@@ -537,7 +545,7 @@ window.__lp=(function(){
       <div class="eq top"><span class="fig">TOP<em></em></span><span class="slot empty" data-drop="worn" data-slot="top"></span><span class="quip" id="quip" aria-live="polite"></span></div>
       <div class="eq bottom"><span class="fig">BOTTOM<em></em></span><span class="slot empty" data-drop="worn" data-slot="bottom"></span><span class="quip" aria-live="polite"></span></div>
     </div>
-    <div class="figure" id="figure"><img id="art" alt=""><div class="lit amb" aria-hidden="true"></div><div class="lit key" aria-hidden="true"></div></div>
+    <div class="figure" id="figure"><img id="art" alt=""><div class="blush" id="blush" aria-hidden="true" hidden><i class="rose"></i><i class="ch"></i><i class="nose"></i></div><div class="lit amb" aria-hidden="true"></div><div class="lit key" aria-hidden="true"></div></div>
   </section>
 
   <div class="plate">
@@ -564,6 +572,8 @@ window.__lp=(function(){
 <div class="say" id="say" aria-live="polite"></div>
 <div class="stk-tools" id="stkTools" hidden><input type="range" min="0" max="360" step="1" value="0" aria-label="贴纸色相"></div>
 <button class="sticker" id="rope" type="button" aria-label="绞索贴纸：打开物品。可拖动，也可以拖回背包；拖角上的圆点或滚轮缩放旋转；键盘 + − 缩放，[ ] 旋转" hidden><img alt=""><span class="lit amb" aria-hidden="true"></span><span class="lit key" aria-hidden="true"></span><span class="handle" aria-hidden="true"></span></button>
+<button class="sticker" id="wine" type="button" aria-label="热红酒贴纸。可拖动，也可以拖回背包；拖角上的圆点或滚轮缩放旋转；键盘 + − 缩放，[ ] 旋转" hidden><img alt=""><span class="lit amb" aria-hidden="true"></span><span class="lit key" aria-hidden="true"></span><span class="handle" aria-hidden="true"></span></button>
+<button class="sticker" id="wine2" type="button" aria-label="热红酒贴纸（Iris 那里的一杯）。可拖动，也可以拖回背包；拖角上的圆点或滚轮缩放旋转；键盘 + − 缩放，[ ] 旋转" hidden><img alt=""><span class="lit amb" aria-hidden="true"></span><span class="lit key" aria-hidden="true"></span><span class="handle" aria-hidden="true"></span></button>
 <button class="sticker" id="deer" type="button" aria-label="小鹿玩偶贴纸。可拖动，也可以拖回背包；拖角上的圆点或滚轮缩放旋转；键盘 + − 缩放，[ ] 旋转" hidden><img alt=""><span class="lit amb" aria-hidden="true"></span><span class="lit key" aria-hidden="true"></span><span class="handle" aria-hidden="true"></span></button>
 
 <script>
@@ -891,6 +901,8 @@ const APPLE_SRC="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(`<svg xml
 /* a hangman's rope, from the war */
 const ROPE_SRC="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="20 2 160 216"> <g fill="none" stroke="#faf7f0" stroke-linecap="round" stroke-width="30"> <path d="M100 14 L100 80"/><path d="M93 124 C 48 142 44 200 100 206 C 156 200 152 142 107 124"/> </g> <g fill="#faf7f0"><ellipse cx="100" cy="74" rx="27" ry="15"/><ellipse cx="100" cy="88" rx="28" ry="15"/><ellipse cx="100" cy="102" rx="28" ry="15"/><ellipse cx="100" cy="116" rx="27" ry="15"/></g> <g fill="none" stroke-linecap="round"> <path d="M100 14 L100 80" stroke="#a9845a" stroke-width="13"/> <path d="M93 124 C 48 142 44 200 100 206 C 156 200 152 142 107 124" stroke="#a9845a" stroke-width="13"/> <path d="M96 14 L96 80" stroke="#7f6142" stroke-width="3" opacity=".55"/> <path d="M93 124 C 52 142 50 196 100 200" stroke="#7f6142" stroke-width="4" opacity=".45"/> <path d="M104 132 C 140 148 146 192 112 202" stroke="#d6b98d" stroke-width="3" opacity=".8"/> <path d="M100 16 L100 80" stroke="#5e4630" stroke-width="13" stroke-dasharray="2 7" opacity=".35"/> <path d="M93 124 C 48 142 44 200 100 206 C 156 200 152 142 107 124" stroke="#5e4630" stroke-width="13" stroke-dasharray="2 8" opacity=".3"/> </g> <g> <ellipse cx="100" cy="74" rx="19" ry="8" fill="#b9946a"/><ellipse cx="100" cy="88" rx="20" ry="8" fill="#a9845a"/> <ellipse cx="100" cy="102" rx="20" ry="8" fill="#b9946a"/><ellipse cx="100" cy="116" rx="19" ry="8" fill="#a07b52"/> <g fill="none" stroke="#6e5238" stroke-width="2" opacity=".6"><path d="M82 77 Q100 83 118 77"/><path d="M81 91 Q100 97 119 91"/><path d="M81 105 Q100 111 119 105"/><path d="M82 119 Q100 125 118 119"/></g> <g fill="none" stroke="#e2c79c" stroke-width="2" opacity=".8"><path d="M86 71 Q96 69 104 70"/><path d="M85 85 Q95 83 103 84"/><path d="M85 99 Q95 97 103 98"/></g> </g> </svg>`);
 const DEER_SRC="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="12 28 176 104"> <defs><clipPath id="dh"><path d="M100 40 Q136 40 142 76 Q146 106 122 118 Q100 128 78 118 Q54 106 58 76 Q64 40 100 40 Z"/></clipPath></defs> <g fill="#faf7f0" stroke="#faf7f0" stroke-width="16" stroke-linejoin="round"> <path d="M100 40 Q136 40 142 76 Q146 106 122 118 Q100 128 78 118 Q54 106 58 76 Q64 40 100 40 Z"/> <path d="M66 64 Q36 62 22 44 Q46 36 72 52 Z"/><path d="M134 64 Q164 62 178 44 Q154 36 128 52 Z"/> </g> <path d="M66 64 Q36 62 22 44 Q46 36 72 52 Z" fill="#a8743f"/><path d="M62 58 Q42 56 32 46 Q50 44 68 54 Z" fill="#e9b3a2"/> <path d="M134 64 Q164 62 178 44 Q154 36 128 52 Z" fill="#9a6838"/><path d="M138 58 Q158 56 168 46 Q150 44 132 54 Z" fill="#e3a796"/> <g clip-path="url(#dh)"> <rect width="200" height="220" fill="#c08b56"/> <polygon points="50,40 86,40 72,130 50,130" fill="#94623b" opacity=".75"/> <rect x="110" y="46" width="40" height="26" fill="#ddaa72" opacity=".8" transform="rotate(16 130 60)"/> <ellipse cx="100" cy="104" rx="22" ry="16" fill="#f1dfc2"/> <ellipse cx="88" cy="56" rx="4.2" ry="3" fill="#f6ead6"/><ellipse cx="112" cy="54" rx="3.6" ry="2.6" fill="#f6ead6"/> <polygon points="50,112 150,108 150,130 50,130" fill="#5d4a66" opacity=".25"/> </g> <ellipse cx="82" cy="84" rx="6.5" ry="7.5" fill="#2e2420"/><ellipse cx="118" cy="84" rx="6.5" ry="7.5" fill="#2e2420"/> <circle cx="84.5" cy="81" r="2.2" fill="#fbf6ec"/><circle cx="120.5" cy="81" r="2.2" fill="#fbf6ec"/> <ellipse cx="100" cy="98" rx="6" ry="4.2" fill="#3a2b24"/> <path d="M96 106 Q100 110 104 106" fill="none" stroke="#7a4d33" stroke-width="2" stroke-linecap="round"/> <ellipse cx="70" cy="98" rx="7" ry="4" fill="#e89a86" opacity=".55"/><ellipse cx="130" cy="98" rx="7" ry="4" fill="#e89a86" opacity=".55"/> </svg>`);
+/* Aurelia's mulled wine from the northern academy: sweet, fruit in it, still steaming */
+const WINE_SRC="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="30 0 148 212"> <defs><clipPath id="wb"><path d="M50 74 Q100 66 150 74 Q154 128 120 150 Q108 156 106 160 L94 160 Q92 156 80 150 Q46 128 50 74 Z"/></clipPath></defs> <g fill="none" stroke="#faf7f0" stroke-width="15" stroke-linecap="round"><path d="M88 54 Q78 42 88 32 Q97 22 89 10"/><path d="M110 52 Q120 40 110 30 Q101 20 111 10"/></g> <g fill="#faf7f0" stroke="#faf7f0" stroke-width="16" stroke-linejoin="round"> <path d="M50 74 Q100 66 150 74 Q154 128 120 150 Q108 156 106 160 L106 180 Q128 183 136 194 Q100 202 64 194 Q72 183 94 180 L94 160 Q92 156 80 150 Q46 128 50 74 Z"/> <circle cx="142" cy="72" r="17"/> <rect x="60" y="30" width="10" height="70" transform="rotate(-14 65 65)"/> </g> <g fill="none" stroke-linecap="round"><path d="M88 54 Q78 42 88 32 Q97 22 89 10" stroke="#e4d8c6" stroke-width="4"/><path d="M110 52 Q120 40 110 30 Q101 20 111 10" stroke="#e4d8c6" stroke-width="4"/><path d="M89 48 Q83 42 87 36" stroke="#f6efe4" stroke-width="2"/></g> <rect x="60" y="30" width="10" height="70" fill="#8a5532" transform="rotate(-14 65 65)"/> <rect x="63" y="30" width="3" height="70" fill="#b47b4a" transform="rotate(-14 65 65)"/> <path d="M60 31 L70 31" stroke="#6a3f24" stroke-width="2" transform="rotate(-14 65 65)"/> <path d="M94 158 L106 158 L106 180 Q128 183 136 194 Q100 202 64 194 Q72 183 94 180 Z" fill="#e6ddcf"/> <path d="M97 160 L97 182 Q80 186 72 193" fill="none" stroke="#fbf7ef" stroke-width="2.4" stroke-linecap="round"/> <path d="M66 194 Q100 201 134 194" fill="none" stroke="#bfae95" stroke-width="2"/> <g clip-path="url(#wb)"> <rect width="200" height="220" fill="#ebe3d6"/> <rect x="60" y="30" width="10" height="70" fill="#8a5532" transform="rotate(-14 65 65)"/> <rect x="63" y="30" width="3" height="70" fill="#b47b4a" transform="rotate(-14 65 65)"/> <rect x="0" y="92" width="200" height="80" fill="#7a1f2b"/> <ellipse cx="100" cy="92" rx="50" ry="5.5" fill="#9c2f37"/> <polygon points="40,96 72,96 66,170 40,170" fill="#5a1522" opacity=".75"/> <rect x="114" y="98" width="30" height="9" fill="#b2393d" opacity=".85" transform="rotate(10 128 102)"/> <path d="M80 110 Q88 103 96 110 Q99 122 88 133 Q77 122 80 110 Z" fill="#d6404a"/> <path d="M83 108 L88 102 L93 108 Z" fill="#6f8a55"/> <g fill="#f3c9a0"><ellipse cx="85" cy="115" rx="1.3" ry="1.8"/><ellipse cx="91" cy="114" rx="1.3" ry="1.8"/><ellipse cx="88" cy="121" rx="1.3" ry="1.8"/><ellipse cx="84" cy="124" rx="1.2" ry="1.6"/><ellipse cx="92" cy="123" rx="1.2" ry="1.6"/></g> <g transform="rotate(-14 118 130)"><path d="M103 130 A15 15 0 0 1 133 130 Z" fill="#f2e2bc"/> <path d="M110 130 Q118 119 126 130" fill="none" stroke="#e0cb98" stroke-width="1.6"/> <path d="M103 130 A15 15 0 0 1 133 130" fill="none" stroke="#b6462f" stroke-width="3.4" stroke-linecap="round"/> <ellipse cx="115.5" cy="126" rx="1.5" ry="2.4" fill="#4a3b2e" transform="rotate(-20 115.5 126)"/><ellipse cx="120.5" cy="126" rx="1.5" ry="2.4" fill="#4a3b2e" transform="rotate(20 120.5 126)"/></g> <rect x="0" y="104" width="200" height="70" fill="#7a1f2b" opacity=".32"/> <rect x="96" y="138" width="22" height="7" fill="#c4523f" opacity=".6" transform="rotate(-12 107 141)"/> <polygon points="40,146 160,140 160,172 40,172" fill="#5d4a66" opacity=".3"/> <path d="M60 80 Q57 114 76 140" fill="none" stroke="#fffaf0" stroke-width="4.5" stroke-linecap="round" opacity=".85"/> <path d="M142 86 Q144 110 132 130" fill="none" stroke="#fffaf0" stroke-width="2" stroke-linecap="round" opacity=".5"/> </g> <path d="M50 74 Q54 128 80 150 Q92 156 94 160 M150 74 Q146 128 120 150 Q108 156 106 160" fill="none" stroke="#bfae95" stroke-width="1.8"/> <ellipse cx="100" cy="72" rx="50" ry="6" fill="none" stroke="#c9b9a2" stroke-width="2.2"/> <path d="M54 70 Q78 66 96 66" fill="none" stroke="#fffaf0" stroke-width="2" stroke-linecap="round"/> <circle cx="142" cy="72" r="17" fill="#e48a2e"/> <circle cx="142" cy="72" r="13.5" fill="#f6b851"/> <g stroke="#fde3a4" stroke-width="1.8" stroke-linecap="round"><path d="M142 72 L142 59.5"/><path d="M142 72 L152.8 65.7"/><path d="M142 72 L152.8 78.3"/><path d="M142 72 L142 84.5"/><path d="M142 72 L131.2 78.3"/><path d="M142 72 L131.2 65.7"/></g> <circle cx="142" cy="72" r="2.4" fill="#fde3a4"/> <path d="M128 64 Q134 57 144 56" fill="none" stroke="#f7c06a" stroke-width="2" stroke-linecap="round"/> </svg>`);
 /* the pale yellow dress from Julian's birthday, coffee still on the skirt */
 const DRESS_SRC="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="22 14 156 204"> <defs><clipPath id="yd"><path d="M70 40 Q85 33 100 45 Q115 33 130 40 Q128 66 116 90 Q128 112 146 150 Q160 178 160 190 Q150 200 138 194 Q128 204 116 196 Q104 206 92 196 Q80 204 70 194 Q56 200 44 190 Q42 178 54 150 Q72 112 84 90 Q72 66 70 40 Z"/></clipPath></defs> <g fill="#faf7f0" stroke="#faf7f0" stroke-width="16" stroke-linejoin="round"> <path d="M70 40 Q85 33 100 45 Q115 33 130 40 Q128 66 116 90 Q128 112 146 150 Q160 178 160 190 Q150 200 138 194 Q128 204 116 196 Q104 206 92 196 Q80 204 70 194 Q56 200 44 190 Q42 178 54 150 Q72 112 84 90 Q72 66 70 40 Z"/> <ellipse cx="62" cy="48" rx="13" ry="10" transform="rotate(-20 62 48)"/><ellipse cx="138" cy="48" rx="13" ry="10" transform="rotate(20 138 48)"/> </g> <ellipse cx="62" cy="48" rx="13" ry="10" transform="rotate(-20 62 48)" fill="#f3df98"/><ellipse cx="138" cy="48" rx="13" ry="10" transform="rotate(20 138 48)" fill="#e2c46c"/> <path d="M53 47 Q60 40 70 42" fill="none" stroke="#fbf0c6" stroke-width="3" stroke-linecap="round"/> <g clip-path="url(#yd)"> <rect width="200" height="220" fill="#f1da8c"/> <polygon points="30,96 84,90 66,210 26,210" fill="#d9b75f" opacity=".75"/> <polygon points="136,120 176,150 176,210 130,210" fill="#c9a24e" opacity=".5"/> <rect x="86" y="44" width="11" height="44" fill="#fbefc2" opacity=".85" transform="rotate(-6 92 66)"/> <rect x="94" y="104" width="13" height="96" fill="#fbf0c8" opacity=".7" transform="rotate(4 100 150)"/> <rect x="116" y="104" width="8" height="94" fill="#e1bf66" opacity=".8" transform="rotate(-16 120 150)"/> <rect x="72" y="106" width="8" height="94" fill="#d6b35c" opacity=".7" transform="rotate(16 76 150)"/> <rect x="60" y="86" width="80" height="10" fill="#e0bc5e"/> <rect x="66" y="88" width="30" height="3.5" fill="#f6e3a4"/> <polygon points="30,182 170,174 170,212 30,212" fill="#5d4a66" opacity=".2"/> <path d="M110 132 Q124 122 137 132 Q146 144 139 155 Q142 165 132 166 Q126 177 118 168 Q107 172 107 160 Q98 152 105 143 Q102 135 110 132 Z" fill="#8b5a35" opacity=".9"/> <path d="M116 137 Q125 131 132 139 Q136 148 128 154 Q120 159 114 152 Q110 144 116 137 Z" fill="#a8744a" opacity=".85"/> <path d="M129 166 Q131 177 128 186" fill="none" stroke="#8b5a35" stroke-width="4" stroke-linecap="round" opacity=".85"/> <path d="M113 168 Q112 173 114 178" fill="none" stroke="#8b5a35" stroke-width="3" stroke-linecap="round" opacity=".8"/> <circle cx="147" cy="124" r="3" fill="#8b5a35" opacity=".8"/><circle cx="101" cy="124" r="2.2" fill="#8b5a35" opacity=".7"/> </g> <path d="M100 91 L88 84 L88 98 Z M100 91 L112 84 L112 98 Z" fill="#e8c86c" stroke="#c9a24e" stroke-width="1.4" stroke-linejoin="round"/> <circle cx="100" cy="91" r="3.2" fill="#f6e3a4" stroke="#c9a24e" stroke-width="1.2"/> </svg>`);
 const S_MIN=.6, S_MAX=2.4;      /* a sticker stays between about 28px and 110px across */
@@ -903,7 +915,10 @@ const STK={
             return p.width && p.left>s.right+60 ? [(s.right+p.left)/2-24, p.top+30] : [s.right-70, s.top+40]; } },
   deer: { el:$("#deer"),  src:DEER_SRC,  owner:"iris", s:1, r:6,  bagKey:"helios-deer-in-bag",  posKey:"helios-sticker-deer", startInBag:true },
   /* Aurelia has one too. she knows where it came from */
-  deer_aurelia:{ el:$("#deer2"), src:DEER_SRC, owner:"aurelia", s:1, r:-6, bagKey:"helios-deer-aurelia-in-bag", posKey:"helios-sticker-deer-aurelia", startInBag:true }
+  deer_aurelia:{ el:$("#deer2"), src:DEER_SRC, owner:"aurelia", s:1, r:-6, bagKey:"helios-deer-aurelia-in-bag", posKey:"helios-sticker-deer-aurelia", startInBag:true },
+  /* her hot wine. Iris gets a cup too, and has opinions */
+  wine:{ el:$("#wine"), src:WINE_SRC, owner:"aurelia", s:1, r:-5, bagKey:"helios-wine-in-bag", posKey:"helios-sticker-wine", startInBag:true },
+  wine_iris:{ el:$("#wine2"), src:WINE_SRC, owner:"iris", s:1, r:5, bagKey:"helios-wine-iris-in-bag", posKey:"helios-sticker-wine-iris", startInBag:true }
 };
 /* a line from the owner, said beside the thing in hand */
 const sayEl=$("#say");
@@ -1004,6 +1019,9 @@ function bindSticker(id){
       markOver(e.clientX,e.clientY,id); } });
   el.addEventListener("pointerup",e=>{ if(!down) return; down=false; el.classList.remove("drag");
     if(moved){ const t=dropAt(e.clientX,e.clientY); clearOver(); document.body.classList.remove("dragging");
+      if(isWine(id) && !t && overFigure(e.clientX,e.clientY) && drink(id)){
+        el.classList.add("home"); el.style.left=ox+"px"; el.style.top=oy+"px";
+        setTimeout(()=>{ el.classList.remove("home"); el.classList.remove("boop"); void el.offsetWidth; el.classList.add("boop"); }, 420); return; }
       if(t && place(id, t)) return;
       if(t && t.dataset.drop==="worn"){ refuse(t); el.classList.add("home"); el.style.left=ox+"px"; el.style.top=oy+"px";
         setTimeout(()=>el.classList.remove("home"), 450); return; }
@@ -1036,6 +1054,8 @@ const ITEMS = {
   deer:{ owner:"iris", name:"小鹿玩偶", icon:DEER_SRC, sticker:true },
   rope:{ owner:"iris", name:"绞索", icon:ROPE_SRC, entry:"rope", sticker:true },
   deer_aurelia:{ owner:"aurelia", name:"小鹿玩偶", icon:DEER_SRC, sticker:true, says:{} },
+  wine:{ owner:"aurelia", name:"热红酒", icon:WINE_SRC, sticker:true, says:{} },
+  wine_iris:{ owner:"iris", name:"热红酒", icon:WINE_SRC, sticker:true, says:{} },
   /* a dress, not a sticker: it lives in her bag, and she will not put it on */
   ydress:{ owner:"aurelia", name:"黄色礼裙", icon:DRESS_SRC, entry:"ydress", sore:true, found:"helios-ydress-found", says:{} },
   /* outfits swap the standing portrait itself: same scale, same frame */
@@ -1090,9 +1110,9 @@ window.renderSkins=()=>{
 /* changing clothes slides the portrait out and the new one in, once it has loaded: no blank flash */
 let figToken=0;
 function swapFigure(src, alt, sz, hidden){
-  const apply=()=>{ figure.style.setProperty('--ar', `${sz[0]}/${sz[1]}`); figure.style.setProperty('--hs', sz[1]/1616);
+  const apply=()=>{ paintBlush(src); figure.style.setProperty('--ar', `${sz[0]}/${sz[1]}`); figure.style.setProperty('--hs', sz[1]/1616);
     art.src=src; art.alt=alt; figure.querySelectorAll('.lit').forEach(el=>{ el.style.webkitMaskImage=el.style.maskImage=`url(${src})`; }); };
-  if(art.getAttribute("src")===src){ figure.style.setProperty('--ar', `${sz[0]}/${sz[1]}`); figure.style.setProperty('--hs', sz[1]/1616); return; }
+  if(art.getAttribute("src")===src){ paintBlush(src); figure.style.setProperty('--ar', `${sz[0]}/${sz[1]}`); figure.style.setProperty('--hs', sz[1]/1616); return; }
   const t=++figToken;
   if(reduce || busy || hidden || !contentReady){ apply(); return; }
   const pre=new Image(); pre.src=src;
@@ -1198,6 +1218,47 @@ function place(id, t){
   return false;
 }
 
+/* ============================================================
+   热红酒：把杯子拖到她身上就是喂她一口。Aurelia 一杯上脸，三杯到顶，放一会儿慢慢退；
+   Iris 怎么喝都不红。脸颊的位置按每张立绘量好，单位是画的宽高百分比
+   ============================================================ */
+const BLUSH={
+  /* the classic portrait is concept art: she doesn't drink in it. only the academy one */
+  "images/aurelia-academy.webp":{ l:[42.6,17.9], r:[57.6,17.7], rx:5.0, ry:1.5, mask:"images/aurelia-academy-mask.png" }
+};
+const DRINK={ aurelia:[], iris:[], refuse:"" };     /* from 台词.md */
+const blushEl=$("#blush"), blushCh=blushEl.querySelector(".ch"), blushNose=blushEl.querySelector(".nose"), blushRose=blushEl.querySelector(".rose");
+let flush=0, irisSips=0, soberT=null;
+const pink=(x,y,rx,ry,a)=>`radial-gradient(${rx}% ${ry}% at ${x}% ${y}%, rgba(226,98,100,${a}) 0%, rgba(226,98,100,${(a*.7).toFixed(3)}) 45%, rgba(226,98,100,0) 100%)`;
+function paintBlush(src){
+  const b=BLUSH[src]; blushEl.hidden=!b; if(!b) return;
+  /* the rosy cast stays inside her: a mask of the figure without the white die-cut edge */
+  blushRose.style.webkitMaskImage=blushRose.style.maskImage=`url("${b.mask||src}")`;
+  blushCh.style.background=[pink(b.l[0],b.l[1],b.rx,b.ry,.62), pink(b.r[0],b.r[1],b.rx,b.ry,.62)].join(",");
+  const mx=(b.l[0]+b.r[0])/2, my=(b.l[1]+b.r[1])/2-.4;
+  blushNose.style.background=pink(mx, my, (b.r[0]-b.l[0])/2+b.rx*.6, b.ry*.9, .32);
+}
+function setFlush(){
+  blushEl.classList.toggle("on", flush>0);
+  blushCh.style.opacity=[0,.45,.75,1][flush]; blushNose.style.opacity=[0,0,.45,.9][flush]; blushRose.style.opacity=flush>=3?1:0;
+}
+/* she sobers up a step at a time, once nobody has topped her up for a while */
+function sober(){ clearTimeout(soberT); soberT=setTimeout(function down(){ if(flush>0){ flush--; setFlush(); }
+  if(flush>0) soberT=setTimeout(down, 6000); }, 14000); }
+function overFigure(x,y){ const r=art.getBoundingClientRect(); if(!r.width) return false;
+  return x>r.left+r.width*.12 && x<r.right-r.width*.12 && y>r.top && y<r.bottom; }
+function drink(id){
+  const own=ITEMS[id] && ITEMS[id].owner; if(!own || PEOPLE[cur].id!==own) return false;
+  if(own==="aurelia"){
+    if(me().worn.top==="corona"){ if(DRINK.refuse) sayLine(DRINK.refuse, "aurelia"); return true; }
+    if(!BLUSH[art.getAttribute("src")]) return false;
+    flush=Math.min(3, flush+1); setFlush(); sober();
+    if(DRINK.aurelia.length) sayLine(DRINK.aurelia[Math.min(flush-1, DRINK.aurelia.length-1)], "aurelia");
+  } else if(DRINK.iris.length) sayLine(DRINK.iris[Math.min(irisSips++, DRINK.iris.length-1)], "iris");
+  return true;
+}
+const isWine=id=>id==="wine" || id==="wine_iris";
+
 /* the wrong slot: she catches it, says something, and it goes back in the bag.
    each list runs in order and then stays on its last line */
 const JOKES={};     /* from 台词.md: the wrong slot gets a line from its owner */
@@ -1258,6 +1319,7 @@ document.addEventListener("pointerup",e=>{
   release(); swallow=true; setTimeout(()=>{ swallow=false; }, 0);
   const t=dropAt(e.clientX,e.clientY);
   if(t){ if(!place(d.id, t) && t.dataset.drop==="worn") refuse(t); }
+  else if(isWine(d.id) && overFigure(e.clientX,e.clientY) && drink(d.id)){}
   else if(ITEMS[d.id].sticker) toBoard(d.id, e.clientX, e.clientY);
 }, true);
 /* a tap, or Enter: wear it, take it off, or read it */
@@ -1379,6 +1441,13 @@ function parseLines(md){
     if(slot){ (JOKES[slot[0]]=JOKES[slot[0]]||{})[slot[1]]=L; return; }
     if(s.h==="Aurelia 的小鹿 · 拿起") ITEMS.deer_aurelia.says.move=L[0];
     else if(s.h==="Aurelia 的小鹿 · 贴上") ITEMS.deer_aurelia.says.stick=L[0];
+    else if(s.h==="Aurelia · 喝热红酒") DRINK.aurelia=L;
+    else if(s.h==="Aurelia · 上朝不喝") DRINK.refuse=L[0];
+    else if(s.h==="Iris · 喝热红酒") DRINK.iris=L;
+    else if(s.h==="热红酒 · 拿起") ITEMS.wine.says.move=L[0];
+    else if(s.h==="热红酒 · 贴上") ITEMS.wine.says.stick=L[0];
+    else if(s.h==="Iris 的热红酒 · 拿起") ITEMS.wine_iris.says.move=L[0];
+    else if(s.h==="Iris 的热红酒 · 贴上") ITEMS.wine_iris.says.stick=L[0];
     else if(s.h==="黄色礼裙 · 拿起") ITEMS.ydress.says.move=L[0];
     else if(s.h==="黄色礼裙 · 贴上") ITEMS.ydress.says.stick=L[0];
     else if(s.h==="日冕 · 拿起") ITEMS.corona.says.move=L[0];
