@@ -1457,7 +1457,7 @@ renderSkins();
     const wLow=filt("lowpass",260,.7), wLowG=gain(0); loop(brown).connect(wLow); wLow.connect(wLowG); send(wLowG, .7, .5);
     const wAir=filt("bandpass",900,.6), wAirG=gain(0); loop(pink).connect(wAir); wAir.connect(wAirG); send(wAirG, .4, .9);
     /* water: a soft steady wash, and laps that come in one by one from either side */
-    const wash=filt("lowpass",420,.5), washG=gain(.035); loop(pink).connect(wash); wash.connect(washG); send(washG, .8, .4);
+    const wash=filt("lowpass",420,.5), washG=gain(.05); loop(pink).connect(wash); wash.connect(washG); send(washG, .8, .4);
     const lapF=filt("bandpass",520,1.1), lapG=gain(0), lapP=pan(); loop(pink).connect(lapF); lapF.connect(lapG);
     if(lapP){ lapG.connect(lapP); send(lapP, .55, .8); } else send(lapG, .55, .8);
     /* the wind breathes: a slow swell in and out, every eight to twelve seconds, almost silent between;
@@ -1467,7 +1467,7 @@ renderSkins();
       const br=Math.pow(.5+.5*Math.sin(t*.62 + Math.sin(t*.09)*1.4), 1.8);
       const b=br*(.45+.55*g);
       wLowG.gain.setTargetAtTime(.008+.07*b, t, .6); wAirG.gain.setTargetAtTime(.004+.09*b*b, t, .6); wAir.frequency.setTargetAtTime(600+650*b, t, .9); }, 120);
-    const lap=()=>{ if(on){ const t=ctx.currentTime, up=.25+Math.random()*.3, down=1+Math.random()*1.4, peak=.05+Math.random()*.07;
+    const lap=()=>{ if(on){ const t=ctx.currentTime, up=.25+Math.random()*.3, down=1+Math.random()*1.4, peak=.07+Math.random()*.1;
         lapF.frequency.cancelScheduledValues(t); lapF.frequency.setValueAtTime(380+Math.random()*380, t); lapF.frequency.linearRampToValueAtTime(240+Math.random()*160, t+up+down);
         lapG.gain.cancelScheduledValues(t); lapG.gain.setValueAtTime(Math.max(.001,lapG.gain.value), t);
         lapG.gain.linearRampToValueAtTime(peak, t+up); lapG.gain.exponentialRampToValueAtTime(.001, t+up+down);
