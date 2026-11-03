@@ -1108,7 +1108,7 @@ window.renderSkins=()=>{
   applySkin();
 };
 /* changing clothes slides the portrait out and the new one in, once it has loaded: no blank flash */
-let figToken=0;
+let figToken=0, sunWas=false;
 function swapFigure(src, alt, sz, hidden){
   const apply=()=>{ paintBlush(src); figure.style.setProperty('--ar', `${sz[0]}/${sz[1]}`); figure.style.setProperty('--hs', sz[1]/1616);
     art.src=src; art.alt=alt; figure.querySelectorAll('.lit').forEach(el=>{ el.style.webkitMaskImage=el.style.maskImage=`url(${src})`; }); };
@@ -1172,6 +1172,8 @@ function applySkin(){
   if((sheetOver[pid]||null)!==sh){ sheetOver[pid]=sh; if(!view){ renderReadout(); readin.classList.remove("swap"); void readin.offsetWidth; readin.classList.add("swap"); } }
   swapFigure(src, `${PEOPLE[cur].full}，${outfit?outfit.name:"作者绘"}`, sz, !!sk);
   sunBehind(outfit && outfit.sun);
+  { const sunNow=!!(outfit && outfit.sun); if(sunNow && !sunWas && contentReady && window.heliosSting) heliosSting(); sunWas=sunNow; }
+  if(window.HALL && HALL.overhead) HALL.overhead(!!(outfit && outfit.sun));
   /* how far the figure reaches past the frame on each side, as a share of its height (plus a little air) */
   { const A=parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--A"))||.5037, over=(sz[0]/sz[1]-A)/2;
     $("#stage").style.setProperty("--over", over>.05 ? (over+.02).toFixed(3) : 0); }
@@ -1584,6 +1586,15 @@ renderSkins();
       setTimeout(phrase, 10000+Math.random()*20000);
     }
     setTimeout(phrase, 6000);
+    /* the Sun King's entrance: a hard, close pizzicato on the low D with its octave above, much louder than the far cello */
+    /* it rings on down the hall: a heavy send into the hall's tail, plus echoes that come back off the far walls, darker each time */
+    const stingBus=filt("lowpass",5200,.4); send(stingBus, 1, 1.25);
+    const echo=ctx.createDelay(2), fb=gain(.52), dark=filt("lowpass",1700,.5), echoOut=gain(.5);
+    echo.delayTime.value=.46; stingBus.connect(echo); echo.connect(dark); dark.connect(fb); fb.connect(echo);
+    dark.connect(echoOut); send(echoOut, .8, 1.1);
+    window.heliosSting=()=>{ if(!on || !BUF.D2 || !BUF.D3) return; const t=ctx.currentTime+.04;
+      /* the low D, its octave, and the same low D played at half speed underneath: an octave lower and twice as long */
+      [["D2",1.05,1],["D3",.6,1],["D2",.55,.5]].forEach(([n,v,r])=>{ const s=ctx.createBufferSource(), g=gain(v); s.buffer=BUF[n]; s.playbackRate.value=r; s.connect(g); g.connect(stingBus); s.start(t); }); };
   }
   function set(v){
     on=v; btn.classList.toggle("on", v); btn.setAttribute("aria-pressed", v); btn.setAttribute("aria-label", v?"关闭声音":"打开声音");
@@ -1955,6 +1966,15 @@ const dusk=new THREE.SpotLight(0xffffff, 1, 230, 1.0, .5, 1.5);
 dusk.castShadow=true; dusk.shadow.mapSize.set(SM,SM); dusk.shadow.bias=-.00012; dusk.shadow.normalBias=.03;
 Object.assign(dusk.shadow.camera,{near:40, far:260});   /* the light is far off: a deep near plane keeps depth precise */
 scene.add(dusk, dusk.target);
+/* overhead: for the Sun King, the sunset falls from high above the place where she stands,
+   in front of the first arch. Far up and wide, so it lands as a broad pool on the water and
+   the doorway columns rather than a stage spot; the arch band throws its curve across it */
+const overhead=new THREE.SpotLight(0xff7f48, 0, 260, .15, 1, 1.2);
+overhead.position.set(0, 80, 1); overhead.target.position.set(0, 0, 0);
+overhead.castShadow=true; overhead.shadow.mapSize.set(1024,1024); overhead.shadow.bias=-.0002; overhead.shadow.normalBias=.03;
+Object.assign(overhead.shadow.camera,{near:40, far:120});
+scene.add(overhead, overhead.target);
+const OH_I=6.5; let ohT=0, ohC=0;
 
 /* dappled sun: an unseen canopy between the sun and the hall, it only casts shadow */
 function leafC(){
@@ -2041,6 +2061,32 @@ function buildShafts(color, opacity, col){
       });
     }
   }
+}
+/* the overhead light, seen in the air: a faint column and motes drifting through it */
+const OH_COL=new THREE.Color(0xff7f48);
+const ohShaftMat=new THREE.MeshBasicMaterial({map:sTex, color:OH_COL, transparent:true, opacity:0, depthWrite:false, blending:THREE.AdditiveBlending, side:THREE.DoubleSide, fog:false});
+const ohShafts=[0,1,2].map(k=>{ const m=new THREE.Mesh(new THREE.PlaneGeometry(9,34), ohShaftMat); m.position.set(0,15,0); m.rotation.y=k*Math.PI/3; m.visible=false; scene.add(m); return m; });
+const MN=3600, mp=new Float32Array(MN*3), mc=new Float32Array(MN*3), mSeed=[];
+const MH=8;   /* they live low: thick at the water, thinning out by half-height, none over her head */
+/* over the whole sheet of water, from the near edge (kept off the lens) deep into the hall */
+for(let i=0;i<MN;i++){
+  mSeed.push([(Math.random()-.5)*36, Math.random()*MH, -45+Math.random()*51, .2+Math.random()*.5, Math.random()*6.283]);
+  mp[i*3]=mSeed[i][0]; mp[i*3+1]=mSeed[i][1]; mp[i*3+2]=mSeed[i][2]; }
+const mGeo=new THREE.BufferGeometry(); mGeo.setAttribute("position", new THREE.BufferAttribute(mp,3)); mGeo.setAttribute("color", new THREE.BufferAttribute(mc,3));
+const GOLD=[1.8,1.38,.55];   /* golden motes */
+const moteMat=new THREE.PointsMaterial({map:radial([[0,1],[.1,1],[.22,.45],[.5,.07],[1,0]]), color:0xffffff, vertexColors:true, size:.12, sizeAttenuation:true, transparent:true, opacity:0, depthWrite:false, blending:THREE.AdditiveBlending, fog:false});
+const motes=new THREE.Points(mGeo, moteMat); motes.visible=false; motes.frustumCulled=false; scene.add(motes);
+function ohAir(t){
+  const on=ohC>.01; motes.visible=on; ohShafts.forEach(m=>m.visible=on);
+  moteMat.opacity=.95*ohC; ohShaftMat.opacity=.09*ohC; if(!on) return;
+  /* they rise off the water, wander a little, and fade out high up; then start again at the surface */
+  const ss=(a,b,v)=>{ const k=Math.min(1,Math.max(0,(v-a)/(b-a))); return k*k*(3-2*k); };
+  for(let i=0;i<MN;i++){ const [x,y,z,sp,ph]=mSeed[i];
+    const yy=((y + t*sp*.3) % MH + MH) % MH + .05;
+    mp[i*3]=x+Math.sin(t*.35*sp+ph)*.45; mp[i*3+1]=yy; mp[i*3+2]=z+Math.cos(t*.3*sp+ph*1.7)*.45;
+    const f=ss(.05,.7,yy)*Math.pow(1-ss(.3,MH*.85,yy),1.6)*(.65+.35*Math.sin(t*1.3*sp+ph*3));   /* fades as it rises; a faint twinkle */
+    mc[i*3]=GOLD[0]*f; mc[i*3+1]=GOLD[1]*f; mc[i*3+2]=GOLD[2]*f; }
+  mGeo.attributes.position.needsUpdate=true; mGeo.attributes.color.needsUpdate=true;
 }
 const DN=1400, dp=new Float32Array(DN*3);
 for(let i=0;i<DN;i++){ dp[i*3]=(Math.random()-.5)*12; dp[i*3+1]=Math.random()*16; dp[i*3+2]=-Math.random()*(N*BAY)+4; }
@@ -2144,6 +2190,7 @@ function applyMood(name){
   canopy.visible = name==='light'; placeCanopy();
   buildShafts(m.shaft[0], m.shaft[1], col);
   if(accentHex!==null) setAccent(accentHex);
+  col(overhead.color, 0xff7f48);   /* the dusk sunset's own orange, in either mood */
 }
 const root=document.documentElement, mq=matchMedia("(prefers-color-scheme: dark)");
 const current=()=> root.dataset.theme || (mq.matches ? "dark" : "light");
@@ -2176,9 +2223,11 @@ function frame(){
   const flowing = !still && !!water && water.visible; if(flowing) WT.value=clock.getElapsedTime(); if(!still) driftLight(clock.getElapsedTime());
   const swaying = !still && canopy.visible; if(swaying) LEAF.uLeafT.value=clock.getElapsedTime();
   const rolling = rollStart>=0; if(rolling){ const q=Math.min(1,(clock.getElapsedTime()-rollStart)/ROLL_DUR), e=q<.5?4*q*q*q:1-Math.pow(-2*q+2,3)/2; rollC=rollF+(rollT-rollF)*e; if(q>=1) rollStart=-1; }
-  const travelling = tripStart>=0 || focusing || flowing || swaying || rolling;
+  const lighting = Math.abs(ohT-ohC)>.002; if(lighting){ ohC = still ? ohT : ohC+(ohT-ohC)*.05; overhead.intensity=OH_I*ohC; }
+  const drifting = !still && ohC>.01; if(lighting || drifting || dirty) ohAir(still ? 0 : clock.getElapsedTime());
+  const travelling = tripStart>=0 || focusing || flowing || swaying || rolling || lighting || drifting;
   if(tripStart>=0){ const p=Math.min(1,(clock.getElapsedTime()-tripStart)/TRIP); push=(1-Math.cos(Math.PI*Math.min(p,.62)/.62))/2*9; if(p>=1){ push=0; tripStart=-1; } }
-  const nowT=clock.getElapsedTime(), ambientOnly=(flowing||swaying) && !(tripStart>=0 || focusing || rolling);
+  const nowT=clock.getElapsedTime(), ambientOnly=(flowing||swaying||drifting) && !(tripStart>=0 || focusing || rolling);
   if(moving || dirty || (travelling && !(ambientOnly && nowT-lastDraw<1/30))){
     lastDraw=nowT;
     const rc=Math.cos(rollC), rs=Math.sin(rollC), px=mx*2.4, py=-my*1.6, lx=mx*1.2, ly=-my*1.2;
@@ -2191,7 +2240,7 @@ function frame(){
   if(!still) requestAnimationFrame(frame);
 }
 addEventListener("resize", resize); resize();
-window.HALL={ accent:setAccent, travel(){ if(!still){ tripStart=clock.getElapsedTime(); } }, roll(on){ const tgt=on?Math.PI:0; if(Math.abs(tgt-rollT)<1e-6) return; rollT=tgt; if(still){ rollC=rollT; dirty=true; frame(); } else { rollF=rollC; rollStart=clock.getElapsedTime(); } }, force(n){ if(forcedMood===n) return; forcedMood=n; applyMood(n||current()); dirty=true; if(still) frame(); }, focus(){ focusT=window.hallFocus?hallFocus():.4; if(still){ focusC=focusT; applyFocus(); dirty=true; frame(); } else { focusF=focusC; focusStart=clock.getElapsedTime(); } } };
+window.HALL={ overhead(on){ ohT=on?1:0; dirty=true; if(still) frame(); }, accent:setAccent, travel(){ if(!still){ tripStart=clock.getElapsedTime(); } }, roll(on){ const tgt=on?Math.PI:0; if(Math.abs(tgt-rollT)<1e-6) return; rollT=tgt; if(still){ rollC=rollT; dirty=true; frame(); } else { rollF=rollC; rollStart=clock.getElapsedTime(); } }, force(n){ if(forcedMood===n) return; forcedMood=n; applyMood(n||current()); dirty=true; if(still) frame(); }, focus(){ focusT=window.hallFocus?hallFocus():.4; if(still){ focusC=focusT; applyFocus(); dirty=true; frame(); } else { focusF=focusC; focusStart=clock.getElapsedTime(); } } };
 if(typeof PEOPLE!=="undefined") setAccent(PEOPLE[cur].accent);
 /* draw one frame at a given moment of the water and the leaves (used for stills) */
 HALL.at=t=>{ WT.value=t; driftLight(t); if(water){ const c=water.material.uniforms.config.value; c.x=(t*.055)%c.z; c.y=c.x+c.z; } LEAF.uLeafT.value=t; dirty=true; frame(); };
