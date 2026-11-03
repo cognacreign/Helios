@@ -270,8 +270,8 @@
   <header>
     <a class="mark" href="index.html" title="回到人物">HELIOS</a><span class="spacer"></span>
     <div class="modes" role="group" aria-label="排列方式">
-      <button type="button" id="mSpec" aria-pressed="true">结构</button>
-      <button type="button" id="mVault" aria-pressed="false">家徽</button>
+      <button type="button" id="mSpec" aria-pressed="false">结构</button>
+      <button type="button" id="mVault" aria-pressed="true">家徽</button>
     </div>
     <button type="button" class="mood" id="mood" aria-label="切换光影：黄昏 / 午后" title="黄昏 / 午后"></button>
   </header>
@@ -389,7 +389,7 @@ function loadHouses(){
 }
 
 const stage=document.getElementById("stage"), card=document.getElementById("card"), links=document.getElementById("links");
-let mode="spec", current="helios";
+let mode="vault", current="helios";      /* the page opens on the cards; 结构 takes you to the structure */
 function makeButtons(){ H.forEach(h=>{
   const b=document.createElement("button"); b.type="button"; b.className="house"+(h.crown?" crown":"")+(h.fallen?" fallen":"");
   b.dataset.id=h.id; b.setAttribute("aria-pressed","false"); b.setAttribute("aria-label",`${h.name}，${h.zh}`);
@@ -1098,7 +1098,7 @@ addEventListener("resize", ()=>{ if(mode==="map"){ place(); } else draw(); });
 loadHouses().then(()=>{
   makeButtons(); buildMatrix(); makeCols();
   initVault();                               /* the sand is the ground of every view: build it before the first view is laid out */
-  place(); show("helios");
+  place(); if(mode!=="vault") show("helios");
   document.fonts && document.fonts.ready.then(draw);
 }).catch(e=>{ console.error(e); document.getElementById("stage").insertAdjacentHTML("beforeend",'<p class="fallback-msg">家族资料没有读进来：'+e.message+'</p>'); });
 </script>
