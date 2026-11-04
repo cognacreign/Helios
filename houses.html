@@ -1183,6 +1183,12 @@ function initVault(){
     const capMat=new THREE.MeshStandardMaterial({ color:0xffffff, roughness:.9, metalness:0, envMapIntensity:.6 });
     const fold=new THREE.MeshStandardMaterial({ color:0xf6f3ee, roughness:.85, metalness:0, flatShading:true, envMapIntensity:.6 });
     [card,capMat,fold].forEach(windowed); provinced(sheetMat); provinced(capMat);
+    /* the table around the sheet is all sea: when the water is on it takes the same wash, so the sheet's edge doesn't cut it off */
+    { const m=paper.material, prev=m.onBeforeCompile, k0=m.customProgramCacheKey;
+      m.onBeforeCompile=(sh,r)=>{ if(prev) prev(sh,r); sh.uniforms.uWatK=PVU.uWatK;
+        sh.fragmentShader=sh.fragmentShader.replace("void main() {","uniform float uWatK;\nvoid main() {").replace("#include <map_fragment>",
+          "#include <map_fragment>\n diffuseColor.rgb=mix(diffuseColor.rgb, diffuseColor.rgb*vec3(.56,.68,.77), uWatK*.95);"); };
+      m.customProgramCacheKey=()=>"wet-"+(k0?k0.call(m):""); }
     const reliefG=new THREE.Group(); reliefG.scale.y=.001; G.add(reliefG); const relief=[];
     const INK="#5d5850", INK2="#827b72", SIGN_INK="#3e3a34", SEE_INK="#1f1c19";
     const GL={ port:"M10.6 3.6h2.8v2.2h-2.8ZM11 5.8h2v10.6h-2ZM8 8.2h8v1.8H8ZM4.6 12.2l2 -.6c.6 3.2 2.6 4.8 5.4 4.8s4.8-1.6 5.4-4.8l2 .6c-.8 4.3-3.6 6.6-7.4 6.6s-6.6-2.3-7.4-6.6Z",
