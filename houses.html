@@ -1496,8 +1496,10 @@ function initVault(){
         return `<div class="cell" data-k="${esc(lab)}" data-w="${esc(cellWords(c))}" data-why="${esc((D.why||{})[k]||"")}">
           <button type="button" class="slot" data-slot="${k}">${zh}${k==="church"&&bishop?`<i class="bp" title="主教座"></i>`:""}</button>${bar}<div class="hv">${hv}</div></div>`; }).join("");
       const stats=[["信仰",D.faith],["生计",D.living]].filter(x=>x[1]);
-      const rows=[["风貌",D.look],["民风",D.folk]].filter(x=>x[1]).map(([t,x])=>`<dt>${t}</dt><dd>${esc(x)}</dd>`).join("")
-        +((D.past||[]).length?`<dt>旧事</dt><dd><ol>${D.past.map((t,i)=>`<li><b>${String(i+1).padStart(2,"0")}</b><span>${esc(t)}</span></li>`).join("")}</ol></dd>`:"");
+      /* the same rule falls under the introduction on every card, and again above the seats */
+      const rows=[...[["风貌",D.look],["民风",D.folk]].filter(x=>x[1]).map(([t,x])=>[t,esc(x)]),
+        ...((D.past||[]).length?[["旧事",`<ol>${D.past.map((t,i)=>`<li><b>${String(i+1).padStart(2,"0")}</b><span>${esc(t)}</span></li>`).join("")}</ol>`]]:[])]
+        .map(([t,x],i)=>`<dt${i?"":' class="sep"'}>${t}</dt><dd${i?"":' class="sep"'}>${x}</dd>`).join("");
       ledger.innerHTML=`<div class="in pv"><button type="button" class="back">‹ Influence</button>
         <h2>${esc(p.name||pid)}</h2><p class="role">${(D.role||[p.region]).map(esc).join("<i>·</i>")}</p>
         ${stats.length?`<p class="stats">${stats.map(([k,v])=>`<span><b>${k}</b>${esc(v)}</span>`).join("<em>｜</em>")}</p>`:""}
