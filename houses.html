@@ -398,7 +398,7 @@
       <div class="land-touch" id="landTouch" hidden></div>
       <div class="land-bar" id="landBar" hidden>
         <div class="views" role="group" aria-label="地图视角"><button type="button" data-v="low" aria-pressed="false">低视角</button><button type="button" data-v="mid" aria-pressed="true">斜俯</button><button type="button" data-v="top" aria-pressed="false">俯视</button></div>
-        <div class="views" role="group" aria-label="图层"><button type="button" id="wTog" aria-pressed="false">水色</button></div>
+        <div class="views" role="group" aria-label="图层"><button type="button" id="wTog" aria-pressed="false">水色</button><button type="button" id="rTog" aria-pressed="false">航线</button></div>
       </div>
     </section>
 
@@ -1155,11 +1155,11 @@ function initVault(){
     /* the provinces, printed on the flat sheet: an id per pixel (provid.png, red channel = index+1 in borders.json's ids).
        The shader reads it to ink round the chosen province and wash it, to pencil round the one under the pointer,
        and lays a pale grey-blue watercolour over the sea and the lakes when the water is on */
-    const PVU={ uPid:{ value:null }, uWat:{ value:null }, uSel:{ value:0 }, uHov:{ value:0 }, uSelK:{ value:0 }, uHovK:{ value:0 }, uWatK:{ value:0 } };
+    const PVU={ uPid:{ value:null }, uWat:{ value:null }, uSel:{ value:0 }, uHov:{ value:0 }, uSelK:{ value:0 }, uHovK:{ value:0 }, uWatK:{ value:0 }, uRte:{ value:null }, uRteK:{ value:0 } };
     { const tl=new THREE.TextureLoader();
       const pid=tl.load("map/provid.png"); pid.magFilter=pid.minFilter=THREE.NearestFilter; pid.generateMipmaps=false; PVU.uPid.value=pid;
       const wat=tl.load("map/water.png"); wat.generateMipmaps=false; wat.minFilter=THREE.LinearFilter; PVU.uWat.value=wat; }
-    const PROV_GLSL=`uniform sampler2D uPid, uWat; uniform float uSel, uHov, uSelK, uHovK, uWatK;
+    const PROV_GLSL=`uniform sampler2D uPid, uWat, uRte; uniform float uSel, uHov, uSelK, uHovK, uWatK, uRteK;
       float pidAt(vec2 uv){ return floor(texture2D(uPid,uv).r*255.+.5); }
       float rim(vec2 uv, float tg, float inn, float r){ vec2 t=vec2(1./4056.,1./2021.)*r; float e=0.;
         for(int i=0;i<12;i++){ float a=float(i)*.5236; e+=abs(float(abs(pidAt(uv+vec2(cos(a),sin(a))*t)-tg)<.5)-inn); }
@@ -1177,7 +1177,8 @@ function initVault(){
             diffuseColor.rgb=mix(diffuseColor.rgb, diffuseColor.rgb*vec3(.8,.75,.68), inS*.55*uSelK);
             ink=max(ink, rim(vUv, uSel, inS, 2.6)*uSelK); }
           if(uHovK>0. && abs(uHov-uSel*step(.01,uSelK))>.5){ float inH=float(abs(id-uHov)<.5); ink=max(ink, rim(vUv, uHov, inH, 1.8)*.5*uHovK); }
-          diffuseColor.rgb=mix(diffuseColor.rgb, vec3(.23,.205,.18), ink); }
+          diffuseColor.rgb=mix(diffuseColor.rgb, vec3(.23,.205,.18), ink);
+          diffuseColor.rgb=mix(diffuseColor.rgb, vec3(.36,.33,.3), texture2D(uRte,vUv).a*uRteK*.85); }
         #endif`); };
       mat.customProgramCacheKey=()=>"prov-"+(k0?k0.call(mat):""); return mat; };
     const sheet=new THREE.Mesh(new THREE.PlaneGeometry(MW,MH), sheetMat); sheet.rotation.x=-Math.PI/2; sheet.position.y=.004; sheet.receiveShadow=true; G.add(sheet);
@@ -1199,19 +1200,58 @@ function initVault(){
       mage:"M12 3.5L14 10L20.5 12L14 14L12 20.5L10 14L3.5 12L10 10Z", gov:"M5 17.6H19V19.8H5ZM5.3 16.2L4 8.2L8.5 11.6L12 5.4L15.5 11.6L20 8.2L18.7 16.2Z",
       force:"M10.9 3.4H13.1V14.4H10.9ZM7.3 14.4H16.7V16.4H7.3ZM11 16.4H13V19H11ZM12 18.5a1.6 1.6 0 1 0 .01 0Z" };
     const SIGNS=["port","church","academy","guild","tribune","mage"], ROW={}, NAME={}; let INF=null, PROV=null;
-    const PV={ ids:[], lines:[], px:null, sel:0, hov:0, wat:0, a:{ sel:0, hov:0, wat:0 } };
+    const PV={ ids:[], lines:[], px:null, sel:0, hov:0, wat:0, rte:0, a:{ sel:0, hov:0, wat:0, rte:0 } };
     PV.ready=Promise.all([fetch("map/borders.json").then(r=>r.json()), new Promise(ok=>{ const im=new Image(); im.onload=()=>ok(im); im.src="map/provid.png"; })]).then(([B,im])=>{
       PV.ids=B.ids; PV.lines=B.lines; const c=document.createElement("canvas"); c.width=im.width; c.height=im.height; const g=c.getContext("2d"); g.drawImage(im,0,0);
       PV.w=im.width; PV.h=im.height; PV.px=g.getImageData(0,0,im.width,im.height).data; });
     PV.at=(u,v)=>{ if(!PV.px) return null; const x=Math.round(u), y=Math.round(v); if(x<0||y<0||x>=PV.w||y>=PV.h) return null; const i=PV.px[(y*PV.w+x)*4]; return i?PV.ids[i-1]:null; };
     PV.idx=pid=>pid?PV.ids.indexOf(pid)+1:0;
-    { let run=false; const step=()=>{ const T={ sel:PV.sel?1:0, hov:PV.hov?1:0, wat:PV.wat }; let moving=false;
+    { let run=false; const step=()=>{ const T={ sel:PV.sel?1:0, hov:PV.hov?1:0, wat:PV.wat, rte:PV.rte }; let moving=false;
         for(const k in T){ const d=T[k]-PV.a[k]; if(Math.abs(d)>.002){ PV.a[k]+=d*.18; moving=true; } else PV.a[k]=T[k]; }
-        PVU.uSelK.value=PV.a.sel; PVU.uHovK.value=PV.a.hov; PVU.uWatK.value=PV.a.wat; if(moving) requestAnimationFrame(step); else run=false; };
+        PVU.uSelK.value=PV.a.sel; PVU.uHovK.value=PV.a.hov; PVU.uWatK.value=PV.a.wat; PVU.uRteK.value=PV.a.rte; if(moving) requestAnimationFrame(step); else run=false; };
       PV.kick=()=>{ if(!run){ run=true; requestAnimationFrame(step); } }; }
     PV.choose=pid=>{ const i=PV.idx(pid); if(i){ PV.sel=1; PVU.uSel.value=i; } else PV.sel=0; PV.kick(); };
     PV.hover=pid=>{ const i=PV.idx(pid); if(i){ if(PVU.uHov.value!==i){ PVU.uHov.value=i; } PV.hov=1; } else PV.hov=0; PV.kick(); };
     PV.water=on=>{ PV.wat=on?1:0; PV.kick(); };
+    /* the sea routes: content/航线.md lists each route's ports in order; the line between two ports finds its own way
+       over the water (map/water.png), keeping off the coast, and is drawn once as a dashed line the sheet can show or hide */
+    PV.routes=on=>{ PV.rte=on?1:0; if(on && !PV.rteBuilt){ PV.rteBuilt=true; buildRoutes().then(t=>{ PVU.uRte.value=t; PV.kick(); }).catch(e=>console.error(e)); } PV.kick(); };
+    async function buildRoutes(){
+      const [md, im]=await Promise.all([getMD("航线.md"), new Promise(ok=>{ const i=new Image(); i.onload=()=>ok(i); i.src="map/water.png"; }), PV.ready]);
+      const S=4, W=Math.round(4056/S), Hh=Math.round(2021/S), N=W*Hh;           /* the search grid: one cell per four sheet pixels */
+      const cv=document.createElement("canvas"); cv.width=W; cv.height=Hh; const cx=cv.getContext("2d"); cx.drawImage(im,0,0,W,Hh);
+      const px4=cx.getImageData(0,0,W,Hh).data, sea=new Uint8Array(N); for(let i=0;i<N;i++) sea[i]=px4[i*4]>140?1:0;
+      /* how far each sea cell is from land, and which body of water it belongs to (so a port never snaps into a pond) */
+      const far=new Float32Array(N).fill(1e9), q=new Int32Array(N); let qh=0, qt=0;
+      for(let i=0;i<N;i++) if(!sea[i]){ far[i]=0; q[qt++]=i; }
+      while(qh<qt){ const i=q[qh++], x=i%W, y=(i/W)|0; for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){ const X=x+dx, Y=y+dy; if(X<0||Y<0||X>=W||Y>=Hh) continue; const j=Y*W+X; if(far[j]>far[i]+1){ far[j]=far[i]+1; q[qt++]=j; } } }
+      const body=new Int32Array(N).fill(-1), size=[]; for(let i=0;i<N;i++) if(sea[i] && body[i]<0){ const b=size.length; let n=0; qh=qt=0; q[qt++]=i; body[i]=b;
+        while(qh<qt){ const k=q[qh++]; n++; const x=k%W, y=(k/W)|0; for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){ const X=x+dx, Y=y+dy; if(X<0||Y<0||X>=W||Y>=Hh) continue; const j=Y*W+X; if(sea[j] && body[j]<0){ body[j]=b; q[qt++]=j; } } } size.push(n); }
+      const open=i=>sea[i] && size[body[i]]>4000;
+      const where=name=>{ const n=name.trim().toLowerCase(); for(const p of PROV.provinces){ if(p.name.toLowerCase()===n||p.id===n) return p.xy; const t=p.towns.find(t=>t.name.toLowerCase()===n); if(t) return t.xy; } return null; };
+      const snap=xy=>{ const [sx,sy]=px(...xy), x0=Math.round(sx/S), y0=Math.round(sy/S); let best=-1, bd=1e9;
+        for(let r=0;r<60 && best<0;r++) for(let dy=-r;dy<=r;dy++) for(let dx=-r;dx<=r;dx++){ const X=x0+dx, Y=y0+dy; if(X<0||Y<0||X>=W||Y>=Hh) continue; const j=Y*W+X; if(open(j)){ const d=dx*dx+dy*dy; if(d<bd){ bd=d; best=j; } } }
+        return best; };
+      /* the cheapest way over open water; the last few cells off the coast cost more, so a ship keeps a little sea room */
+      const path=(a,b)=>{ const dist=new Float64Array(N).fill(Infinity), from=new Int32Array(N).fill(-1), heap=[]; dist[a]=0; heap.push([0,a]);
+        const push=e=>{ heap.push(e); let i=heap.length-1; while(i){ const p=(i-1)>>1; if(heap[p][0]<=heap[i][0]) break; [heap[p],heap[i]]=[heap[i],heap[p]]; i=p; } };
+        const pop=()=>{ const top=heap[0], last=heap.pop(); if(heap.length){ heap[0]=last; let i=0; for(;;){ const l=i*2+1, r=l+1; let m=i; if(l<heap.length&&heap[l][0]<heap[m][0]) m=l; if(r<heap.length&&heap[r][0]<heap[m][0]) m=r; if(m===i) break; [heap[m],heap[i]]=[heap[i],heap[m]]; i=m; } } return top; };
+        heap.length=0; heap.push([0,a]);
+        while(heap.length){ const [d,i]=pop(); if(i===b) break; if(d>dist[i]) continue; const x=i%W, y=(i/W)|0;
+          for(let dy=-1;dy<=1;dy++) for(let dx=-1;dx<=1;dx++){ if(!dx&&!dy) continue; const X=x+dx, Y=y+dy; if(X<0||Y<0||X>=W||Y>=Hh) continue; const j=Y*W+X; if(!sea[j]) continue;
+            const nd=d+Math.hypot(dx,dy)*(1+4*Math.max(0,1-far[j]/7)); if(nd<dist[j]){ dist[j]=nd; from[j]=i; push([nd,j]); } } }
+        if(from[b]<0) return null; const out=[]; for(let i=b;i>=0;i=from[i]){ out.push([(i%W)*S, ((i/W)|0)*S]); if(i===a) break; } return out.reverse(); };
+      /* pull the grid path taut wherever a straight line keeps clear of the coast, then round the corners */
+      const clear=([x1,y1],[x2,y2])=>{ const n=Math.ceil(Math.max(Math.abs(x2-x1),Math.abs(y2-y1))/S)+1; for(let t=0;t<=n;t++){ const x=Math.round((x1+(x2-x1)*t/n)/S), y=Math.round((y1+(y2-y1)*t/n)/S); if(far[y*W+x]<3) return false; } return true; };
+      const pull=pts=>{ const o=[pts[0]]; let i=0; while(i<pts.length-1){ let j=pts.length-1; while(j>i+1 && !clear(pts[i],pts[j])) j--; o.push(pts[j]); i=j; } return o; };
+      const smooth=pts=>{ for(let k=0;k<4;k++){ const o=[pts[0]]; for(let i=0;i<pts.length-1;i++){ const [x1,y1]=pts[i], [x2,y2]=pts[i+1]; o.push([x1*.75+x2*.25,y1*.75+y2*.25],[x1*.25+x2*.75,y1*.25+y2*.75]); } o.push(pts[pts.length-1]); pts=o; } return pts; };
+      const out=document.createElement("canvas"); out.width=2028; out.height=1011; const g=out.getContext("2d"); g.scale(.5,.5);
+      g.strokeStyle="#000"; g.lineWidth=4.2; g.lineCap="round"; g.lineJoin="round"; g.setLineDash([16,13]);
+      const routes=[]; let cur=null; md.replace(/\r/g,"").split("\n").forEach(l=>{ l=l.trim(); if(l.startsWith("## ")) routes.push(cur=[]); else if(cur && /^[-*]\s/.test(l)) cur.push(l.replace(/^[-*]\s+/,"")); });
+      for(const ports of routes) for(let i=0;i<ports.length-1;i++){ const A=where(ports[i]), B=where(ports[i+1]); if(!A||!B) continue;
+        const a=snap(A), b=snap(B); if(a<0||b<0||body[a]!==body[b]) continue; const pts=path(a,b); if(!pts||pts.length<2) continue;
+        const sm=smooth(pull(pts)); g.beginPath(); sm.forEach(([x,y],k)=>k?g.lineTo(x,y):g.moveTo(x,y)); g.stroke(); }
+      const t=new THREE.CanvasTexture(out); t.generateMipmaps=true; return t; }
     const px=(x,y)=>[(x+440)*2.4, y*2.4];
     const spaced=(g,text,x,y,track)=>{ const ws=[...text].map(c=>g.measureText(c).width), w=ws.reduce((a,b)=>a+b,0)+track*(ws.length-1); let cx=x-w/2; [...text].forEach((c,i)=>{ g.fillText(c,cx,y); cx+=ws[i]+track; }); };
     const sign=(g,kind,x,y,s,bishop)=>{ g.save(); g.translate(x-12*s,y-12*s); g.scale(s,s); g.fillStyle=bishop?SEE_INK:SIGN_INK; g.fill(new Path2D(GL[kind]));
@@ -1608,6 +1648,7 @@ function initVault(){
       fly={ from:{ pos:mapCam.position.clone(), look:ctl.target.clone() }, to, t:0 }; }
     landBar.querySelectorAll("button[data-v]").forEach(b=>b.addEventListener("click",()=>{ if(LS.phase==="on") setView(b.dataset.v); }));
     { const wb=document.getElementById("wTog"); wb.addEventListener("click",()=>{ const on=wb.getAttribute("aria-pressed")!=="true"; wb.setAttribute("aria-pressed",on); PV.water(on); }); }
+    { const rb=document.getElementById("rTog"); rb.addEventListener("click",()=>{ const on=rb.getAttribute("aria-pressed")!=="true"; rb.setAttribute("aria-pressed",on); PV.routes(on); }); }
     /* framing the land: at a slant from the south, as on the Map Table, fitted inside the stage beside the readout card */
     V.landSize=(w,h)=>{ const S=stage.getBoundingClientRect();
       const fit=Math.max(1,Math.min(1.3,.8*w/Math.max(1,S.right-S.left)));

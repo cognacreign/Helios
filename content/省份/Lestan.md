@@ -2,7 +2,7 @@
 name: Lestan
 role: Daeris 的本家 · East
 faith: 当地人信得淡，礼数却周全
-at: 640, 690
+at: 569, 648
 ---
 
 ## 简介
