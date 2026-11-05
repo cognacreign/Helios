@@ -527,7 +527,8 @@ function loadProvinces(){
         .map(([n,xy,kind])=>({ name:n, xy:xyOf(xy), port:/港/.test(kind||"") })).filter(t=>t.xy);
       provinces.push({ id, name:fm.name||file, region, xy:at, label:xyOf(fm.label)||at, capital:yesOf(fm.capital), palace:xyOf(fm.palace),
         towns, camps:(fm.camps||"").split(" / ").map(xyOf).filter(Boolean),
-        dossier:{ role:(fm.role||region).split(" · ").map(x=>x.trim()).filter(Boolean), faith:fm.faith||"", living:fm.living||"",
+        dossier:{ role:[...(fm.role||"").split(" · "), region].map(x=>x.trim()).filter(Boolean),   /* who it is, then its region from 目录.md */
+        faith:fm.faith||"", living:fm.living||"",
           intro:sec["简介"]||"", look:sec["风貌"]||"", folk:sec["民风"]||"", past, power:sec["局势"]||"", why } }); });
     return { Pv:{ provinces }, I }; });
 }

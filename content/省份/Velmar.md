@@ -1,5 +1,6 @@
 ---
 name: Velmar
+role: 真正的北方
 faith: 教会遍地，约八成信教
 living: 麦田 · 庄园
 at: 361, 321

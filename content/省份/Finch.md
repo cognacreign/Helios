@@ -1,5 +1,6 @@
 ---
 name: Finch
+role: 雪山背面
 faith: 王国里隐修院最多的地方
 port: 是
 at: 682, 162

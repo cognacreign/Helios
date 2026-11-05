@@ -1,5 +1,6 @@
 ---
 name: Rorika
+role: 终焉之地
 living: 渔猎 · 皮毛 · 琥珀
 port: 是
 at: 1071, 48

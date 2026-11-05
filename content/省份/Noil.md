@@ -1,5 +1,6 @@
 ---
 name: Noil
+role: 北境要塞
 living: 魔法矿石 · 银 · 铁
 at: 486, 290
 label: 531, 316

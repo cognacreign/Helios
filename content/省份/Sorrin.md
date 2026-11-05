@@ -1,5 +1,6 @@
 ---
 name: Sorrin
+role: 南境驻军港
 faith: 哲学代替信仰
 port: 是
 at: 510, 733

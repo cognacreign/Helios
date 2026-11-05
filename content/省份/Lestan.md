@@ -1,5 +1,6 @@
 ---
 name: Lestan
+role: 东岸平原
 faith: 当地人信得淡，礼数却周全
 at: 569, 648
 ---

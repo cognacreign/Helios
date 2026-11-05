@@ -1,5 +1,6 @@
 ---
 name: Caelis
+role: 王都
 faith: 贵族谈哲学，平民上教堂
 port: 是
 at: 524, 549

@@ -1,5 +1,6 @@
 ---
 name: Ginon
+role: 北方航线的尽头
 living: 渔猎 · 皮毛 · 琥珀
 port: 是
 at: 977, 98

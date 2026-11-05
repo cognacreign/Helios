@@ -1,5 +1,6 @@
 ---
 name: Carnau
+role: 西山口的关防
 at: 218, 393
 label: 286, 418
 ---

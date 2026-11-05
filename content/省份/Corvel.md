@@ -1,5 +1,6 @@
 ---
 name: Corvel
+role: 王都以南 · 河网
 faith: 各行会拜自己的守护圣人
 living: 纺织 · 窑瓷 · 河运 · 蔬果
 at: 463, 652

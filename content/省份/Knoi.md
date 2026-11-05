@@ -1,5 +1,6 @@
 ---
 name: Knoi
+role: 背靠夜域的山城
 faith: 教会的祈祷和祖先的禁忌混在一起
 living: 打猎 · 伐木
 at: 753, 316
