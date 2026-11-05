@@ -228,6 +228,12 @@
   :root.vault .title span{ visibility:hidden }
   /* the structure laid on the sand: the html chart steps aside, its houses stay as invisible hit targets over the runes */
   :root.sand #spec, :root.sand #map, :root.sand.rune-on .links{ visibility:hidden }
+  /* or, over the sand, the same flat chart as without it, on a paper panel; the sand stays round it */
+  :root.sand.framed #spec{ visibility:visible }
+  :root.framed .stage{ --ink:#3b342c; --dim:#8a7f72; --line:rgba(59,52,44,.34); --faint:rgba(59,52,44,.1); --gold:#8d7142; --gold-soft:rgba(141,113,66,.32); --fallen:rgba(59,52,44,.38); color:var(--ink) }
+  :root.framed .stage::before{ content:""; position:absolute; inset:-1rem -1.2rem -1.2rem; border-radius:1.6rem; pointer-events:none;
+    background:rgba(250,247,242,.8); border:.5px solid rgba(59,52,44,.16); box-shadow:0 14px 44px rgba(50,34,24,.16);
+    -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px) }
   .house.ghost{ opacity:0; transition:none }
   :root.sand .title h1, :root.sand header .mark, :root.sand .sub{ text-shadow:0 1px 14px rgba(30,16,30,.75) } .house.ghost:focus-visible{ opacity:1 }
   :root.vault, :root.sand{ --bg:#3a3446; --ink:#ebe3d5; --dim:#8f8576; --line:rgba(235,227,213,.3); --faint:rgba(235,227,213,.1); --gold:#d8b98c;
@@ -550,7 +556,7 @@ function makeButtons(){ H.forEach(h=>{
 const GUT=13, MTOP=47, colX=i=>GUT+(i+.5)*(100-GUT)/VH0.length;
 const VH0=H.filter(h=>!h.crown);
 H.forEach(h=>{ h.spec = h.crown ? [GUT+(100-GUT)/2, 10] : [colX(VH0.indexOf(h)), 33]; });
-let PARTIES=[];      /* grouped from each house's party by loadHouses */
+let PARTIES=[], FRAMED=false;      /* FRAMED: over the sand, the structure sits on a paper panel instead of being written into the sand */      /* grouped from each house's party by loadHouses */
 function buildMatrix(){
   const M=document.getElementById("matrix"); M.style.setProperty("--gut",GUT+"%"); M.style.setProperty("--n",VH0.length); document.getElementById("spec").style.setProperty("--mtop",MTOP+"%");
   const lab=(zh,en,g)=>`<div class="lab"${g?` data-g="${g}"`:""}><b>${zh}</b>${en}</div>`;
@@ -613,8 +619,10 @@ function place(){
   document.querySelector(".grid").classList.toggle("solo", mode==="vault");
   document.documentElement.classList.toggle("vault", mode==="vault");
   links.style.visibility = mode==="vault" ? "hidden" : "";
-  const sandOn=!!V.ready; document.documentElement.classList.toggle("sand", sandOn); document.documentElement.classList.toggle("rune-on", sandOn && mode!=="vault");
-  H.forEach(h=>h.el.classList.toggle("ghost", sandOn && mode!=="vault"));
+  const sandOn=!!V.ready; FRAMED=sandOn && mode==="spec";
+  document.documentElement.classList.toggle("sand", sandOn); document.documentElement.classList.toggle("rune-on", sandOn && mode!=="vault" && !FRAMED);
+  document.documentElement.classList.toggle("framed", FRAMED);
+  H.forEach(h=>h.el.classList.toggle("ghost", sandOn && mode!=="vault" && !FRAMED));
   if(V.chartDraw) V.chartDraw();
   if(mode==="map") drawDisc();
   if(mode==="vault"){ if(current==="helios") pick("daeris"); else pick(current); }
@@ -1805,9 +1813,9 @@ function initVault(){
       if(V.board){ const BACK=4;
         if(V.boardLift==null){ let mx=-9; for(let a=-12;a<=12;a+=1.5) for(let b=-12;b<=12;b+=1.5) mx=Math.max(mx, sandY(BOARD.x+a, BOARD.z-BACK+b)); V.boardLift=Math.max(0, mx+.9-V.boardY); }
         const k2=mode!=="vault"?cu.bl:0, bo=V.boardOut||0; V.board.position.z=BOARD.z-BACK*k2-42*bo; V.board.position.x=BOARD.x+2.5*k2+10*bo; V.board.position.y=V.boardY+V.boardLift*k2; V.board.visible=bo<.999; }
-      runeMat.opacity=(mode!=="vault" ? Math.max(0,(cu.bl-.35)/.65) : runeMat.opacity*(1-kk)) * (V.runeK==null?1:V.runeK);
+      runeMat.opacity=(mode!=="vault" ? Math.max(0,(cu.bl-.35)/.65) : runeMat.opacity*(1-kk)) * (V.runeK==null?1:V.runeK) * (FRAMED?0:1);
       VH.forEach(h=>{ h.seal.visible=cu.bl<.45; });
-      if(mode!=="vault" && V.ready){ const S=stage.getBoundingClientRect(), qv=new THREE.Vector3();
+      if(mode!=="vault" && V.ready && !FRAMED){ const S=stage.getBoundingClientRect(), qv=new THREE.Vector3();
         H.forEach(h=>{ qv.copy(runeAt(h)).project(camera); h.el.style.setProperty("--x", f((qv.x+1)/2*V.vw-S.left)+"px"); h.el.style.setProperty("--y", f((1-qv.y)/2*V.vh-S.top)+"px"); }); } }
     const sel=VH.findIndex(h=>h.id===current);
     const fw=new THREE.Vector3(0,0,-1).applyQuaternion(camera.quaternion), rgt=new THREE.Vector3(1,0,0).applyQuaternion(camera.quaternion), upv=new THREE.Vector3(0,1,0).applyQuaternion(camera.quaternion);
