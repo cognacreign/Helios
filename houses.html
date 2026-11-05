@@ -230,10 +230,9 @@
   :root.sand #spec, :root.sand #map, :root.sand.rune-on .links{ visibility:hidden }
   /* or, over the sand, the same flat chart as without it, on a paper panel; the sand stays round it */
   :root.sand.framed #spec{ visibility:visible }
-  :root.framed .stage{ --ink:#3b342c; --dim:#8a7f72; --line:rgba(59,52,44,.34); --faint:rgba(59,52,44,.1); --gold:#8d7142; --gold-soft:rgba(141,113,66,.32); --fallen:rgba(59,52,44,.38); color:var(--ink) }
-  :root.framed .stage::before{ content:""; position:absolute; inset:-1rem -1.2rem -1.2rem; border-radius:1.6rem; pointer-events:none;
-    background:rgba(250,247,242,.8); border:.5px solid rgba(59,52,44,.16); box-shadow:0 14px 44px rgba(50,34,24,.16);
-    -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px) }
+  /* the same panel as the house card beside it, cut to the chart's own height */
+  :root.framed .stage::before{ content:""; position:absolute; left:-1rem; right:-1rem; top:0; height:var(--fh,100%); border-radius:1.6rem; pointer-events:none;
+    background:var(--panel); border:.5px solid var(--line); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px) }
   .house.ghost{ opacity:0; transition:none }
   :root.sand .title h1, :root.sand header .mark, :root.sand .sub{ text-shadow:0 1px 14px rgba(30,16,30,.75) } .house.ghost:focus-visible{ opacity:1 }
   :root.vault, :root.sand{ --bg:#3a3446; --ink:#ebe3d5; --dim:#8f8576; --line:rgba(235,227,213,.3); --faint:rgba(235,227,213,.1); --gold:#d8b98c;
@@ -556,6 +555,10 @@ function makeButtons(){ H.forEach(h=>{
 const GUT=13, MTOP=47, colX=i=>GUT+(i+.5)*(100-GUT)/VH0.length;
 const VH0=H.filter(h=>!h.crown);
 H.forEach(h=>{ h.spec = h.crown ? [GUT+(100-GUT)/2, 10] : [colX(VH0.indexOf(h)), 33]; });
+/* the panel ends a little below the chart's last row */
+function fitFrame(){ if(!FRAMED) return; const S=stage.getBoundingClientRect(), rows=[...document.querySelectorAll("#matrix > *")];
+  const bot=Math.max(0,...rows.map(r=>r.getBoundingClientRect().bottom))-S.top; if(bot>0) stage.style.setProperty("--fh", Math.min(S.height, bot+parseFloat(getComputedStyle(document.documentElement).fontSize)*1.6)+"px"); }
+addEventListener("resize", ()=>fitFrame());
 let PARTIES=[], FRAMED=false;      /* FRAMED: over the sand, the structure sits on a paper panel instead of being written into the sand */      /* grouped from each house's party by loadHouses */
 function buildMatrix(){
   const M=document.getElementById("matrix"); M.style.setProperty("--gut",GUT+"%"); M.style.setProperty("--n",VH0.length); document.getElementById("spec").style.setProperty("--mtop",MTOP+"%");
@@ -622,6 +625,7 @@ function place(){
   const sandOn=!!V.ready; FRAMED=sandOn && mode==="spec";
   document.documentElement.classList.toggle("sand", sandOn); document.documentElement.classList.toggle("rune-on", sandOn && mode!=="vault" && !FRAMED);
   document.documentElement.classList.toggle("framed", FRAMED);
+  if(FRAMED){ fitFrame(); setTimeout(fitFrame,1000); }
   H.forEach(h=>h.el.classList.toggle("ghost", sandOn && mode!=="vault" && !FRAMED));
   if(V.chartDraw) V.chartDraw();
   if(mode==="map") drawDisc();
