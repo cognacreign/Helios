@@ -109,7 +109,7 @@
   .ledger .pv .kv{ margin:1rem 0 0; display:grid; grid-template-columns:3.2rem minmax(0,1fr); gap:.7rem .9rem; align-items:baseline }
   .ledger .pv .kv dt{ margin:0; font-family:var(--mono); font-size:.6rem; letter-spacing:.2em; color:var(--l-dim) }
   .ledger .pv .kv dd{ display:block; margin:0; font-size:.82rem; line-height:1.72; text-align:justify }
-  .ledger .pv .kv .sep{ padding-top:.9rem; border-top:.5px solid var(--l-line) }
+  .ledger .pv .kv .rule{ grid-column:1/-1; margin:.2rem 0 0; height:0; border:0; border-top:.5px solid var(--l-line) }   /* one rule across both columns */
   .ledger .pv ol{ list-style:none; margin:0; padding:0 } .ledger .pv ol li{ display:grid; grid-template-columns:1.7rem minmax(0,1fr); line-height:1.72 }
   .ledger .pv ol b{ font-family:var(--mono); font-weight:400; font-size:.6rem; color:var(--l-dim); line-height:2.4 }
   .ledger .seatbar{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.7rem .8rem }
@@ -1499,12 +1499,12 @@ function initVault(){
       /* the same rule falls under the introduction on every card, and again above the seats */
       const rows=[...[["风貌",D.look],["民风",D.folk]].filter(x=>x[1]).map(([t,x])=>[t,esc(x)]),
         ...((D.past||[]).length?[["旧事",`<ol>${D.past.map((t,i)=>`<li><b>${String(i+1).padStart(2,"0")}</b><span>${esc(t)}</span></li>`).join("")}</ol>`]]:[])]
-        .map(([t,x],i)=>`<dt${i?"":' class="sep"'}>${t}</dt><dd${i?"":' class="sep"'}>${x}</dd>`).join("");
+        .map(([t,x],i)=>`${i?"":'<hr class="rule">'}<dt>${t}</dt><dd>${x}</dd>`).join("");
       ledger.innerHTML=`<div class="in pv"><button type="button" class="back">‹ Influence</button>
         <h2>${esc(p.name||pid)}</h2><p class="role">${(D.role||[p.region]).map(esc).join("<i>·</i>")}</p>
         ${stats.length?`<p class="stats">${stats.map(([k,v])=>`<span><b>${k}</b>${esc(v)}</span>`).join("<em>｜</em>")}</p>`:""}
         ${D.intro?`<p class="intro">${esc(D.intro)}</p>`:""}
-        <dl class="kv">${rows}<dt class="sep">席位</dt><dd class="sep"><div class="seatbar">${cells}</div>
+        <dl class="kv">${rows}<hr class="rule"><dt>席位</dt><dd><div class="seatbar">${cells}</div>
           <p class="why" id="pvWhy" data-base="${esc(D.power||"")}">${esc(D.power||"")}</p></dd></dl></div>`; }
     function render(){ PV.choose(SEL && SEL.kind==="prov" ? SEL.id : null); if(!INF||!PROV) return; ledger.classList.toggle("wide", !!SEL && SEL.kind==="prov");
       if(!SEL) renderIndex(); else if(SEL.kind==="house") renderHouse(SEL.id); else if(SEL.kind==="prov") renderProv(SEL.id); else renderIndex(); }
