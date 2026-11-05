@@ -188,7 +188,7 @@
     grid-auto-rows:minmax(0,auto); align-content:start; pointer-events:auto }
   .matrix > *{ padding:.55rem .3rem; text-align:center; font-size:.8rem; line-height:1.45; min-width:0; overflow-wrap:anywhere; transition:color .3s }
   .matrix .t{ display:inline-block; padding:0 .2rem }
-  .matrix .lab{ text-align:left; padding-left:0; font-family:var(--mono); font-size:.62rem; letter-spacing:.14em; color:var(--dim); line-height:1.5 }
+  .matrix .lab{ text-align:left; padding-left:0; white-space:nowrap; overflow-wrap:normal; overflow:visible; font-family:var(--mono); font-size:.62rem; letter-spacing:.14em; color:var(--dim); line-height:1.5 }
   .matrix .lab b{ display:block; font-family:var(--serif); font-weight:500; font-size:.78rem; letter-spacing:.1em; color:var(--ink) }
   .matrix .lab[data-g]::before{ content:attr(data-g); display:block; font-size:.54rem; letter-spacing:.3em; color:var(--gold); margin-bottom:.1rem }
   .layer.off .matrix{ pointer-events:none }
@@ -552,7 +552,7 @@ function makeButtons(){ H.forEach(h=>{
   stage.appendChild(b); h.el=b;
 }); }
 /* columns: a gutter for the row names, then one column per house, left to right from the north's conservatives to the free south */
-const GUT=8, MTOP=47, colX=i=>GUT+(i+.5)*(100-GUT)/VH0.length;
+const GUT=6, MTOP=47, colX=i=>GUT+(i+.5)*(100-GUT)/VH0.length;
 const VH0=H.filter(h=>!h.crown);
 H.forEach(h=>{ h.spec = h.crown ? [GUT+(100-GUT)/2, 10] : [colX(VH0.indexOf(h)), 33]; });
 /* the panel ends a little below the chart's last row */
