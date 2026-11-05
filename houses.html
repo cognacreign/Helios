@@ -1007,7 +1007,8 @@ function initVault(){
     sh.lineTo(-w+r,h); sh.quadraticCurveTo(-w,h,-w,h-r); sh.lineTo(-w,-h+r); sh.quadraticCurveTo(-w,-h,-w+r,-h);
     const g=new THREE.ShapeGeometry(sh,10); g.rotateX(Math.PI/2); return g; })();
   /* each card lies a little off the line and a little turned, as if dealt by hand */
-  const ZJ=[.55,-.4,.2,-.55,.42,-.22], XJ=[0,.18,-.12,.14,-.1,.05], TW=[.17,-.09,.12,-.14,.07,-.16];
+  const ZJ=[.55,-.4,.2,-.55,.42,-.22,.32], XJ=[0,.18,-.12,.14,-.1,.05,-.08], TW=[.17,-.09,.12,-.14,.07,-.16,.1];
+  const jit=(A,i)=>A[i%A.length];      /* more houses than jitters: go round again */
   VH.forEach((h,i)=>{
     const mat=new THREE.MeshStandardMaterial({ color:0xffffff, roughness:.6, metalness:0, envMapIntensity:.6, normalScale:new THREE.Vector2(.9,.9) });
     cardMaps(h.id).then(t=>{ mat.map=t.map; mat.normalMap=t.normal; mat.needsUpdate=true; });
@@ -1015,8 +1016,8 @@ function initVault(){
     const m=new THREE.Mesh(geo,[mat,edge]); m.castShadow=m.receiveShadow=true; m.scale.setScalar(SC);
     const bmat=new THREE.MeshStandardMaterial({ color:new THREE.Color(.85,.85,.85), roughness:.6, envMapIntensity:.5 }); cardBack(h.id).then(t=>{ bmat.map=t; bmat.needsUpdate=true; });
     const back=new THREE.Mesh(backGeo, bmat); back.position.y=-.0045; m.add(back);
-    const z=CARDZ+ZJ[i], tw=TW[i];
-    const home=new THREE.Vector3((i-(n-1)/2)*d+XJ[i], .004+i*.095, z);       /* each card a card's thickness above the one to its left */
+    const z=CARDZ+jit(ZJ,i), tw=jit(TW,i);
+    const home=new THREE.Vector3((i-(n-1)/2)*d+jit(XJ,i), .004+i*.095, z);       /* each card a card's thickness above the one to its left */
     m.userData={ id:h.id, i, home, tw, mat, v:new THREE.Vector3(), r:new THREE.Vector3(0,tw,0), rv:new THREE.Vector3() };
     m.position.copy(home); m.rotation.set(0,tw,0); scene.add(m); h.seal=m;
   });
@@ -1736,7 +1737,7 @@ function initVault(){
     const top=h*.33, bot=h-((vCols.offsetHeight||130)+62), q=new THREE.Vector3();
     /* spread the hand to suit the window: wide windows get a looser deal */
     d=Math.max(1.95, Math.min(3.1, 1.95+(w/h-1.25)*1.8));
-    VH.forEach((hh,i)=>{ const u=hh.seal.userData; u.home.x=(i-(n-1)/2)*d+XJ[i]; });
+    VH.forEach((hh,i)=>{ const u=hh.seal.userData; u.home.x=(i-(n-1)/2)*d+jit(XJ,i); });
     const pts=[[0,2.2,CARDZ-1.7],[0,.3,CARDZ+4.3]];
     VH.forEach((hh,i)=>{ const u=hh.seal.userData, c=Math.cos(u.tw), sn=Math.sin(u.tw); [[-1.75,-3.01],[1.75,-3.01],[-1.75,3.01],[1.75,3.01]].forEach(([a,b])=>pts.push([u.home.x+a*c+b*sn, u.home.y, u.home.z-a*sn+b*c])); });
     const measure=k=>{ camera.position.copy(LOOK).addScaledVector(CAM0.clone().sub(LOOK),k); camera.lookAt(LOOK); camera.updateMatrixWorld();
