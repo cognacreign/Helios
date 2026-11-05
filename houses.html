@@ -523,7 +523,7 @@ function loadProvinces(){
           rest2.join("、").replace(/也在/g,"").split(/\s*[、\/]\s*/).forEach(n=>n.trim()&&put(n,1)); } });
       if(yesOf(fm.port)) I.port.push(id);
       const past=(sec["旧事"]||"").split("\n").map(x=>x.trim()).filter(x=>/^\d+[.、]/.test(x)).map(x=>x.replace(/^\d+[.、]\s*/,""));
-      const towns=(fm.towns||"").split(" / ").map(t=>t.split(" · ").map(x=>x.trim())).filter(t=>t[0])
+      const towns=(fm.towns||"").split(" / ").map(t=>t.split(" · ").map(x=>x.trim())).filter(t=>t[0]).map(t=>xyOf(t[0])?["",...t]:t)
         .map(([n,xy,kind])=>({ name:n, xy:xyOf(xy), port:/港/.test(kind||"") })).filter(t=>t.xy);
       provinces.push({ id, name:fm.name||file, region, xy:at, label:xyOf(fm.label)||at, capital:yesOf(fm.capital), palace:xyOf(fm.palace),
         towns, camps:(fm.camps||"").split(" / ").map(xyOf).filter(Boolean),
@@ -1228,7 +1228,7 @@ function initVault(){
       const body=new Int32Array(N).fill(-1), size=[]; for(let i=0;i<N;i++) if(sea[i] && body[i]<0){ const b=size.length; let n=0; qh=qt=0; q[qt++]=i; body[i]=b;
         while(qh<qt){ const k=q[qh++]; n++; const x=k%W, y=(k/W)|0; for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){ const X=x+dx, Y=y+dy; if(X<0||Y<0||X>=W||Y>=Hh) continue; const j=Y*W+X; if(sea[j] && body[j]<0){ body[j]=b; q[qt++]=j; } } } size.push(n); }
       const open=i=>sea[i] && size[body[i]]>4000;
-      const where=name=>{ const n=name.trim().toLowerCase(); for(const p of PROV.provinces){ if(p.name.toLowerCase()===n||p.id===n) return p.xy; const t=p.towns.find(t=>t.name.toLowerCase()===n); if(t) return t.xy; } return null; };
+      const where=name=>{ const n=name.trim().toLowerCase(); for(const p of PROV.provinces){ if(p.name.toLowerCase()===n||p.id===n){ const pt=p.towns.find(t=>t.port); return pt?pt.xy:p.xy; } const t=p.towns.find(t=>t.name&&t.name.toLowerCase()===n); if(t) return t.xy; } return null; };
       const snap=xy=>{ const [sx,sy]=px(...xy), x0=Math.round(sx/S), y0=Math.round(sy/S); let best=-1, bd=1e9;
         for(let r=0;r<60 && best<0;r++) for(let dy=-r;dy<=r;dy++) for(let dx=-r;dx<=r;dx++){ const X=x0+dx, Y=y0+dy; if(X<0||Y<0||X>=W||Y>=Hh) continue; const j=Y*W+X; if(open(j)){ const d=dx*dx+dy*dy; if(d<bd){ bd=d; best=j; } } }
         return best; };
@@ -1239,18 +1239,25 @@ function initVault(){
         heap.length=0; heap.push([0,a]);
         while(heap.length){ const [d,i]=pop(); if(i===b) break; if(d>dist[i]) continue; const x=i%W, y=(i/W)|0;
           for(let dy=-1;dy<=1;dy++) for(let dx=-1;dx<=1;dx++){ if(!dx&&!dy) continue; const X=x+dx, Y=y+dy; if(X<0||Y<0||X>=W||Y>=Hh) continue; const j=Y*W+X; if(!sea[j]) continue;
-            const nd=d+Math.hypot(dx,dy)*(1+4*Math.max(0,1-far[j]/7)); if(nd<dist[j]){ dist[j]=nd; from[j]=i; push([nd,j]); } } }
+            const nd=d+Math.hypot(dx,dy)*(1+4*Math.max(0,1-far[j]/8)); if(nd<dist[j]){ dist[j]=nd; from[j]=i; push([nd,j]); } } }
         if(from[b]<0) return null; const out=[]; for(let i=b;i>=0;i=from[i]){ out.push([(i%W)*S, ((i/W)|0)*S]); if(i===a) break; } return out.reverse(); };
-      /* pull the grid path taut wherever a straight line keeps clear of the coast, then round the corners */
-      const clear=([x1,y1],[x2,y2])=>{ const n=Math.ceil(Math.max(Math.abs(x2-x1),Math.abs(y2-y1))/S)+1; for(let t=0;t<=n;t++){ const x=Math.round((x1+(x2-x1)*t/n)/S), y=Math.round((y1+(y2-y1)*t/n)/S); if(far[y*W+x]<3) return false; } return true; };
-      const pull=pts=>{ const o=[pts[0]]; let i=0; while(i<pts.length-1){ let j=pts.length-1; while(j>i+1 && !clear(pts[i],pts[j])) j--; o.push(pts[j]); i=j; } return o; };
-      const smooth=pts=>{ for(let k=0;k<4;k++){ const o=[pts[0]]; for(let i=0;i<pts.length-1;i++){ const [x1,y1]=pts[i], [x2,y2]=pts[i+1]; o.push([x1*.75+x2*.25,y1*.75+y2*.25],[x1*.25+x2*.75,y1*.25+y2*.75]); } o.push(pts[pts.length-1]); pts=o; } return pts; };
+      /* the grid path zigzags; ease it into a curve, a little at a time, never letting a point drift nearer the coast than
+         five cells (or nearer than it already was, close to a port) */
+      const fa=([x,y])=>far[Math.min(Hh-1,Math.max(0,y|0))*W+Math.min(W-1,Math.max(0,x|0))];
+      const resample=(p,step)=>{ const s=[0]; for(let i=1;i<p.length;i++) s.push(s[i-1]+Math.hypot(p[i][0]-p[i-1][0],p[i][1]-p[i-1][1]));
+        const L=s[s.length-1], n=Math.max(2,Math.floor(L/step)+1), o=[]; let k=0;
+        for(let m=0;m<n;m++){ const t=L*m/(n-1); while(k<p.length-2 && s[k+1]<t) k++; const u=s[k+1]>s[k]?(t-s[k])/(s[k+1]-s[k]):0; o.push([p[k][0]+(p[k+1][0]-p[k][0])*u, p[k][1]+(p[k+1][1]-p[k][1])*u]); } return o; };
+      const relax=pts=>{ let p=resample(pts.map(([x,y])=>[x/S+.5,y/S+.5]),1.5), lim=p.map(q=>Math.min(5,fa(q)));
+        for(let it=0;it<400;it++){ for(let i=1;i<p.length-1;i++){ const q=[p[i][0]+.5*((p[i-1][0]+p[i+1][0])/2-p[i][0]), p[i][1]+.5*((p[i-1][1]+p[i+1][1])/2-p[i][1])], f=fa(q);
+            if(f>=lim[i]){ p[i]=q; lim[i]=Math.min(5,Math.max(lim[i],f)); } }
+          if(it%50===49){ p=resample(p,1.5); lim=p.map(q=>Math.min(5,fa(q))); } }
+        return p.map(([x,y])=>[x*S,y*S]); };
       const out=document.createElement("canvas"); out.width=2028; out.height=1011; const g=out.getContext("2d"); g.scale(.5,.5);
       g.strokeStyle="#000"; g.lineWidth=4.2; g.lineCap="round"; g.lineJoin="round"; g.setLineDash([16,13]);
       const routes=[]; let cur=null; md.replace(/\r/g,"").split("\n").forEach(l=>{ l=l.trim(); if(l.startsWith("## ")) routes.push(cur=[]); else if(cur && /^[-*]\s/.test(l)) cur.push(l.replace(/^[-*]\s+/,"")); });
       for(const ports of routes) for(let i=0;i<ports.length-1;i++){ const A=where(ports[i]), B=where(ports[i+1]); if(!A||!B) continue;
         const a=snap(A), b=snap(B); if(a<0||b<0||body[a]!==body[b]) continue; const pts=path(a,b); if(!pts||pts.length<2) continue;
-        const sm=smooth(pull(pts)); g.beginPath(); sm.forEach(([x,y],k)=>k?g.lineTo(x,y):g.moveTo(x,y)); g.stroke(); }
+        const sm=relax(pts); g.beginPath(); sm.forEach(([x,y],k)=>k?g.lineTo(x,y):g.moveTo(x,y)); g.stroke(); }
       const t=new THREE.CanvasTexture(out); t.generateMipmaps=true; return t; }
     const px=(x,y)=>[(x+440)*2.4, y*2.4];
     const spaced=(g,text,x,y,track)=>{ const ws=[...text].map(c=>g.measureText(c).width), w=ws.reduce((a,b)=>a+b,0)+track*(ws.length-1); let cx=x-w/2; [...text].forEach((c,i)=>{ g.fillText(c,cx,y); cx+=ws[i]+track; }); };
@@ -1284,7 +1291,7 @@ function initVault(){
       /* the towns that are not seats: Finch's port, the market town in the Night Zone's east, and the herders' camps around it */
       { g.save(); g.fillStyle=INK; g.strokeStyle=INK; g.font='500 21px "Cormorant Garamond", Georgia, serif';
         for(const t of Pv.provinces.flatMap(p=>p.towns)){ const [x,y]=px(...t.xy);
-          g.lineWidth=2.2; g.beginPath(); g.arc(x,y,5.5,0,Math.PI*2); g.stroke(); spaced(g,t.name.toUpperCase(),x,y-19,5); if(t.port) sign(g,"port",x,y+19,.7); }
+          g.lineWidth=2.2; g.beginPath(); g.arc(x,y,5.5,0,Math.PI*2); g.stroke(); if(t.name) spaced(g,t.name.toUpperCase(),x,y-19,5); if(t.port) sign(g,"port",x,y+19,.7); }
         g.strokeStyle=INK2; g.lineWidth=2.2; g.lineJoin="round";
         for(const [cx,cy] of Pv.provinces.flatMap(p=>p.camps)){ const [x,y]=px(cx,cy);
           g.beginPath(); g.moveTo(x,y-8); g.lineTo(x+8,y+7); g.lineTo(x-8,y+7); g.closePath(); g.moveTo(x,y+1); g.lineTo(x,y+7); g.stroke(); }

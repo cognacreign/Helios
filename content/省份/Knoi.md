@@ -4,6 +4,7 @@ role: Enore 背后的内陆 · North
 faith: 教会的祈祷和祖先的禁忌混在一起
 living: 打猎 · 伐木
 at: 753, 316
+towns: 776, 371 · 港口
 ---
 
 ## 简介
