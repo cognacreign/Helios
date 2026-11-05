@@ -1,6 +1,5 @@
 ---
 name: Noil
-role: 西段 · Night Zone
 living: 魔法矿石 · 银 · 铁
 at: 486, 290
 label: 531, 316

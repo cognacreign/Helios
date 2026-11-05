@@ -1,6 +1,5 @@
 ---
 name: Velmar
-role: K 的本家 · North
 faith: 教会遍地，约八成信教
 living: 麦田 · 庄园
 at: 361, 321

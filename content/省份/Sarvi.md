@@ -1,6 +1,5 @@
 ---
 name: Sarvi
-role: Night Zone
 living: 驯鹿 · 皮毛
 at: 915, 200
 camps: 895, 95 / 952, 128 / 872, 192 / 962, 172

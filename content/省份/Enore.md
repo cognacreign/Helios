@@ -1,6 +1,5 @@
 ---
 name: Enore
-role: North
 faith: 港口的人信得淡，山里的人信得深
 living: 航运 · 鱼市
 port: 是

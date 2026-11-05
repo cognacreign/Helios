@@ -1,6 +1,5 @@
 ---
 name: Carnau
-role: North
 at: 218, 393
 label: 286, 418
 ---

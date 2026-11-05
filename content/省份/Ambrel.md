@@ -1,6 +1,5 @@
 ---
 name: Ambrel
-role: West
 port: 是
 at: 193, 592
 ---

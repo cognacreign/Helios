@@ -1,6 +1,5 @@
 ---
 name: Marelle
-role: Central
 living: 走私：军火 · 人 · 逃税的奢侈品
 port: 是
 at: 357, 690

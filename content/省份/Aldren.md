@@ -1,6 +1,5 @@
 ---
 name: Aldren
-role: 北方首都 · 港口 · North
 faith: 教会伴随一生，约七成信教
 living: 魔法军工 · 教会地产 · 北方航线
 port: 是

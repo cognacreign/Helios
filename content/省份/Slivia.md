@@ -1,6 +1,5 @@
 ---
 name: Slivia
-role: 湖畔高地 · Central
 at: 444, 509
 ---
 

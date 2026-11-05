@@ -1,6 +1,5 @@
 ---
 name: Wendrel
-role: West
 faith: 教会只管收尸
 living: 魔法矿石 · 铁 · 煤
 at: 226, 519

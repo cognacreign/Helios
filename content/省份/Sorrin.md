@@ -1,6 +1,5 @@
 ---
 name: Sorrin
-role: Gerakis 的本家 · South
 faith: 哲学代替信仰
 port: 是
 at: 510, 733

@@ -1,6 +1,5 @@
 ---
 name: Calvera
-role: 南方首都 · 港口 · South
 faith: 哲学代替信仰
 living: 转口贸易 · 奢侈品
 port: 是

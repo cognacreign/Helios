@@ -1,6 +1,5 @@
 ---
 name: Finch
-role: 腹地 · Night Zone
 faith: 王国里隐修院最多的地方
 port: 是
 at: 682, 162

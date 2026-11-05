@@ -1,6 +1,5 @@
 ---
 name: Meridel
-role: 王国的粮仓 · Central
 faith: 百姓信王座多过信神
 at: 391, 567
 ---

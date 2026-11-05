@@ -1,6 +1,5 @@
 ---
 name: Ginon
-role: 东端 · Night Zone
 living: 渔猎 · 皮毛 · 琥珀
 port: 是
 at: 977, 98

@@ -1,6 +1,5 @@
 ---
 name: Rorika
-role: Night Zone
 living: 渔猎 · 皮毛 · 琥珀
 port: 是
 at: 1071, 48
