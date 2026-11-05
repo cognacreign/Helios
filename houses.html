@@ -231,7 +231,7 @@
   /* or, over the sand, the same flat chart as without it, on a paper panel; the sand stays round it */
   :root.sand.framed #spec{ visibility:visible }
   /* the same panel as the house card beside it, cut to the chart's own height */
-  :root.framed .stage::before{ content:""; position:absolute; left:-1rem; right:-1rem; top:0; height:var(--fh,100%); border-radius:1.6rem; pointer-events:none;
+  :root.framed .stage::before{ content:""; position:absolute; left:-1.6rem; right:-1rem; top:0; height:var(--fh,100%); border-radius:1.6rem; pointer-events:none;
     background:var(--panel); border:.5px solid var(--line); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px) }
   .house.ghost{ opacity:0; transition:none }
   :root.sand .title h1, :root.sand header .mark, :root.sand .sub{ text-shadow:0 1px 14px rgba(30,16,30,.75) } .house.ghost:focus-visible{ opacity:1 }
@@ -552,7 +552,7 @@ function makeButtons(){ H.forEach(h=>{
   stage.appendChild(b); h.el=b;
 }); }
 /* columns: a gutter for the row names, then one column per house, left to right from the north's conservatives to the free south */
-const GUT=13, MTOP=47, colX=i=>GUT+(i+.5)*(100-GUT)/VH0.length;
+const GUT=8, MTOP=47, colX=i=>GUT+(i+.5)*(100-GUT)/VH0.length;
 const VH0=H.filter(h=>!h.crown);
 H.forEach(h=>{ h.spec = h.crown ? [GUT+(100-GUT)/2, 10] : [colX(VH0.indexOf(h)), 33]; });
 /* the panel ends a little below the chart's last row */
@@ -1817,7 +1817,7 @@ function initVault(){
       if(V.board){ const BACK=4;
         if(V.boardLift==null){ let mx=-9; for(let a=-12;a<=12;a+=1.5) for(let b=-12;b<=12;b+=1.5) mx=Math.max(mx, sandY(BOARD.x+a, BOARD.z-BACK+b)); V.boardLift=Math.max(0, mx+.9-V.boardY); }
         const k2=mode!=="vault"?cu.bl:0, bo=V.boardOut||0; V.board.position.z=BOARD.z-BACK*k2-42*bo; V.board.position.x=BOARD.x+2.5*k2+10*bo; V.board.position.y=V.boardY+V.boardLift*k2; V.board.visible=bo<.999; }
-      runeMat.opacity=(mode!=="vault" ? Math.max(0,(cu.bl-.35)/.65) : runeMat.opacity*(1-kk)) * (V.runeK==null?1:V.runeK) * (FRAMED?0:1);
+      runeMat.opacity=(mode!=="vault" ? Math.max(0,(cu.bl-.35)/.65) : runeMat.opacity*(1-kk)) * (V.runeK==null?1:V.runeK) * (mode==="map"?1:0);   /* the structure is no longer written in the sand; only the old disc still is */
       VH.forEach(h=>{ h.seal.visible=cu.bl<.45; });
       if(mode!=="vault" && V.ready && !FRAMED){ const S=stage.getBoundingClientRect(), qv=new THREE.Vector3();
         H.forEach(h=>{ qv.copy(runeAt(h)).project(camera); h.el.style.setProperty("--x", f((qv.x+1)/2*V.vw-S.left)+"px"); h.el.style.setProperty("--y", f((1-qv.y)/2*V.vh-S.top)+"px"); }); } }
