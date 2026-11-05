@@ -122,7 +122,9 @@ const text=document.getElementById("text"), beats=document.getElementById("beats
 let cur=0, N=0, loaded=0;
 /* the count: once a visit, eased by time, held at the end until the words are in */
 (function boot(){ const fill=document.getElementById("ldFill"), num=document.getElementById("ldNum");
-  if(matchMedia("(prefers-reduced-motion: reduce)").matches){ const go=()=>loaded?document.body.classList.add("ready"):setTimeout(go,50); go(); return; }
+  /* coming back from the kingdom or the cards (not a reload): it is quick, so no count */
+  const nav=(performance.getEntriesByType&&performance.getEntriesByType("navigation")[0])||{}, back=(()=>{ try{ const r=new URL(document.referrer); return r.origin===location.origin && r.pathname!==location.pathname; }catch(e){ return false; } })();
+  if((back && nav.type!=="reload") || matchMedia("(prefers-reduced-motion: reduce)").matches){ const go=()=>loaded?document.body.classList.add("ready"):setTimeout(go,50); go(); return; }
   const t0=performance.now(), D=1700;
   const step=t=>{ const u=Math.min(1,(t-t0)/D), k=loaded?1-Math.pow(1-u,3):Math.min(.9,1-Math.pow(1-u,3));
     fill.style.transform=`scaleX(${k})`; num.textContent=String(Math.round(k*100)).padStart(3,"0");
