@@ -10,6 +10,7 @@ head: 待定
 talents: 0 / 2 / 4 / 5 / 2 / 5
 since: Helios
 lineage: Helios 王朝的新贵
+seat: 483, 560
 ---
 
 ## 家训

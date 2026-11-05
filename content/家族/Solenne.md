@@ -9,6 +9,7 @@ head: 待定
 talents: 4 / 2 / 5 / 1 / 4 / 2
 since: 第二王朝
 lineage: 第二王朝 · 名字出自 Solenar
+seat: 702, 800
 ---
 
 ## 家训

@@ -10,6 +10,7 @@ head: Gauvin（Aurelia 登基后）
 talents: 5 / 5 / 3 / 2 / 2 / 1
 since: Ostrium
 lineage: Ostrium 时代的贵族
+seat: 572, 596
 ---
 
 ## 家训

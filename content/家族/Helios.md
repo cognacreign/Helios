@@ -5,6 +5,7 @@ region: 首都
 party: 王权
 cabinet: 王座 · 任何官职或机构都不得否决君主
 head: Aurelia · 第五任国王
+seat: 524, 549
 ---
 
 ## 家族与文化

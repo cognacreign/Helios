@@ -477,7 +477,7 @@ function loadHouses(){
   return Promise.all(H.map(h=>getMD("家族/"+h.file+".md").then(md=>({h, md})))).then(all=>{
     all.forEach(({h,md})=>{ const [fm,body]=splitFront(md), sec=sectionsOf(body);
       const [rg,rgN]=pairOf(fm.region), [pt,ptN]=pairOf(fm.party), [cb,cbN]=pairOf(fm.cabinet), [ti,tiN]=pairOf(fm.crown), hd=(fm.head||"").trim();
-      Object.assign(h,{ name:fm.name||h.file, zh:fm.zh||"", badge:fm.badge||"", fallen:/^(是|yes|true)$/i.test(fm.fallen||""),
+      Object.assign(h,{ seat:xyOf(fm.seat), name:fm.name||h.file, zh:fm.zh||"", badge:fm.badge||"", fallen:/^(是|yes|true)$/i.test(fm.fallen||""),
         region:fm.region||"", party:pt, partyNote:ptN, cab:fm.cabinet||"", head:hd==="待定"?"":hd,
         tie:sec["与王室"]||sec["继承"]||"", quote:sec["一句话"]||"", culture:sec["家族与文化"]||"", secret:sec["秘闻"]||"",
         people:listOf(sec["人物"]),
@@ -1320,8 +1320,9 @@ function initVault(){
       return h ? G.worldToLocal(h.point.clone()).y : 0; };
 
     /* the seals, as on the Map Table, and the sun at the capital */
-    const HOUSE={ varn:{ ink:"#6d64b8", at:[511,379] }, daeris:{ ink:"#7a8622", at:[572,596] }, south:{ ink:"#c46a2c", at:[508,730] },
-      solenne:{ ink:"#ad6576", at:[702,800] }, filippou:{ ink:"#b23628", at:[475,530] }, k:{ ink:"#76736c", at:[372,330] }, helios:{ ink:"#a87a2c", at:[524,549], sun:true } };
+    /* where each seal stands is the house file's `seat:` line */
+    const HOUSE={ varn:{ ink:"#6d64b8" }, daeris:{ ink:"#7a8622" }, south:{ ink:"#c46a2c" },
+      solenne:{ ink:"#ad6576" }, filippou:{ ink:"#b23628" }, k:{ ink:"#76736c" }, helios:{ ink:"#a87a2c", sun:true } };
     const TAU=Math.PI*2, f2=n=>n.toFixed(2), PP=(a,r)=>[Math.sin(a)*r,-Math.cos(a)*r];
     const ringSVG=()=>{ let d=""; for(let i=0;i<72;i++){ const a=i/72*TAU, [x1,y1]=PP(a,43), [x2,y2]=PP(a,i%6===0?46.5:45); d+=`M${f2(x1)} ${f2(y1)}L${f2(x2)} ${f2(y2)}`; }
       return `<circle r="47.5" stroke-width=".7"/><circle r="43" stroke-width=".35"/><path d="${d}" stroke-width=".35"/>`; };
@@ -1340,12 +1341,12 @@ function initVault(){
       const img=new Image(); img.onload=()=>{ const g=c.getContext("2d"); g.globalAlpha=Hh.worn?.7:1; g.drawImage(img,0,0,512,512); t.needsUpdate=true; };
       img.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg); return t; };
     const SEALS={};
-    Promise.all([terrainReady,printed]).then(()=>{
+    Promise.all([terrainReady,printed,HREADY]).then(()=>{
       { const geo=palaceGeo();
         for(const p of PROV.provinces.filter(q=>q.palace)){ const N=NAME[p.id]; if(!N) continue;
           const [x,z]=sheetToLocal(N.x+p.palace[0], N.y-N.h/2-30+p.palace[1]), m=new THREE.Mesh(geo,fold);
           m.position.set(x,groundAt(x,z),z); m.rotation.y=.2; m.scale.setScalar(1.6); m.castShadow=m.receiveShadow=true; reliefG.add(m); } }
-      for(const id of Object.keys(HOUSE)){ const Hh=HOUSE[id], [gx,z]=local(Hh.at), y=groundAt(gx,z), tall=Hh.sun?.24:.2, sc=Hh.sun?.14:.11;
+      for(const id of Object.keys(HOUSE)){ const Hh=HOUSE[id], seat=(H.find(h=>h.id===id)||{}).seat; if(!seat) continue; const [gx,z]=local(seat), y=groundAt(gx,z), tall=Hh.sun?.24:.2, sc=Hh.sun?.14:.11;
         const sp=new THREE.Sprite(new THREE.SpriteMaterial({ map:sealTex(id), transparent:true, depthWrite:false, opacity:0 })); sp.scale.set(sc,sc,1); sp.position.set(gx,y+tall+sc/2,z); sp.userData.house=id; G.add(sp);
         const pin=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(gx,y,z),new THREE.Vector3(gx,y+tall,z)]), new THREE.LineBasicMaterial({ color:0x5d5850, transparent:true, opacity:0 })); G.add(pin);
         SEALS[id]={ sp, pin, foot0:new THREE.Vector3(gx,y+.002,z) }; }
@@ -1915,7 +1916,8 @@ const structView="spec";    /* the structure has one view now; where the houses 
 document.getElementById("mSpec").addEventListener("click",()=>zoom(structView));
 addEventListener("resize", ()=>{ if(mode==="map"){ place(); } else draw(); });
 /* read the houses, then build the page */
-loadHouses().then(()=>{
+const HREADY=loadHouses();
+HREADY.then(()=>{
   makeButtons(); buildMatrix(); makeCols();
   initVault();                               /* the sand is the ground of every view: build it before the first view is laid out */
   place(); if(mode!=="vault") show("helios");

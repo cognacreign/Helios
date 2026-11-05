@@ -11,6 +11,7 @@ head: 待定
 talents: 2 / 2 / 2 / 5 / 4 / 3
 since: 家族时代
 lineage: 家族时代 · 已倒台
+seat: 372, 330
 ---
 
 ## 家训

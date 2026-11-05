@@ -9,6 +9,7 @@ head: 祖母 · 守门人
 talents: 2 / 3 / 5 / 1 / 4 / 5
 since: 家族时代
 lineage: 家族时代崛起
+seat: 511, 379
 ---
 
 ## 家训
