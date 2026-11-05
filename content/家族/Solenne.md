@@ -2,7 +2,7 @@
 name: Solenne
 zh: 首都 · 南方根源
 region: 首都 · 南方根源
-party: 首都派 · 建制内的自由派
+party: 自由派
 cabinet: 财政 · 只剩虚衔
 crown: 联姻 · Cordelia
 head: 待定

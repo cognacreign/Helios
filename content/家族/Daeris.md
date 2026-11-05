@@ -3,7 +3,7 @@ name: Daeris
 zh: 东方
 badge: 五家之首
 region: 东方
-party: 中立
+party: 首都派 · 建制内的自由派
 cabinet: 司法 · the Long Hand
 crown: 母族 · 已故王后
 head: Gauvin（Aurelia 登基后）

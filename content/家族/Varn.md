@@ -2,7 +2,7 @@
 name: Varn
 zh: 北方 · 一半在首都
 region: 北方 · 一半在首都
-party: 北方保守派
+party: 保守派
 cabinet: 教育 · the Old Book
 crown: 订婚 · Owen
 head: 祖母 · 守门人

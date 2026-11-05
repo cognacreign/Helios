@@ -4,7 +4,7 @@ zh: 北方 · 已倒台
 badge: 已倒台
 fallen: 是
 region: 北方
-party: 北方保守派
+party: 保守派
 cabinet: 情报 · 内战后空出
 crown: —
 head: 待定

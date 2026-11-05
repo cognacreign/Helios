@@ -442,14 +442,14 @@ const crest=id=>`<svg viewBox="-50 -50 100 100" aria-hidden="true"><g fill="none
 
 /* ---------- the houses: what the setting already says; 【】 hides a secret until you hover it ---------- */
 /* the houses: words live in content/家族/<name>.md (see loadHouses); here only what the design needs:
-   which file, the crown, and the bearing/distance on the map disc */
+   which file, the crown, and the bearing/distance on the map disc. */
 const H=[
   { id:"helios", file:"Helios", crown:true, polar:[0,0] },
   { id:"varn", file:"Varn", polar:[-24,.72] },
   { id:"k", file:"K", polar:[24,.72] },
   { id:"daeris", file:"Daeris", polar:[84,.66] },
-  { id:"solenne", file:"Solenne", polar:[238,.5] },
   { id:"filippou", file:"Filippou", polar:[122,.5] },
+  { id:"solenne", file:"Solenne", polar:[238,.5] },
   { id:"south", file:"南方家族", polar:[168,.68] }
 ];
 /* ---------- the house as a character: talent points, perks, a flaw, how far back it goes, who it loves and hates ----------
@@ -493,6 +493,8 @@ function loadHouses(){
     TIES=H.filter(h=>!h.crown && TIE_WORDS.includes(h.m.tie)).map(h=>["helios",h.id]);
     Object.keys(TIE_LABEL).forEach(k=>delete TIE_LABEL[k]); TIES.forEach(([,id])=>{ TIE_LABEL[id]=H.find(h=>h.id===id).m.tie; });
     PARTIES=[]; VH0.forEach(h=>{ let P=PARTIES.find(p=>p[0]===h.party); if(!P) PARTIES.push(P=[h.party,[],h.partyNote]); P[1].push(h.id); if(!P[2]) P[2]=h.partyNote; });
+    /* houses of one party stand side by side, so the party row of the structure joins them in one bar */
+    VH0.sort((x,y)=>PARTIES.findIndex(p=>p[1].includes(x.id))-PARTIES.findIndex(p=>p[1].includes(y.id)));
   });
 }
 
