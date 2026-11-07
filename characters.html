@@ -1066,8 +1066,8 @@ const ITEMS = {
   /* a dress, not a sticker: it lives in her bag, and she will not put it on */
   ydress:{ owner:"aurelia", name:"黄色礼裙", icon:DRESS_SRC, entry:"ydress", sore:true, found:"helios-ydress-found", says:{} },
   /* outfits swap the standing portrait itself: same scale, same frame */
-  uniform_iris:{ owner:"iris", name:"北方学院制服", icon:UNIFORM_ICON, wear:"top", fig:"images/iris-academy.webp", size:[886,1616], sheet:"iris_academy" },
-  uniform_aurelia:{ owner:"aurelia", name:"北方学院制服", icon:UNIFORM_ICON, wear:"top", fig:"images/aurelia-academy.webp", size:[814,1616], sheet:"aurelia_academy" },
+  uniform_iris:{ owner:"iris", name:"北方学院制服", icon:UNIFORM_ICON, wear:"top", fig:"images/iris-academy.webp?v=2", size:[908,1616], sheet:"iris_academy" },
+  uniform_aurelia:{ owner:"aurelia", name:"北方学院制服", icon:UNIFORM_ICON, wear:"top", fig:"images/aurelia-academy.webp?v=2", size:[814,1616], sheet:"aurelia_academy" },
   /* the Sun King: the crown is her own hand against the light. the engraved sun turns behind her eye */
   corona:{ owner:"aurelia", name:"日冕", icon:CORONA_ICON, wear:"top", fig:"images/aurelia-sun.webp", size:[1086,1616], sun:[.598,.164], sheet:"aurelia_king", says:{} }
 };
@@ -1233,7 +1233,7 @@ function place(id, t){
    ============================================================ */
 const BLUSH={
   /* the classic portrait is concept art: she doesn't drink in it. only the academy one */
-  "images/aurelia-academy.webp":{ l:[42.6,17.9], r:[57.6,17.7], rx:5.0, ry:1.5, mask:"images/aurelia-academy-mask.png" }
+  "images/aurelia-academy.webp?v=2":{ l:[43.9,20.4], r:[57.1,20.0], rx:5.0, ry:1.5, mask:"images/aurelia-academy-mask.png?v=2" }
 };
 const DRINK={ aurelia:[], iris:[], irisAcademy:[], refuse:"", plain:[] };     /* from 台词.md */
 const blushEl=$("#blush"), blushCh=blushEl.querySelector(".ch"), blushNose=blushEl.querySelector(".nose"), blushRose=blushEl.querySelector(".rose");
@@ -1269,7 +1269,7 @@ function drink(id){
     /* Iris drinks only as herself or in the academy uniform; the drape and the tarot are not for drinking.
        the student is used to cheap ale, so the sweet stuff gets a different face */
     if(document.body.classList.contains("skinned")) return false;
-    const src=art.getAttribute("src"), k = src==="images/iris-academy.webp" ? "irisAcademy" : src===PEOPLE.find(p=>p.id==="iris").img ? "iris" : null;
+    const src=art.getAttribute("src"), k = src==="images/iris-academy.webp?v=2" ? "irisAcademy" : src===PEOPLE.find(p=>p.id==="iris").img ? "iris" : null;
     const L=k && DRINK[k]; if(!L || !L.length) return false;
     irisSips[k]=irisSips[k]||0; sayLine(L[Math.min(irisSips[k]++, L.length-1)], "iris");
   }
