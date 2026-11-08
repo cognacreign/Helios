@@ -371,7 +371,7 @@
   .eq .fig em{ font-style:normal; font-family:var(--sans); letter-spacing:.04em; font-size:.68rem; color:var(--ink) }
   .eq .fig em:not(:empty)::before{ content:"·"; margin:0 .45em; color:var(--dim) }
   .inv .bagtag span.named{ font-family:var(--sans); letter-spacing:.06em; font-size:.72rem; color:var(--ink) }
-  .eq.top{ top:25% } .eq.bottom{ top:50% }
+  .eq.outer{ top:0 } .eq.top{ top:25% } .eq.bottom{ top:50% }
 
   /* the apple tried on as a top: caught, refused, sent back */
   .quip{ position:absolute; right:0; top:calc(100% + .55rem); width:11rem; text-align:right; font-family:var(--serif); font-size:.8rem; line-height:1.6;
@@ -549,6 +549,7 @@ window.__lp=(function(){
     </svg>
     <img class="skinart" id="skinart" alt="">
     <div class="equip" id="equip" aria-label="穿戴">
+      <div class="eq outer"><span class="fig">OUTER<em></em></span><span class="slot empty" data-drop="worn" data-slot="outer"></span><span class="quip" aria-live="polite"></span></div>
       <div class="eq top"><span class="fig">TOP<em></em></span><span class="slot empty" data-drop="worn" data-slot="top"></span><span class="quip" id="quip" aria-live="polite"></span></div>
       <div class="eq bottom"><span class="fig">BOTTOM<em></em></span><span class="slot empty" data-drop="worn" data-slot="bottom"></span><span class="quip" aria-live="polite"></span></div>
     </div>
@@ -1055,6 +1056,10 @@ function bindSticker(id){
 const CLOTH_ICON="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><g fill="#faf7f0" stroke="#faf7f0" stroke-width="8" stroke-linejoin="round"><path d="M14 20 Q50 10 86 20 L88 66 Q84 76 76 70 L72 84 Q63 92 56 82 L50 92 Q41 86 39 78 L29 88 Q19 80 22 68 Z"/></g><path d="M14 20 Q50 10 86 20 L88 66 Q84 76 76 70 L72 84 Q63 92 56 82 L50 92 Q41 86 39 78 L29 88 Q19 80 22 68 Z" fill="#ece4d4"/><path d="M50 15 Q53 50 48 88 L56 82 Q60 50 60 17 Z" fill="#d5cab6"/><path d="M30 19 Q26 46 29 84 L35 80 Q34 48 36 18 Z" fill="#ddd3c1"/><path d="M70 18 Q74 46 72 82 L78 70 Q80 44 78 20 Z" fill="#d2c6b1"/><g fill="none" stroke="#a89b85" stroke-width="1.8" stroke-linecap="round"><path d="M34 22 Q30 50 32 82"/><path d="M50 16 Q53 50 48 88"/><path d="M66 20 Q71 48 68 80"/></g><path d="M14 20 Q50 10 86 20" fill="none" stroke="#c9b89c" stroke-width="2.4"/><path d="M60 30 l6 2 M24 40 l5 -1" stroke="#e8c7a6" stroke-width="2" stroke-linecap="round"/></svg>`);
 const UNIFORM_ICON="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><g fill="#faf7f0" stroke="#faf7f0" stroke-width="9" stroke-linejoin="round"><path d="M30 14 L42 10 L50 20 L58 10 L70 14 L88 26 L80 46 L72 42 L72 90 L28 90 L28 42 L20 46 L12 26 Z"/></g><path d="M30 14 L42 10 L50 20 L58 10 L70 14 L88 26 L80 46 L72 42 L72 90 L28 90 L28 42 L20 46 L12 26 Z" fill="#efe6d6"/><path d="M30 18 L46 34 L50 60 L54 34 L70 18 L70 90 L30 90 Z" fill="#6f7f93"/><path d="M30 18 L46 34 L50 60" fill="none" stroke="#4f5c6c" stroke-width="2"/><path d="M70 18 L54 34 L50 60" fill="none" stroke="#4f5c6c" stroke-width="2"/><path d="M42 10 L50 26 L58 10 L50 20 Z" fill="#fbf6ec" stroke="#cbbfa9" stroke-width="1.6" stroke-linejoin="round"/><path d="M50 25 L43 31 L46 34 L50 29 L54 34 L57 31 Z" fill="#3d6f73"/><path d="M48 30 L45 46 M52 30 L55 46" stroke="#3d6f73" stroke-width="2.4" stroke-linecap="round"/><circle cx="50" cy="68" r="1.8" fill="#d8cdb6"/><circle cx="50" cy="78" r="1.8" fill="#d8cdb6"/><path d="M12 26 L20 46 M88 26 L80 46" stroke="#cbbfa9" stroke-width="1.6"/></svg>`);
 const CORONA_ICON="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -4 100 100"><g fill="#faf7f0" stroke="#faf7f0" stroke-width="9" stroke-linejoin="round"><path d="M19.2 72.0L6.9 48.8L24.8 68.0ZM28.2 68.0L18.1 36.4L34.4 65.3ZM37.3 65.4L32.5 25.5L44.0 64.0ZM46.6 64.0L50.0 16.0L53.4 64.0ZM56.0 64.0L67.5 25.5L62.7 65.4ZM65.6 65.3L81.9 36.4L71.8 68.0ZM75.2 68.0L93.1 48.8L80.8 72.0Z"/><path d="M17 70 Q50 58 83 70 L81 80 Q50 69 19 80 Z"/></g><path d="M19.2 72.0L6.9 48.8L24.8 68.0ZM28.2 68.0L18.1 36.4L34.4 65.3ZM37.3 65.4L32.5 25.5L44.0 64.0ZM46.6 64.0L50.0 16.0L53.4 64.0ZM56.0 64.0L67.5 25.5L62.7 65.4ZM65.6 65.3L81.9 36.4L71.8 68.0ZM75.2 68.0L93.1 48.8L80.8 72.0Z" fill="#e2a548"/><path d="M17 70 Q50 58 83 70 L81 80 Q50 69 19 80 Z" fill="#e2a548"/><path d="M19 80 Q50 69 81 80" fill="none" stroke="#a8702a" stroke-width="1.6"/><path d="M24 70.5 Q50 61.5 76 70.5" fill="none" stroke="#f7d9a0" stroke-width="1.6" stroke-linecap="round"/><circle cx="50" cy="73.5" r="2.6" fill="#c2552a"/></svg>`);
+/* Iris's working clothes: the capital years (one short waistcoat, no money for more) and the cabinet (the long black waistcoat, the white leather coat over it) */
+const LEATHER_ICON="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><g fill="#faf7f0" stroke="#faf7f0" stroke-width="9" stroke-linejoin="round"><path d="M28 12 L42 8 L50 16 L58 8 L72 12 L86 24 L89 76 L80 77 L77 50 L78 95 L22 95 L23 50 L20 77 L11 76 L14 24 Z"/></g><path d="M28 12 L42 8 L50 16 L58 8 L72 12 L86 24 L89 76 L80 77 L77 50 L78 95 L22 95 L23 50 L20 77 L11 76 L14 24 Z" fill="#efe9df"/><path d="M14 24 L11 76 L20 77 L24 32 Z M86 24 L89 76 L80 77 L76 32 Z" fill="#e2dacd"/><path d="M42 8 L50 16 L58 8 L56 24 L52 60 L50 94 L48 60 L44 24 Z" fill="#2f2d2b"/><path d="M50 16 L46 22 L50 30 L54 22 Z" fill="#f6f1e8"/><path d="M42 8 L34 26 L40 30 L36 40 L50 72 L44 24 Z" fill="#f6f2ea" stroke="#bdb2a0" stroke-width="1.5" stroke-linejoin="round"/><path d="M58 8 L66 26 L60 30 L64 40 L50 72 L56 24 Z" fill="#f6f2ea" stroke="#bdb2a0" stroke-width="1.5" stroke-linejoin="round"/><path d="M64 46 L70 50 L68 82 L63 84 Z" fill="#f4c56a" opacity=".75"/><path d="M31 50 L35 47 L33 70 L29 72 Z" fill="#9fc6d6" opacity=".7"/><path d="M60 44 Q66 66 62 90" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round"/><path d="M28 12 L42 8 L50 16 L58 8 L72 12 L86 24 L89 76 L80 77 L77 50 L78 95 L22 95 L23 50 L20 77 L11 76 L14 24 Z" fill="none" stroke="#bdb2a0" stroke-width="1.6" stroke-linejoin="round"/></svg>`);
+const VEST_LONG_ICON="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><g fill="#faf7f0" stroke="#faf7f0" stroke-width="9" stroke-linejoin="round"><path d="M32 10 L44 8 L50 16 L56 8 L68 10 L72 20 L70 60 L74 94 L56 90 L50 66 L44 90 L26 94 L30 60 L28 20 Z"/></g><path d="M50 66 L44 90 L56 90 Z" fill="#c9ced3"/><path fill="none" d="M44.0 70.0 L42.0 92" stroke="#7fb3e6" stroke-width="1.3"/><path fill="none" d="M46.4 70.6 L44.6 92" stroke="#7fb3e6" stroke-width="1.3"/><path fill="none" d="M48.8 71.2 L47.2 92" stroke="#7fb3e6" stroke-width="1.3"/><path fill="none" d="M51.2 71.8 L49.8 92" stroke="#7fb3e6" stroke-width="1.3"/><path fill="none" d="M53.6 72.4 L52.4 92" stroke="#7fb3e6" stroke-width="1.3"/><path d="M32 10 L44 8 L50 16 L56 8 L68 10 L72 20 L70 60 L74 94 L56 90 L50 66 L44 90 L26 94 L30 60 L28 20 Z" fill="#26262a"/><path d="M50 66 L45 88 L55 88 Z" fill="#dfe3e7"/><path d="M46.4 74 L45.6 88" stroke="#6aa7e0" stroke-width="1.2" fill="none"/><path d="M48.199999999999996 75 L47.800000000000004 88" stroke="#6aa7e0" stroke-width="1.2" fill="none"/><path d="M50.0 74 L50.0 88" stroke="#6aa7e0" stroke-width="1.2" fill="none"/><path d="M51.8 75 L52.2 88" stroke="#6aa7e0" stroke-width="1.2" fill="none"/><path d="M53.6 74 L54.400000000000006 88" stroke="#6aa7e0" stroke-width="1.2" fill="none"/><path d="M44 8 L50 16 L56 8 L54 20 L50 38 L46 20 Z" fill="#efe9dc"/><path d="M50 17 L48 21 L49.5 36 L50.5 36 L52 21 Z" fill="#e2702e"/><path d="M50 38 L50 64" stroke="#4a4a50" stroke-width="1.4"/><path d="M32 22 Q38 40 34 58" fill="none" stroke="#45454c" stroke-width="1.6" stroke-linecap="round"/><path d="M32 10 L44 8 L50 16 L56 8 L68 10 L72 20 L70 60 L74 94 L56 90 L50 66 L44 90 L26 94 L30 60 L28 20 Z" fill="none" stroke="#14141a" stroke-width="1.4" stroke-linejoin="round"/></svg>`);
+const VEST_SHORT_ICON="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><g fill="#faf7f0" stroke="#faf7f0" stroke-width="9" stroke-linejoin="round"><path d="M30 12 L42 9 L50 18 L58 9 L70 12 L74 24 L72 74 L58 82 L50 76 L42 82 L28 74 L26 24 Z"/></g><path d="M30 12 L42 9 L50 18 L58 9 L70 12 L74 24 L72 74 L58 82 L50 76 L42 82 L28 74 L26 24 Z" fill="#4a423b"/><path d="M42 9 L50 18 L58 9 L56 22 L50 34 L44 22 Z" fill="#efe9dc"/><path d="M50 19 L48 23 L49.5 34 L50.5 34 L52 23 Z" fill="#e2702e"/><path d="M30 12 L42 9 L44 22 L50 34 L40 30 L32 22 Z" fill="#706a3c"/><path d="M70 12 L58 9 L56 22 L50 34 L60 30 L68 22 Z" fill="#5f5a33"/><circle cx="43" cy="44" r="2.1" fill="#2c2621" stroke="#8b8172" stroke-width=".8"/><circle cx="57" cy="44" r="2.1" fill="#2c2621" stroke="#8b8172" stroke-width=".8"/><circle cx="43" cy="56" r="2.1" fill="#2c2621" stroke="#8b8172" stroke-width=".8"/><circle cx="57" cy="56" r="2.1" fill="#2c2621" stroke="#8b8172" stroke-width=".8"/><circle cx="43" cy="68" r="2.1" fill="#2c2621" stroke="#8b8172" stroke-width=".8"/><circle cx="57" cy="68" r="2.1" fill="#2c2621" stroke="#8b8172" stroke-width=".8"/><path d="M50 34 L50 76" stroke="#2c2621" stroke-width="1.2"/><path d="M30 12 L42 9 L50 18 L58 9 L70 12 L74 24 L72 74 L58 82 L50 76 L42 82 L28 74 L26 24 Z" fill="none" stroke="#221d19" stroke-width="1.4" stroke-linejoin="round"/></svg>`);
 const ITEMS = {
   drape:{ owner:"iris", name:"古希腊白布", icon:CLOTH_ICON, wear:"bottom" },
   apple:{ owner:"iris", name:"苹果", icon:APPLE_SRC, entry:"apple", sticker:true },
@@ -1067,13 +1072,17 @@ const ITEMS = {
   ydress:{ owner:"aurelia", name:"黄色礼裙", icon:DRESS_SRC, entry:"ydress", sore:true, found:"helios-ydress-found", says:{} },
   /* outfits swap the standing portrait itself: same scale, same frame */
   uniform_iris:{ owner:"iris", name:"北方学院制服", icon:UNIFORM_ICON, wear:"top", fig:"images/iris-academy.webp?v=2", size:[908,1616], sheet:"iris_academy" },
+  vest_short:{ owner:"iris", name:"短马甲", icon:VEST_SHORT_ICON, wear:"top", fig:"images/iris-capital.webp", size:[814,1616] },
+  vest_long:{ owner:"iris", name:"长黑马甲", icon:VEST_LONG_ICON, wear:"top", fig:"images/iris-cabinet.webp", size:[814,1616] },
+  /* the white leather goes over the long waistcoat only: putting it on puts that on underneath */
+  leather:{ owner:"iris", name:"白皮衣", icon:LEATHER_ICON, wear:"outer", fig:"images/iris-cabinet-coat.webp", size:[814,1616] },
   uniform_aurelia:{ owner:"aurelia", name:"北方学院制服", icon:UNIFORM_ICON, wear:"top", fig:"images/aurelia-academy.webp?v=2", size:[814,1616], sheet:"aurelia_academy" },
   /* the Sun King: the crown is her own hand against the light. the engraved sun turns behind her eye */
   corona:{ owner:"aurelia", name:"日冕", icon:CORONA_ICON, wear:"top", fig:"images/aurelia-sun.webp", size:[1086,1616], sun:[.598,.164], sheet:"aurelia_king", says:{} }
 };
-const BAG_N=8;    /* two rows of four */
+const BAG_N=12;    /* three rows of four */
 const fillBag=b=>b.concat(Array(BAG_N-b.length).fill(null));
-const INV={ iris:{ bag:fillBag(["drape","uniform_iris"]), worn:{top:null,bottom:null} }, aurelia:{ bag:fillBag(["uniform_aurelia","corona"]), worn:{top:null,bottom:null} } };
+const INV={ iris:{ bag:fillBag(["drape","uniform_iris","vest_short","vest_long","leather"]), worn:{outer:null,top:null,bottom:null} }, aurelia:{ bag:fillBag(["uniform_aurelia","corona"]), worn:{outer:null,top:null,bottom:null} } };
 Object.keys(STK).forEach(id=>{ if(inBag(id)){ const b=INV[STK[id].owner].bag, i=b.indexOf(null); if(i>=0) b[i]=id; } });
 /* things an entry hands over go straight into the bag, once found */
 Object.entries(ITEMS).forEach(([id,it])=>{ if(it.found && store.get(it.found)){ const b=INV[it.owner].bag, i=b.indexOf(null); if(i>=0) b[i]=id; } });
@@ -1107,8 +1116,10 @@ window.renderSkins=()=>{
   const s=me();
   /* the apple and the rope only stay on as a top while the white cloth is on */
   if((s.worn.top==="apple" || s.worn.top==="rope") && s.worn.bottom!=="drape"){ const t=s.worn.top; s.worn.top=null; const j=s.bag.indexOf(null); if(j>=0) s.bag[j]=t; }
+  /* the white leather is only ever painted over the long black waistcoat: without it, the coat comes off too */
+  if(s.worn.outer==="leather" && s.worn.top!=="vest_long"){ s.worn.outer=null; const j=s.bag.indexOf(null); if(j>=0) s.bag[j]="leather"; }
   invGrid.innerHTML=s.bag.map((id,i)=>slotHTML(id, `data-drop="bag" data-i="${i}"`)).join("");
-  ["top","bottom"].forEach(k=>{ const box=equip.querySelector(`.eq.${k}`);
+  ["outer","top","bottom"].forEach(k=>{ const box=equip.querySelector(`.eq.${k}`);
     box.querySelector(".slot").outerHTML=slotHTML(s.worn[k], `data-drop="worn" data-slot="${k}"`);
     box.querySelector(".fig em").textContent = s.worn[k] ? ITEMS[s.worn[k]].name : ""; });
   bagName(null);
@@ -1205,6 +1216,8 @@ function wear(id, slot){
   const prev=s.worn[slot]; takeOut(id);
   if(prev && prev!==id){ const j=s.bag.indexOf(null); if(j>=0) s.bag[j]=prev; }
   s.worn[slot]=id;
+  /* the coat goes on over the long waistcoat: whatever top she had comes off, the waistcoat goes on under */
+  if(id==="leather" && s.worn.top!=="vest_long"){ const t=s.worn.top; takeOut("vest_long"); if(t){ const j=s.bag.indexOf(null); if(j>=0) s.bag[j]=t; } s.worn.top="vest_long"; }
   if(STK[id]){ store.set(STK[id].bagKey, true); syncStickers(); }
   renderSkins(); return true;
 }
