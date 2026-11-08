@@ -1072,10 +1072,10 @@ const ITEMS = {
   ydress:{ owner:"aurelia", name:"黄色礼裙", icon:DRESS_SRC, entry:"ydress", sore:true, found:"helios-ydress-found", says:{} },
   /* outfits swap the standing portrait itself: same scale, same frame */
   uniform_iris:{ owner:"iris", name:"北方学院制服", icon:UNIFORM_ICON, wear:"top", fig:"images/iris-academy.webp?v=2", size:[908,1616], sheet:"iris_academy" },
-  vest_short:{ owner:"iris", name:"短马甲", icon:VEST_SHORT_ICON, wear:"top", fig:"images/iris-capital.webp", size:[814,1616] },
-  vest_long:{ owner:"iris", name:"长黑马甲", icon:VEST_LONG_ICON, wear:"top", fig:"images/iris-cabinet.webp", size:[814,1616] },
+  vest_short:{ owner:"iris", name:"短马甲", icon:VEST_SHORT_ICON, wear:"top", fig:"images/iris-capital.webp", size:[814,1616], sheet:"iris_capital" },
+  vest_long:{ owner:"iris", name:"长黑马甲", icon:VEST_LONG_ICON, wear:"top", fig:"images/iris-cabinet.webp", size:[814,1616], sheet:"iris_cabinet" },
   /* the white leather goes over the long waistcoat only: putting it on puts that on underneath */
-  leather:{ owner:"iris", name:"白皮衣", icon:LEATHER_ICON, wear:"outer", fig:"images/iris-cabinet-coat.webp", size:[814,1616] },
+  leather:{ owner:"iris", name:"白皮衣", icon:LEATHER_ICON, wear:"outer", fig:"images/iris-cabinet-coat.webp", size:[814,1616], sheet:"iris_cabinet" },
   uniform_aurelia:{ owner:"aurelia", name:"北方学院制服", icon:UNIFORM_ICON, wear:"top", fig:"images/aurelia-academy.webp?v=2", size:[814,1616], sheet:"aurelia_academy" },
   /* the Sun King: the crown is her own hand against the light. the engraved sun turns behind her eye */
   corona:{ owner:"aurelia", name:"日冕", icon:CORONA_ICON, wear:"top", fig:"images/aurelia-sun.webp", size:[1086,1616], sun:[.598,.164], sheet:"aurelia_king", says:{} }
@@ -1400,7 +1400,7 @@ Object.keys(STK).forEach(bindSticker); stackStickers();
 const CONTENT={
   sheets:{ iris:"iris/资料.md", aurelia:"aurelia/资料.md" },
   stories:{ iris:"iris/故事.md", aurelia:"aurelia/故事.md" },
-  outfits:{ iris_academy:"iris/学院制服.md", iris_drape:"iris/倒吊人.md", aurelia_academy:"aurelia/学院制服.md", aurelia_king:"aurelia/日冕.md" },
+  outfits:{ iris_academy:"iris/学院制服.md", iris_capital:"iris/首都篇.md", iris_cabinet:"iris/内阁篇.md", iris_drape:"iris/倒吊人.md", aurelia_academy:"aurelia/学院制服.md", aurelia_king:"aurelia/日冕.md" },
   entries:{ meta:"词条/形而上学魔法.md", civilwar:"词条/北方内战.md", birthday:"词条/生日宴闹剧.md",
             apple:"物品/苹果.md", rope:"物品/绞索.md", ydress:"物品/黄色礼裙.md", winter:"秘闻/那个冬天.md" },
   lines:"台词.md"
