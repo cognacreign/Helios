@@ -584,6 +584,7 @@ window.__lp=(function(){
 <button class="sticker" id="wine" type="button" aria-label="热红酒贴纸。可拖动，也可以拖回背包；拖角上的圆点或滚轮缩放旋转；键盘 + − 缩放，[ ] 旋转" hidden><img alt=""><span class="lit amb" aria-hidden="true"></span><span class="lit key" aria-hidden="true"></span><span class="handle" aria-hidden="true"></span></button>
 <button class="sticker" id="wine2" type="button" aria-label="热红酒贴纸（Iris 那里的一杯）。可拖动，也可以拖回背包；拖角上的圆点或滚轮缩放旋转；键盘 + − 缩放，[ ] 旋转" hidden><img alt=""><span class="lit amb" aria-hidden="true"></span><span class="lit key" aria-hidden="true"></span><span class="handle" aria-hidden="true"></span></button>
 <button class="sticker" id="whisky" type="button" aria-label="威士忌贴纸。可拖动，也可以拖回背包；拖角上的圆点或滚轮缩放旋转；键盘 + − 缩放，[ ] 旋转" hidden><img alt=""><span class="lit amb" aria-hidden="true"></span><span class="lit key" aria-hidden="true"></span><span class="handle" aria-hidden="true"></span></button>
+<button class="sticker" id="tail" type="button" aria-label="兔子尾巴贴纸。点开有一笔记录；可拖动，也可以拖回背包；拖角上的圆点或滚轮缩放旋转；键盘 + − 缩放，[ ] 旋转" hidden><img alt=""><span class="lit amb" aria-hidden="true"></span><span class="lit key" aria-hidden="true"></span><span class="handle" aria-hidden="true"></span></button>
 <button class="sticker" id="deer" type="button" aria-label="小鹿玩偶贴纸。可拖动，也可以拖回背包；拖角上的圆点或滚轮缩放旋转；键盘 + − 缩放，[ ] 旋转" hidden><img alt=""><span class="lit amb" aria-hidden="true"></span><span class="lit key" aria-hidden="true"></span><span class="handle" aria-hidden="true"></span></button>
 
 <script>
@@ -914,9 +915,8 @@ const DEER_SRC="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(`<svg xmln
 /* Aurelia's mulled wine from the northern academy: sweet, fruit in it, still steaming */
 /* Iris's own drink: a rocks glass, one cube of ice, amber nearly to the brim */
 const WHISKY_SRC="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><linearGradient id="wk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6c25a"/><stop offset=".45" stop-color="#d98a2b"/><stop offset="1" stop-color="#a8521a"/></linearGradient><linearGradient id="wkS" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs><g fill="#faf7f0" stroke="#faf7f0" stroke-width="9" stroke-linejoin="round"><path d="M24 30 L76 30 L72 86 Q71 90 66 90 L34 90 Q29 90 28 86 Z"/></g><path d="M24 30 L76 30 L72 86 Q71 90 66 90 L34 90 Q29 90 28 86 Z" fill="#eef3f5" opacity=".6"/><path d="M24.9 42 L75.1 42 L72.4 80 L27.6 80 Z" fill="url(#wk)"/><path d="M24.9 42 L75.1 42 L74.9 45.5 L25.1 45.5 Z" fill="#fbd98a"/><path d="M26.9 43.2 L73.1 43.2" stroke="#fff4d6" stroke-width="1.2" opacity=".9"/><g transform="rotate(-12 50 48)"><path d="M41 36 L57 36 L57 52 L41 52 Z" fill="#f5fafc" opacity=".88" stroke="#a9bcc4" stroke-width="1.1"/><path d="M43 38 L55 38 L55 42 L43 42 Z" fill="#ffffff" opacity=".9"/><path d="M41 45 L57 45" stroke="#e7b05a" stroke-width="1" opacity=".55"/></g><path d="M27.9 58 Q50 64 71.1 56" fill="none" stroke="#ffd98c" stroke-width="1.3" opacity=".6"/><path d="M28.8 80 L71.2 80 L70.6 86 Q70 89 66 89 L34 89 Q30 89 29.4 86 Z" fill="#dde5e8"/><path d="M31 81 L34 88" stroke="#b9c5ca" stroke-width="1" opacity=".75"/><path d="M39 81 L42 88" stroke="#b9c5ca" stroke-width="1" opacity=".75"/><path d="M47 81 L50 88" stroke="#b9c5ca" stroke-width="1" opacity=".75"/><path d="M55 81 L58 88" stroke="#b9c5ca" stroke-width="1" opacity=".75"/><path d="M63 81 L66 88" stroke="#b9c5ca" stroke-width="1" opacity=".75"/><path d="M24 30 L76 30 L72 86 Q71 90 66 90 L34 90 Q29 90 28 86 Z" fill="none" stroke="#7f8f96" stroke-width="1.6" stroke-linejoin="round"/><path d="M30.5 34 L29.6 76" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" opacity=".9"/><path d="M69 36 L68.2 60" stroke="#ffffff" stroke-width="1.2" stroke-linecap="round" opacity=".6"/></svg>`);
-/* the bunny's tail: a white puff. it goes under the long waistcoat, and what she has on under there is the bunny suit */
+/* the bunny's tail: a white puff */
 const TAIL_ICON="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><g fill="#faf7f0" stroke="#faf7f0" stroke-width="9" stroke-linejoin="round"><path d="M80.0 50.0Q87.5 61.0 75.2 66.2Q75.6 79.6 62.5 77.3Q55.6 88.7 45.7 79.7Q33.7 85.6 30.4 72.7Q17.1 71.1 21.2 58.5Q10.9 50.0 21.2 41.5Q17.1 28.9 30.4 27.3Q33.7 14.4 45.7 20.3Q55.6 11.3 62.5 22.7Q75.6 20.4 75.2 33.8Q87.5 39.0 80.0 50.0Z"/></g><path d="M80.0 50.0Q87.5 61.0 75.2 66.2Q75.6 79.6 62.5 77.3Q55.6 88.7 45.7 79.7Q33.7 85.6 30.4 72.7Q17.1 71.1 21.2 58.5Q10.9 50.0 21.2 41.5Q17.1 28.9 30.4 27.3Q33.7 14.4 45.7 20.3Q55.6 11.3 62.5 22.7Q75.6 20.4 75.2 33.8Q87.5 39.0 80.0 50.0Z" fill="#fbf8f2" stroke="#8f78d0" stroke-width="1.5" stroke-linejoin="round"/><path d="M61.4 46.4Q63.4 53.4 57.0 57.0Q53.4 63.4 46.4 61.4Q39.4 63.4 35.8 57.0Q29.4 53.4 31.4 46.4Q29.4 39.4 35.8 35.8Q39.4 29.4 46.4 31.4Q53.4 29.4 57.0 35.8Q63.4 39.4 61.4 46.4Z" fill="none" stroke="#d9cfe9" stroke-width="1.1"/><circle cx="59.0" cy="60.5" r="5.4" fill="#ece3f3"/></svg>`);
-const BUNNY_ICON="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><g fill="#faf7f0" stroke="#faf7f0" stroke-width="9" stroke-linejoin="round"><path d="M33 62 C27 44 24 22 30 11 C35 3 44 9 45 26 C46 40 46 52 45 62 Z"/><path d="M54 62 C54 50 56 41 60 34 C66 25 77 16 87 12 C94 10 96 18 91 22 C83 28 75 34 70 40 C67 47 66 55 66 62 Z"/><path d="M18 72 Q50 50 82 72 L79 79 Q50 58 21 79 Z"/></g><path d="M33 62 C27 44 24 22 30 11 C35 3 44 9 45 26 C46 40 46 52 45 62 Z" fill="#efe6d4" stroke="#8f78d0" stroke-width="1.6" stroke-linejoin="round"/><path d="M35 56 C31 42 30 24 33 16 C36 12 40 16 40 28 C41 40 41 50 40 56 Z" fill="#ead2c6"/><path d="M54 62 C54 50 56 41 60 34 C66 25 77 16 87 12 C94 10 96 18 91 22 C83 28 75 34 70 40 C67 47 66 55 66 62 Z" fill="#efe6d4" stroke="#8f78d0" stroke-width="1.6" stroke-linejoin="round"/><path d="M58 56 C58 48 60 42 63 37 C68 30 77 22 85 17 C79 23 72 30 67 37 C64 43 62 50 62 56 Z" fill="#ead2c6"/><path d="M18 72 Q50 50 82 72 L79 79 Q50 58 21 79 Z" fill="#f4eee2" stroke="#8f78d0" stroke-width="1.6" stroke-linejoin="round"/><g fill="#faf7f0" stroke="#faf7f0" stroke-width="9" stroke-linejoin="round"><path d="M85.0 80.0Q87.8 84.0 83.3 85.9Q83.4 90.8 78.6 90.0Q76.0 94.2 72.4 90.9Q68.0 93.0 66.8 88.3Q61.9 87.8 63.4 83.1Q59.7 80.0 63.4 76.9Q61.9 72.2 66.8 71.7Q68.0 67.0 72.4 69.1Q76.0 65.8 78.6 70.0Q83.4 69.2 83.3 74.1Q87.8 76.0 85.0 80.0Z"/></g><path d="M85.0 80.0Q87.8 84.0 83.3 85.9Q83.4 90.8 78.6 90.0Q76.0 94.2 72.4 90.9Q68.0 93.0 66.8 88.3Q61.9 87.8 63.4 83.1Q59.7 80.0 63.4 76.9Q61.9 72.2 66.8 71.7Q68.0 67.0 72.4 69.1Q76.0 65.8 78.6 70.0Q83.4 69.2 83.3 74.1Q87.8 76.0 85.0 80.0Z" fill="#fbf8f2" stroke="#8f78d0" stroke-width="1.5" stroke-linejoin="round"/><path d="M78.2 78.7Q78.9 81.3 76.6 82.6Q75.3 84.9 72.7 84.2Q70.1 84.9 68.8 82.6Q66.4 81.3 67.2 78.7Q66.4 76.1 68.8 74.8Q70.1 72.4 72.7 73.2Q75.3 72.4 76.6 74.8Q78.9 76.1 78.2 78.7Z" fill="none" stroke="#d9cfe9" stroke-width="1.1"/><circle cx="77.3" cy="83.8" r="2.0" fill="#ece3f3"/></svg>`);
 const WINE_SRC="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="30 0 148 212"> <defs><clipPath id="wb"><path d="M50 74 Q100 66 150 74 Q154 128 120 150 Q108 156 106 160 L94 160 Q92 156 80 150 Q46 128 50 74 Z"/></clipPath></defs> <g fill="none" stroke="#faf7f0" stroke-width="15" stroke-linecap="round"><path d="M88 54 Q78 42 88 32 Q97 22 89 10"/><path d="M110 52 Q120 40 110 30 Q101 20 111 10"/></g> <g fill="#faf7f0" stroke="#faf7f0" stroke-width="16" stroke-linejoin="round"> <path d="M50 74 Q100 66 150 74 Q154 128 120 150 Q108 156 106 160 L106 180 Q128 183 136 194 Q100 202 64 194 Q72 183 94 180 L94 160 Q92 156 80 150 Q46 128 50 74 Z"/> <circle cx="142" cy="72" r="17"/> <rect x="60" y="30" width="10" height="70" transform="rotate(-14 65 65)"/> </g> <g fill="none" stroke-linecap="round"><path d="M88 54 Q78 42 88 32 Q97 22 89 10" stroke="#e4d8c6" stroke-width="4"/><path d="M110 52 Q120 40 110 30 Q101 20 111 10" stroke="#e4d8c6" stroke-width="4"/><path d="M89 48 Q83 42 87 36" stroke="#f6efe4" stroke-width="2"/></g> <rect x="60" y="30" width="10" height="70" fill="#8a5532" transform="rotate(-14 65 65)"/> <rect x="63" y="30" width="3" height="70" fill="#b47b4a" transform="rotate(-14 65 65)"/> <path d="M60 31 L70 31" stroke="#6a3f24" stroke-width="2" transform="rotate(-14 65 65)"/> <path d="M94 158 L106 158 L106 180 Q128 183 136 194 Q100 202 64 194 Q72 183 94 180 Z" fill="#e6ddcf"/> <path d="M97 160 L97 182 Q80 186 72 193" fill="none" stroke="#fbf7ef" stroke-width="2.4" stroke-linecap="round"/> <path d="M66 194 Q100 201 134 194" fill="none" stroke="#bfae95" stroke-width="2"/> <g clip-path="url(#wb)"> <rect width="200" height="220" fill="#ebe3d6"/> <rect x="60" y="30" width="10" height="70" fill="#8a5532" transform="rotate(-14 65 65)"/> <rect x="63" y="30" width="3" height="70" fill="#b47b4a" transform="rotate(-14 65 65)"/> <rect x="0" y="92" width="200" height="80" fill="#7a1f2b"/> <ellipse cx="100" cy="92" rx="50" ry="5.5" fill="#9c2f37"/> <polygon points="40,96 72,96 66,170 40,170" fill="#5a1522" opacity=".75"/> <rect x="114" y="98" width="30" height="9" fill="#b2393d" opacity=".85" transform="rotate(10 128 102)"/> <path d="M80 110 Q88 103 96 110 Q99 122 88 133 Q77 122 80 110 Z" fill="#d6404a"/> <path d="M83 108 L88 102 L93 108 Z" fill="#6f8a55"/> <g fill="#f3c9a0"><ellipse cx="85" cy="115" rx="1.3" ry="1.8"/><ellipse cx="91" cy="114" rx="1.3" ry="1.8"/><ellipse cx="88" cy="121" rx="1.3" ry="1.8"/><ellipse cx="84" cy="124" rx="1.2" ry="1.6"/><ellipse cx="92" cy="123" rx="1.2" ry="1.6"/></g> <g transform="rotate(-14 118 130)"><path d="M103 130 A15 15 0 0 1 133 130 Z" fill="#f2e2bc"/> <path d="M110 130 Q118 119 126 130" fill="none" stroke="#e0cb98" stroke-width="1.6"/> <path d="M103 130 A15 15 0 0 1 133 130" fill="none" stroke="#b6462f" stroke-width="3.4" stroke-linecap="round"/> <ellipse cx="115.5" cy="126" rx="1.5" ry="2.4" fill="#4a3b2e" transform="rotate(-20 115.5 126)"/><ellipse cx="120.5" cy="126" rx="1.5" ry="2.4" fill="#4a3b2e" transform="rotate(20 120.5 126)"/></g> <rect x="0" y="104" width="200" height="70" fill="#7a1f2b" opacity=".32"/> <rect x="96" y="138" width="22" height="7" fill="#c4523f" opacity=".6" transform="rotate(-12 107 141)"/> <polygon points="40,146 160,140 160,172 40,172" fill="#5d4a66" opacity=".3"/> <path d="M60 80 Q57 114 76 140" fill="none" stroke="#fffaf0" stroke-width="4.5" stroke-linecap="round" opacity=".85"/> <path d="M142 86 Q144 110 132 130" fill="none" stroke="#fffaf0" stroke-width="2" stroke-linecap="round" opacity=".5"/> </g> <path d="M50 74 Q54 128 80 150 Q92 156 94 160 M150 74 Q146 128 120 150 Q108 156 106 160" fill="none" stroke="#bfae95" stroke-width="1.8"/> <ellipse cx="100" cy="72" rx="50" ry="6" fill="none" stroke="#c9b9a2" stroke-width="2.2"/> <path d="M54 70 Q78 66 96 66" fill="none" stroke="#fffaf0" stroke-width="2" stroke-linecap="round"/> <circle cx="142" cy="72" r="17" fill="#e48a2e"/> <circle cx="142" cy="72" r="13.5" fill="#f6b851"/> <g stroke="#fde3a4" stroke-width="1.8" stroke-linecap="round"><path d="M142 72 L142 59.5"/><path d="M142 72 L152.8 65.7"/><path d="M142 72 L152.8 78.3"/><path d="M142 72 L142 84.5"/><path d="M142 72 L131.2 78.3"/><path d="M142 72 L131.2 65.7"/></g> <circle cx="142" cy="72" r="2.4" fill="#fde3a4"/> <path d="M128 64 Q134 57 144 56" fill="none" stroke="#f7c06a" stroke-width="2" stroke-linecap="round"/> </svg>`);
 /* the pale yellow dress from Julian's birthday, coffee still on the skirt */
 const DRESS_SRC="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="22 14 156 204"> <defs><clipPath id="yd"><path d="M70 40 Q85 33 100 45 Q115 33 130 40 Q128 66 116 90 Q128 112 146 150 Q160 178 160 190 Q150 200 138 194 Q128 204 116 196 Q104 206 92 196 Q80 204 70 194 Q56 200 44 190 Q42 178 54 150 Q72 112 84 90 Q72 66 70 40 Z"/></clipPath></defs> <g fill="#faf7f0" stroke="#faf7f0" stroke-width="16" stroke-linejoin="round"> <path d="M70 40 Q85 33 100 45 Q115 33 130 40 Q128 66 116 90 Q128 112 146 150 Q160 178 160 190 Q150 200 138 194 Q128 204 116 196 Q104 206 92 196 Q80 204 70 194 Q56 200 44 190 Q42 178 54 150 Q72 112 84 90 Q72 66 70 40 Z"/> <ellipse cx="62" cy="48" rx="13" ry="10" transform="rotate(-20 62 48)"/><ellipse cx="138" cy="48" rx="13" ry="10" transform="rotate(20 138 48)"/> </g> <ellipse cx="62" cy="48" rx="13" ry="10" transform="rotate(-20 62 48)" fill="#f3df98"/><ellipse cx="138" cy="48" rx="13" ry="10" transform="rotate(20 138 48)" fill="#e2c46c"/> <path d="M53 47 Q60 40 70 42" fill="none" stroke="#fbf0c6" stroke-width="3" stroke-linecap="round"/> <g clip-path="url(#yd)"> <rect width="200" height="220" fill="#f1da8c"/> <polygon points="30,96 84,90 66,210 26,210" fill="#d9b75f" opacity=".75"/> <polygon points="136,120 176,150 176,210 130,210" fill="#c9a24e" opacity=".5"/> <rect x="86" y="44" width="11" height="44" fill="#fbefc2" opacity=".85" transform="rotate(-6 92 66)"/> <rect x="94" y="104" width="13" height="96" fill="#fbf0c8" opacity=".7" transform="rotate(4 100 150)"/> <rect x="116" y="104" width="8" height="94" fill="#e1bf66" opacity=".8" transform="rotate(-16 120 150)"/> <rect x="72" y="106" width="8" height="94" fill="#d6b35c" opacity=".7" transform="rotate(16 76 150)"/> <rect x="60" y="86" width="80" height="10" fill="#e0bc5e"/> <rect x="66" y="88" width="30" height="3.5" fill="#f6e3a4"/> <polygon points="30,182 170,174 170,212 30,212" fill="#5d4a66" opacity=".2"/> <path d="M110 132 Q124 122 137 132 Q146 144 139 155 Q142 165 132 166 Q126 177 118 168 Q107 172 107 160 Q98 152 105 143 Q102 135 110 132 Z" fill="#8b5a35" opacity=".9"/> <path d="M116 137 Q125 131 132 139 Q136 148 128 154 Q120 159 114 152 Q110 144 116 137 Z" fill="#a8744a" opacity=".85"/> <path d="M129 166 Q131 177 128 186" fill="none" stroke="#8b5a35" stroke-width="4" stroke-linecap="round" opacity=".85"/> <path d="M113 168 Q112 173 114 178" fill="none" stroke="#8b5a35" stroke-width="3" stroke-linecap="round" opacity=".8"/> <circle cx="147" cy="124" r="3" fill="#8b5a35" opacity=".8"/><circle cx="101" cy="124" r="2.2" fill="#8b5a35" opacity=".7"/> </g> <path d="M100 91 L88 84 L88 98 Z M100 91 L112 84 L112 98 Z" fill="#e8c86c" stroke="#c9a24e" stroke-width="1.4" stroke-linejoin="round"/> <circle cx="100" cy="91" r="3.2" fill="#f6e3a4" stroke="#c9a24e" stroke-width="1.2"/> </svg>`);
@@ -934,7 +934,8 @@ const STK={
   /* her hot wine. Iris gets a cup too, and has opinions */
   wine:{ el:$("#wine"), src:WINE_SRC, owner:"aurelia", s:1, r:-5, bagKey:"helios-wine-in-bag", posKey:"helios-sticker-wine", startInBag:true },
   wine_iris:{ el:$("#wine2"), src:WINE_SRC, owner:"iris", s:1, r:5, bagKey:"helios-wine-iris-in-bag", posKey:"helios-sticker-wine-iris", startInBag:true },
-  whisky:{ el:$("#whisky"), src:WHISKY_SRC, owner:"iris", s:1, r:4, bagKey:"helios-whisky-in-bag", posKey:"helios-sticker-whisky", startInBag:true }
+  whisky:{ el:$("#whisky"), src:WHISKY_SRC, owner:"iris", s:1, r:4, bagKey:"helios-whisky-in-bag", posKey:"helios-sticker-whisky", startInBag:true },
+  tail:{ el:$("#tail"), src:TAIL_ICON, owner:"iris", s:1, r:-6, bagKey:"helios-tail-in-bag", posKey:"helios-sticker-tail", startInBag:true }
 };
 /* a line from the owner, said beside the thing in hand */
 const sayEl=$("#say");
@@ -1078,8 +1079,8 @@ const ITEMS = {
   wine:{ owner:"aurelia", name:"热红酒", icon:WINE_SRC, sticker:true, says:{} },
   wine_iris:{ owner:"iris", name:"热红酒", icon:WINE_SRC, sticker:true, says:{} },
   whisky:{ owner:"iris", name:"威士忌", icon:WHISKY_SRC, sticker:true, says:{} },
-  /* a bottom, and only under the long waistcoat. she says no, and no, and no; ask her six times and she gives in (and stays given in) */
-  bunny:{ owner:"iris", name:"兔子尾巴", icon:TAIL_ICON, wear:"bottom", fig:"images/iris-bunny.webp?v=2", size:[814,1776] },
+  /* a white puff that turned up among her things. not for wearing: click it and read */
+  tail:{ owner:"iris", name:"兔子尾巴", icon:TAIL_ICON, entry:"tail", sticker:true },
   /* a dress, not a sticker: it lives in her bag, and she will not put it on */
   ydress:{ owner:"aurelia", name:"黄色礼裙", icon:DRESS_SRC, entry:"ydress", sore:true, found:"helios-ydress-found", says:{} },
   /* outfits swap the standing portrait itself: same scale, same frame */
@@ -1094,7 +1095,7 @@ const ITEMS = {
 };
 const BAG_N=12;    /* three rows of four */
 const fillBag=b=>b.concat(Array(BAG_N-b.length).fill(null));
-const INV={ iris:{ bag:fillBag(["drape","uniform_iris","vest_long","bunny"])   /* the short waistcoat and the white leather are off for now (their items and portraits are kept) */, worn:{outer:null,top:null,bottom:null} }, aurelia:{ bag:fillBag(["uniform_aurelia","corona"]), worn:{outer:null,top:null,bottom:null} } };
+const INV={ iris:{ bag:fillBag(["drape","uniform_iris","vest_long"])   /* the short waistcoat and the white leather are off for now (their items and portraits are kept) */, worn:{outer:null,top:null,bottom:null} }, aurelia:{ bag:fillBag(["uniform_aurelia","corona"]), worn:{outer:null,top:null,bottom:null} } };
 Object.keys(STK).forEach(id=>{ if(inBag(id)){ const b=INV[STK[id].owner].bag, i=b.indexOf(null); if(i>=0) b[i]=id; } });
 /* things an entry hands over go straight into the bag, once found */
 Object.entries(ITEMS).forEach(([id,it])=>{ if(it.found && store.get(it.found)){ const b=INV[it.owner].bag, i=b.indexOf(null); if(i>=0) b[i]=id; } });
@@ -1128,8 +1129,6 @@ window.renderSkins=()=>{
   const s=me();
   /* the apple and the rope only stay on as a top while the white cloth is on */
   if((s.worn.top==="apple" || s.worn.top==="rope") && s.worn.bottom!=="drape"){ const t=s.worn.top; s.worn.top=null; const j=s.bag.indexOf(null); if(j>=0) s.bag[j]=t; }
-  /* the tail only stays on under the long waistcoat */
-  if(s.worn.bottom==="bunny" && s.worn.top!=="vest_long"){ s.worn.bottom=null; const j=s.bag.indexOf(null); if(j>=0) s.bag[j]="bunny"; }
   /* the white leather is only ever painted over the long black waistcoat: without it, the coat comes off too */
   if(s.worn.outer==="leather" && s.worn.top!=="vest_long"){ s.worn.outer=null; const j=s.bag.indexOf(null); if(j>=0) s.bag[j]="leather"; }
   invGrid.innerHTML=s.bag.map((id,i)=>slotHTML(id, `data-drop="bag" data-i="${i}"`)).join("");
@@ -1196,8 +1195,7 @@ function applySkin(){
   document.body.classList.toggle("skin-day", !!sk && sk.mood==="light");
   if(sk) swapSkinArt(sk.art, `${PEOPLE[cur].full}，${sk.name}`, wasSkinned);
   /* an outfit: the standing portrait changes, the scene stays as it is */
-  /* the tail under the waistcoat: the waistcoat comes off in the painting, the bunny suit is what shows */
-  const outfit=s.worn.bottom==="bunny" ? ITEMS.bunny : Object.values(s.worn).map(id=>id && ITEMS[id].fig ? ITEMS[id] : null).find(Boolean);
+  const outfit=Object.values(s.worn).map(id=>id && ITEMS[id].fig ? ITEMS[id] : null).find(Boolean);
   const src=outfit ? outfit.fig : PEOPLE[cur].img;
   const sz=outfit ? outfit.size : PEOPLE[cur].fig;
   /* some outfits bring their own profile */
@@ -1225,14 +1223,12 @@ function putInBag(id, i){
     const p=store.get(k.posKey); if(p){ p[4]=0; store.set(k.posKey, p); } syncStickers(); }
   renderSkins();
 }
-const BUNNY_ASKS=6;   /* the sixth time you insist, she puts it on */
-function canWear(id, slot){ const s=me(); if(id==="bunny" && (s.worn.top!=="vest_long" || (!store.get("helios-bunny-ok") && (turns["bunnybottom"]||0)<BUNNY_ASKS-1))) return false; return ITEMS[id].wear===slot || ((id==="apple" || id==="rope") && slot==="top" && s.worn.bottom==="drape"); }
+function canWear(id, slot){ const s=me(); return ITEMS[id].wear===slot || ((id==="apple" || id==="rope") && slot==="top" && s.worn.bottom==="drape"); }
 function wear(id, slot){
   const s=me(); if(!canWear(id, slot)) return false;
   const prev=s.worn[slot]; takeOut(id);
   if(prev && prev!==id){ const j=s.bag.indexOf(null); if(j>=0) s.bag[j]=prev; }
   s.worn[slot]=id;
-  if(id==="bunny" && !store.get("helios-bunny-ok")){ store.set("helios-bunny-ok", true); if(WHISKY.on) setTimeout(()=>sayLine(WHISKY.on, "iris"), 600); }
   /* the coat goes on over the long waistcoat: whatever top she had comes off, the waistcoat goes on under */
   if(id==="leather" && s.worn.top!=="vest_long"){ const t=s.worn.top; takeOut("vest_long"); if(t){ const j=s.bag.indexOf(null); if(j>=0) s.bag[j]=t; } s.worn.top="vest_long"; }
   if(STK[id]){ store.set(STK[id].bagKey, true); syncStickers(); }
@@ -1307,7 +1303,7 @@ function drink(id){
 }
 const isWine=id=>id==="wine" || id==="wine_iris";
 /* whisky: her own drink, nothing more */
-const WHISKY={ plain:[], on:"" };    /* from 台词.md */
+const WHISKY={ plain:[] };    /* from 台词.md */
 let whiskySips=0;
 function sipWhisky(){
   if(PEOPLE[cur].id!=="iris" || document.body.classList.contains("skinned")) return false;
@@ -1319,15 +1315,14 @@ function sipWhisky(){
    each list runs in order and then stays on its last line */
 const JOKES={};     /* from 台词.md: the wrong slot gets a line from its owner */
 let TAKEN_LINE="";
-/* the tail only gets an answer under the long waistcoat; anywhere else the slot just shakes its head */
-const hasJoke=(id, slot)=>!!(JOKES[id] && JOKES[id][slot]) && !(id==="bunny" && me().worn.top!=="vest_long");
+const hasJoke=(id, slot)=>!!(JOKES[id] && JOKES[id][slot]);
 let joking=false; const turns={};
 function joke(id, where){
   if(joking) return; joking=true;
   where=where||"top";
   sayEl.classList.remove("show"); clearTimeout(sayEl._t);
   const s=me(), box=equip.querySelector(`.eq.${where}`), quip=box.querySelector(".quip");
-  const taken = !!s.worn[where] && id!=="bunny";
+  const taken = !!s.worn[where];
   const L=JOKES[id][where], n=turns[id+where]||0;
   const line = taken ? TAKEN_LINE : L[Math.min(n, L.length-1)];
   if(!taken) turns[id+where]=n+1;
@@ -1429,7 +1424,7 @@ const CONTENT={
   stories:{ iris:"iris/故事.md", aurelia:"aurelia/故事.md" },
   outfits:{ iris_academy:"iris/学院制服.md", iris_capital:"iris/首都篇.md", iris_cabinet:"iris/内阁篇.md", iris_drape:"iris/倒吊人.md", aurelia_academy:"aurelia/学院制服.md", aurelia_king:"aurelia/日冕.md" },
   entries:{ meta:"词条/形而上学魔法.md", civilwar:"词条/北方内战.md", birthday:"词条/生日宴闹剧.md",
-            apple:"物品/苹果.md", rope:"物品/绞索.md", ydress:"物品/黄色礼裙.md", winter:"秘闻/那个冬天.md" },
+            apple:"物品/苹果.md", tail:"物品/兔子尾巴.md", rope:"物品/绞索.md", ydress:"物品/黄色礼裙.md", winter:"秘闻/那个冬天.md" },
   lines:"台词.md"
 };
 const SORE_KEYS=new Set(["birthday"]);     /* links to these sting Aurelia */
@@ -1493,7 +1488,7 @@ const LINE_SLOTS={ "苹果 · TOP":["apple","top"], "苹果 · BOTTOM":["apple",
   "小鹿 · TOP":["deer","top"], "小鹿 · BOTTOM":["deer","bottom"], "Aurelia 的小鹿 · TOP":["deer_aurelia","top"],
   "绞索 · TOP":["rope","top"], "绞索 · BOTTOM":["rope","bottom"],
   "黄色礼裙 · TOP":["ydress","top"], "黄色礼裙 · BOTTOM":["ydress","bottom"],
-  "兔子尾巴 · BOTTOM":["bunny","bottom"] };
+  "兔子尾巴 · TOP":["tail","top"], "兔子尾巴 · BOTTOM":["tail","bottom"] };
 function parseLines(md){
   sectionsOf(splitFront(md)[1],2).filter(s=>s.h).forEach(s=>{ const L=bullets(s.text); if(!L.length) return;
     const slot=LINE_SLOTS[s.h];
@@ -1515,7 +1510,6 @@ function parseLines(md){
     else if(s.h==="Aurelia · 生日宴") SORE_LINES=L;
     else if(s.h==="卡槽已占用") TAKEN_LINE=L[0];
     else if(s.h==="Iris · 喝威士忌") WHISKY.plain=L;
-    else if(s.h==="兔子尾巴 · 穿上") WHISKY.on=L[0];
     else if(s.h==="威士忌 · 拿起") ITEMS.whisky.says.move=L[0];
   });
 }
