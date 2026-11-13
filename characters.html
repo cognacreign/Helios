@@ -372,6 +372,7 @@
   .eq .fig em:not(:empty)::before{ content:"·"; margin:0 .45em; color:var(--dim) }
   .inv .bagtag span.named{ font-family:var(--sans); letter-spacing:.06em; font-size:.72rem; color:var(--ink) }
   .eq.outer{ top:0 } .eq.top{ top:25% } .eq.bottom{ top:50% }
+  .eq.outer{ display:none }   /* nothing to wear over the top for now: the white leather is off */
 
   /* the apple tried on as a top: caught, refused, sent back */
   .quip{ position:absolute; right:0; top:calc(100% + .55rem); width:11rem; text-align:right; font-family:var(--serif); font-size:.8rem; line-height:1.6;
@@ -1074,7 +1075,7 @@ const ITEMS = {
   /* outfits swap the standing portrait itself: same scale, same frame */
   uniform_iris:{ owner:"iris", name:"北方学院制服", icon:UNIFORM_ICON, wear:"top", fig:"images/iris-academy.webp?v=2", size:[908,1616], sheet:"iris_academy" },
   vest_short:{ owner:"iris", name:"短马甲", icon:VEST_SHORT_ICON, wear:"top", fig:"images/iris-capital.webp", size:[814,1616], sheet:"iris_capital" },
-  vest_long:{ owner:"iris", name:"长黑马甲", icon:VEST_LONG_ICON, wear:"top", fig:"images/iris-cabinet.webp", size:[814,1616], sheet:"iris_cabinet" },
+  vest_long:{ owner:"iris", name:"长黑马甲", icon:VEST_LONG_ICON, wear:"top", fig:"images/iris-cabinet.webp?v=2", size:[814,1616], sheet:"iris_cabinet" },
   /* the white leather goes over the long waistcoat only: putting it on puts that on underneath */
   leather:{ owner:"iris", name:"白皮衣", icon:LEATHER_ICON, wear:"outer", fig:"images/iris-cabinet-coat.webp", size:[814,1616], sheet:"iris_cabinet" },
   uniform_aurelia:{ owner:"aurelia", name:"北方学院制服", icon:UNIFORM_ICON, wear:"top", fig:"images/aurelia-academy.webp?v=2", size:[814,1616], sheet:"aurelia_academy" },
@@ -1083,7 +1084,7 @@ const ITEMS = {
 };
 const BAG_N=12;    /* three rows of four */
 const fillBag=b=>b.concat(Array(BAG_N-b.length).fill(null));
-const INV={ iris:{ bag:fillBag(["drape","uniform_iris","vest_short","vest_long","leather"]), worn:{outer:null,top:null,bottom:null} }, aurelia:{ bag:fillBag(["uniform_aurelia","corona"]), worn:{outer:null,top:null,bottom:null} } };
+const INV={ iris:{ bag:fillBag(["drape","uniform_iris","vest_long"])   /* the short waistcoat and the white leather are off for now (their items and portraits are kept) */, worn:{outer:null,top:null,bottom:null} }, aurelia:{ bag:fillBag(["uniform_aurelia","corona"]), worn:{outer:null,top:null,bottom:null} } };
 Object.keys(STK).forEach(id=>{ if(inBag(id)){ const b=INV[STK[id].owner].bag, i=b.indexOf(null); if(i>=0) b[i]=id; } });
 /* things an entry hands over go straight into the bag, once found */
 Object.entries(ITEMS).forEach(([id,it])=>{ if(it.found && store.get(it.found)){ const b=INV[it.owner].bag, i=b.indexOf(null); if(i>=0) b[i]=id; } });
